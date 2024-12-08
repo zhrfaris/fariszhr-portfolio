@@ -9,3 +9,8 @@ export default async function Home() {
     </>
   );
 }
+
+// TODOList
+// 1. make schemas for database
+// 2. make authentication
+// 3. Figuring out TinyMCE upload image

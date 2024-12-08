@@ -3,20 +3,44 @@ import React from "react";
 import styles from "./showcase-card.module.scss";
 import { cn } from "@/lib/utils";
 import { source_serif_pro } from "@/lib/fonts";
+import Link from "next/link";
 
 const ShowcaseCard = ({
   title,
   description,
   type = "default",
   className,
+  slug,
 }: {
   title: string;
   description: string;
   type?: "default" | "wide" | "small";
   className?: string;
+  slug?: string;
 }) => {
+  const Wrapper = ({
+    children,
+    slug,
+    className,
+  }: {
+    children: React.ReactNode;
+    className?: string;
+    slug?: string;
+  }) => {
+    if (!!slug) {
+      return (
+        <Link className={className} href={`/portfolios/${slug}`}>
+          {children}
+        </Link>
+      );
+    }
+
+    return <div className={className}>{children}</div>;
+  };
+
   return (
-    <div
+    <Wrapper
+      slug={slug}
       className={cn(
         "rounded-xl h-[215px] overflow-hidden col-span-12",
         type === "default" && "md:col-span-6",
@@ -56,7 +80,7 @@ const ShowcaseCard = ({
           )}
         ></div>
       </div>
-    </div>
+    </Wrapper>
   );
 };
 

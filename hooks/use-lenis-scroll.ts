@@ -23,12 +23,16 @@ const useLenisScroll = () => {
     };
   }, []);
 
+  const easeInOutCubic = (t: number) => {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  };
+
+  const scrollToTop = () => {
+    lenisRef.current?.scrollTo(0);
+  };
+
   const scrollToSectionId = (sectionId: string) => {
     const showcaseSection = document.getElementById(sectionId);
-
-    const easeInOutCubic = (t: number) => {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    };
 
     if (showcaseSection && lenisRef.current) {
       // Use Lenis scroll method for smooth scrolling
@@ -42,6 +46,7 @@ const useLenisScroll = () => {
 
   return {
     scrollToSectionId,
+    scrollToTop,
   };
 };
 
