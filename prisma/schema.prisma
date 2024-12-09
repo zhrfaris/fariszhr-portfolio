@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  username   String @unique
+  email      String @unique
+  name       String
+  password   String
+  occupation String
+  tagline    String
+
+  cv_url         String?
+  deck_intro_url String?
+  linkedin_url   String?
+
+  photo Image?
+
+  workplaces Workplace[]
+  posts      Post[]
+  categories Category[]
+}
+
+model Post {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  slug    String @unique
+  title   String
+  excerpt String
+
+  header_image    Image
+  thumbnail_image Image
+  thumbnail_gif   Image
+
+  PostSection PostSection[]
+
+  categoryIds String[]   @db.ObjectId
+  categories  Category[] @relation(fields: [categoryIds], references: [id])
+
+  workplace   Workplace @relation(fields: [workplaceId], references: [id])
+  workplaceId String    @db.ObjectId
+
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId String @db.ObjectId
+}
+
+model PostSection {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  content   String
+  icon_type String
+
+  postId String @db.ObjectId
+  post   Post   @relation(fields: [postId], references: [id])
+}
+
+model Workplace {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  slug  String
+  name  String
+  url   String
+  image Image
+
+  posts Post[]
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
+}
+
+model Category {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  slug String
+  name String
+
+  postIds String[] @db.ObjectId
+  posts   Post[]   @relation(fields: [postIds], references: [id])
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
+}
+
+type Image {
+  public_id           String
+  img_url             String
+  img_url_thumbnail   String
+  img_url_placeholder String
+  img_width           Int
+  img_height          Int
+  img_type            String?
+}

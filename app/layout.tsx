@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { inter } from "@/lib/fonts";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -15,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={cn(inter.className, "antialiased")}>{children}</body>
+      <body className={cn(inter.className, "antialiased")}>
+        <>{children}</>
+        <Toaster />
+      </body>
     </html>
   );
 }

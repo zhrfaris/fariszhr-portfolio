@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { cn } from "@/lib/utils";
-import { inter } from "@/lib/fonts";
 import LenisProvider from "@/components/utils/providers/lenis-provider";
 import Header from "@/components/layouts/header";
 
@@ -15,13 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={cn(inter.className, "antialiased")}>
-        <Header />
-        <LenisProvider>
-          <main>{children}</main>
-        </LenisProvider>
-      </body>
-    </html>
+    <>
+      <Header />
+      <LenisProvider>
+        <main>{children}</main>
+      </LenisProvider>
+    </>
   );
 }
