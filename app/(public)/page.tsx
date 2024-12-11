@@ -11,6 +11,8 @@ export default async function Home() {
 }
 
 // TODOList
-// 1. make schemas for database
-// 2. make authentication
+////1. make schemas for database
+//// 2. make authentication
 // 3. Figuring out TinyMCE upload image
+// 4. update schema database PostSection untuk dynamic content text & image
+// 5. Upload image to cloudinary
