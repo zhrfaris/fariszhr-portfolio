@@ -22,12 +22,22 @@ export function SignIn() {
   const router = useRouter();
 
   const { execute, fieldErrors, isLoading } = useAction(signInAction, {
+    onProceed() {
+      toast.loading("Signing in...", {
+        id: "sign-in",
+      });
+    },
+    onFieldError() {
+      toast.dismiss("sign-in");
+    },
     onError() {
       toast.error("Invalid credentials");
+      toast.dismiss("sign-in");
     },
     onSuccess() {
       toast.success("Successfully signed in");
       router.push("/dashboard");
+      toast.dismiss("sign-in");
     },
   });
 

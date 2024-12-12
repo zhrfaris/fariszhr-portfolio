@@ -3,28 +3,32 @@
 import * as React from "react";
 import {
   AudioWaveform,
-  BookOpen,
-  Bot,
+  Blocks,
+  BriefcaseBusiness,
   Command,
   Frame,
   GalleryVerticalEnd,
+  House,
   Map,
+  Newspaper,
   PieChart,
-  Settings2,
-  SquareTerminal,
+  User,
 } from "lucide-react";
 
 import { NavMain } from "./nav-main";
-import { NavProjects } from "./nav-projects";
 import { NavUser } from "./nav-user";
-import { TeamSwitcher } from "./team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from "@/components/shadcn/sidebar";
+import Link from "next/link";
+import { Session } from "next-auth";
 
 // This is sample data.
 const data = {
@@ -52,89 +56,41 @@ const data = {
   ],
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
+      title: "Posts",
+      url: "/dashboard/posts",
+      icon: Newspaper,
+      // isActive: false,
+      // items: [
+      //   {
+      //     title: "History",
+      //     url: "#",
+      //   },
+      //   {
+      //     title: "Starred",
+      //     url: "#",
+      //   },
+      //   {
+      //     title: "Settings",
+      //     url: "#",
+      //   },
+      // ],
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
+      title: "Workplaces",
+      url: "/dashboard/workplaces",
+      icon: BriefcaseBusiness,
     },
     {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
+      title: "Categories",
+      url: "/dashboard/categories",
+      icon: Blocks,
     },
+  ],
+  profile: [
     {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+      title: "Profile",
+      url: "/dashboard/profile",
+      icon: User,
     },
   ],
   projects: [
@@ -156,19 +112,43 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  session,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { session: Session | null }) {
+  const user = {
+    name: session?.user?.name || "Guest",
+    email: session?.user?.email || "",
+    avatar: session?.user?.image || "",
+  };
+
+  console.log({ user, session, status });
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Link href="/dashboard">
+              <SidebarMenuButton>
+                <h4 className="font-bold group-data-[collapsible=icon]:hidden">
+                  Dashboard
+                </h4>
+                <House className="group-data-[state=expanded]:hidden" />
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain groupTitle="Profile" items={data.profile} />
+        <NavMain groupTitle="Posts" items={data.navMain} />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+      {session && (
+        <SidebarFooter>
+          <NavUser user={user} />
+        </SidebarFooter>
+      )}
       <SidebarRail />
     </Sidebar>
   );

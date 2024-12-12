@@ -3,6 +3,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { inter } from "@/lib/fonts";
 import { Toaster } from "sonner";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,8 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn(inter.className, "antialiased")}>
-        <>{children}</>
-        <Toaster />
+        <SessionProvider>
+          <>{children}</>
+          <Toaster richColors />
+        </SessionProvider>
       </body>
     </html>
   );
