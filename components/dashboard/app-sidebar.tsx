@@ -74,7 +74,7 @@ const data = {
   profile: [
     {
       title: "Profile",
-      url: "/dashboard/profile",
+      url: "#",
       icon: User,
       isActive: true,
       items: [
