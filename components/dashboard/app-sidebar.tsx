@@ -2,16 +2,10 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
   Blocks,
   BriefcaseBusiness,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
   House,
-  Map,
   Newspaper,
-  PieChart,
   User,
 } from "lucide-react";
 
@@ -30,30 +24,7 @@ import {
 import Link from "next/link";
 import { Session } from "next-auth";
 
-// This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
     {
       title: "Posts",
@@ -87,23 +58,6 @@ const data = {
           url: "/dashboard/profile/change-password",
         },
       ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
     },
   ],
 };
