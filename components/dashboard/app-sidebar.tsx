@@ -122,8 +122,6 @@ export function AppSidebar({
     avatar: session?.user?.image || "",
   };
 
-  console.log({ user, session, status });
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
