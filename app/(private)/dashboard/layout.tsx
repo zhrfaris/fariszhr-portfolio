@@ -1,20 +1,12 @@
 import { auth } from "@/auth";
-import { AppSidebar } from "@/components/dashboard/app-sidebar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/shadcn/breadcrumb";
 import { Separator } from "@/components/shadcn/separator";
+import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import HeaderBreadcrumb from "@/components/dashboard/header-breadcrumb";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/shadcn/sidebar";
-import Link from "next/link";
 import React from "react";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
@@ -30,19 +22,7 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink asChild>
-                    <Link href="/dashboard">Dashboard</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+            <HeaderBreadcrumb />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>

@@ -15,3 +15,34 @@ export const generateLoremIpsum = (length: number) => {
 
   return text.slice(0, length);
 };
+
+export function capitalizeEachWord(input: string): string {
+  return input
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export async function imageUrlToBase64(imageUrl: string): Promise<string> {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error("Failed to fetch image");
+    }
+
+    const blob = await response.blob();
+    const reader = new FileReader();
+
+    const base64Promise = new Promise<string>((resolve, reject) => {
+      reader.onerror = reject;
+      reader.onload = () => resolve(reader.result as string);
+    });
+
+    reader.readAsDataURL(blob);
+
+    return base64Promise;
+  } catch (error) {
+    console.error("Error fetching or encoding image:", error);
+    throw error;
+  }
+}
