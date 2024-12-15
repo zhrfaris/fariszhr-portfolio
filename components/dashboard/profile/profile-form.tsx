@@ -4,6 +4,7 @@ import { User } from "@/actions/user/get/type";
 import { updateUser } from "@/actions/user/update";
 import FormInput from "@/components/form/form-input";
 import FormTextarea from "@/components/form/form-textarea";
+import FormWrapper from "@/components/form/form-wrapper";
 import { Button } from "@/components/shadcn/button";
 import { Separator } from "@/components/shadcn/separator";
 import { useAction } from "@/hooks/use-action";
@@ -46,14 +47,6 @@ const ProfileForm = ({ user }: { user: User }) => {
       cv_url,
       deck_intro_url,
     });
-  };
-
-  const FormWrapper = ({ children }: { children: React.ReactNode }) => {
-    return (
-      <div className="grid md:grid-cols-2 gap-4 md:gap-8 w-full">
-        {children}
-      </div>
-    );
   };
 
   return (
