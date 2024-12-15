@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -37,10 +37,20 @@ const HeaderBreadcrumb = () => {
   const [previousPage, setPreviousPage] = useState<Crumb | undefined>();
   const [restPages, setRestPages] = useState<Crumb[]>([]);
 
+  const resetCrumbs = useCallback(() => {
+    setCrumbs([]);
+    setCurrentPage(undefined);
+    setRootPage(undefined);
+    setPreviousPage(undefined);
+    setRestPages([]);
+  }, []);
+
   useEffect(() => {
     if (crumbs.length === 0) {
       return;
     }
+
+    console.log({ crumbs });
 
     const transformLabel = (slug: string) => {
       return capitalizeEachWord(slug.split("-").join(" "));
@@ -89,9 +99,11 @@ const HeaderBreadcrumb = () => {
   }, [crumbs]);
 
   useEffect(() => {
+    resetCrumbs();
+
     const newCrumbs = params.split("/").filter((p) => p !== "");
     setCrumbs(newCrumbs);
-  }, [params]);
+  }, [params, resetCrumbs]);
 
   if (!rootPage) {
     return (

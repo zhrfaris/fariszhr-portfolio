@@ -59,21 +59,6 @@ const data = {
       title: "Posts",
       url: "/dashboard/posts",
       icon: Newspaper,
-      // isActive: false,
-      // items: [
-      //   {
-      //     title: "History",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Starred",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Settings",
-      //     url: "#",
-      //   },
-      // ],
     },
     {
       title: "Workplaces",
@@ -91,6 +76,17 @@ const data = {
       title: "Profile",
       url: "/dashboard/profile",
       icon: User,
+      isActive: true,
+      items: [
+        {
+          title: "Manage Profile",
+          url: "/dashboard/profile/edit-profile",
+        },
+        {
+          title: "Change Password",
+          url: "/dashboard/profile/change-password",
+        },
+      ],
     },
   ],
   projects: [

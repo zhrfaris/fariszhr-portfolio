@@ -47,22 +47,27 @@ export function NavMain({ items, groupTitle }: NavMainProps) {
             className="group/collapsible"
           >
             <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <Link href={item.url}>
-                  <SidebarMenuButton tooltip={item.title}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                    <ChevronRight
-                      className={cn(
-                        "ml-auto",
-                        item.items &&
-                          item.items?.length > 0 &&
-                          "transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-                      )}
-                    />
-                  </SidebarMenuButton>
-                </Link>
-              </CollapsibleTrigger>
+              <Link href={item.url}>
+                <SidebarMenuButton tooltip={item.title}>
+                  {item.icon && <item.icon />}
+                  <span>{item.title}</span>
+                  {item.items && item.items?.length > 0 && (
+                    <CollapsibleTrigger
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ChevronRight
+                        className={cn(
+                          "ml-auto",
+                          item.items &&
+                            item.items?.length > 0 &&
+                            "transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                        )}
+                      />
+                    </CollapsibleTrigger>
+                  )}
+                </SidebarMenuButton>
+              </Link>
               {item.items && item.items?.length > 0 && (
                 <CollapsibleContent>
                   <SidebarMenuSub>
