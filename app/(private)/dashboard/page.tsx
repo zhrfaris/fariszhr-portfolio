@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import DbPageWrapper from "@/components/dashboard/page-wrapper";
 import { redirect } from "next/navigation";
 import React from "react";
 
@@ -10,9 +11,9 @@ const DashboardPage = async () => {
   }
 
   return (
-    <>
-      <h1 className="font-bold text-3xl">Home</h1>
-    </>
+    <DbPageWrapper title="Dashboard">
+      <h1>Dashboard</h1>
+    </DbPageWrapper>
   );
 };
 

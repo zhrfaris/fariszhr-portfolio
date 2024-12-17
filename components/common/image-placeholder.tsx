@@ -58,26 +58,40 @@ const ImagePlaceholder = ({
                 e.preventDefault();
                 onEdit();
               }}
-              className="absolute bottom-0 inset-x-0 w-full bg-foreground/80 text-background hidden group-hover:flex"
+              className="absolute bottom-0 inset-x-0 w-full bg-foreground/80 text-background hidden group-hover:flex rounded-none"
             >
               <Pen className="h-4 w-4" />
             </Button>
           )}
         </>
       ) : (
-        <div
-          className={cn(
-            "size-full flex items-center justify-center",
-            !!onEdit && "cursor-pointer"
+        <>
+          <div
+            className={cn(
+              "size-full flex items-center justify-center",
+              !!onEdit && "cursor-pointer"
+            )}
+            onClick={() => {
+              if (!!onEdit && isMounted) {
+                onEdit();
+              }
+            }}
+          >
+            <ImageIcon className="text-white size-12" />
+          </div>
+          {!!onEdit && isMounted && (
+            <Button
+              size="icon"
+              onClick={(e) => {
+                e.preventDefault();
+                onEdit();
+              }}
+              className="absolute bottom-0 inset-x-0 w-full group-hover:bg-black/80 text-background hidden group-hover:flex rounded-none"
+            >
+              <Pen className="h-4 w-4" />
+            </Button>
           )}
-          onClick={() => {
-            if (!!onEdit && isMounted) {
-              onEdit();
-            }
-          }}
-        >
-          <ImageIcon className="text-white size-12" />
-        </div>
+        </>
       )}
     </div>
   );

@@ -1,10 +1,11 @@
+import DbPageWrapper from "@/components/dashboard/page-wrapper";
 import React from "react";
 
 const ManagePostPage = () => {
   return (
-    <>
-      <h1 className="font-bold text-3xl">Posts</h1>
-    </>
+    <DbPageWrapper title="Posts">
+      <h1>All Posts</h1>
+    </DbPageWrapper>
   );
 };
 

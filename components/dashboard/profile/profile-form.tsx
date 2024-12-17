@@ -8,27 +8,19 @@ import FormWrapper from "@/components/form/form-wrapper";
 import { Button } from "@/components/shadcn/button";
 import { Separator } from "@/components/shadcn/separator";
 import { useAction } from "@/hooks/use-action";
-import {
-  CldUploadWidget,
-  CloudinaryUploadWidgetInfo,
-  CloudinaryUploadWidgetResults,
-} from "next-cloudinary";
+import { CldUploadWidget } from "next-cloudinary";
 import { toast } from "sonner";
-import { Image as ImageType } from "@prisma/client";
-import { imageUrlToBase64 } from "@/lib/utils";
-import { useState } from "react";
 import useCloudinary from "@/hooks/use-cloudinary";
 import ImagePlaceholder from "@/components/common/image-placeholder";
 
 const ProfileForm = ({ user }: { user: User }) => {
-  const [profileImage, setProfileImage] = useState<ImageType | undefined>(
-    user?.photo ?? undefined
-  );
-  const [willDeleteImage, setWillDeleteImage] = useState<
-    ImageType | undefined
-  >();
-
-  const { onDeleteCloudinaryImage } = useCloudinary();
+  const {
+    currentImage: profileImage,
+    deleteUnUsedImages,
+    onSuccessUploadImageHandler,
+  } = useCloudinary({
+    initialImage: user?.photo || undefined,
+  });
 
   const { execute, fieldErrors, isLoading } = useAction(updateUser, {
     onProceed: () => {
@@ -36,18 +28,7 @@ const ProfileForm = ({ user }: { user: User }) => {
     },
     onSuccess: async () => {
       toast.success("Profile updated!");
-
-      if (!!willDeleteImage) {
-        toast.info("Deleting unused profile image...");
-        await onDeleteCloudinaryImage(willDeleteImage?.public_id, {
-          onError: (error) => {
-            toast.error(`Error deleting item: ${error}`);
-          },
-          onSuccess: () => {
-            toast.success("Unused profile image deleted!");
-          },
-        });
-      }
+      await deleteUnUsedImages();
     },
     onComplete: () => {
       toast.dismiss("loading-update-profile");
@@ -81,36 +62,6 @@ const ProfileForm = ({ user }: { user: User }) => {
         ? { ...profileImage, img_type: profileImage?.img_type ?? undefined }
         : undefined,
     });
-  };
-
-  const onSuccessUploadImageHandler = async (
-    results: CloudinaryUploadWidgetResults
-  ) => {
-    const { secure_url, thumbnail_url, width, height, format, public_id } =
-      results.info as CloudinaryUploadWidgetInfo;
-
-    const newImage: ImageType = {
-      public_id,
-      img_url: secure_url,
-      img_url_thumbnail: thumbnail_url,
-      img_width: width,
-      img_height: height,
-      img_url_placeholder: thumbnail_url,
-      img_type: format,
-    };
-
-    try {
-      const base64 = await imageUrlToBase64(newImage.img_url_thumbnail);
-      newImage.img_url_placeholder = base64;
-    } catch (error) {
-      console.error("Error fetching or encoding image:", error);
-    }
-
-    if (!!profileImage?.public_id) {
-      setWillDeleteImage(profileImage);
-    }
-
-    setProfileImage(newImage);
   };
 
   return (
