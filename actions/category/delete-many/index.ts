@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { DeleteManyWorkplaces } from "./schema";
+import { DeleteManyCategories } from "./schema";
 import { revalidatePath } from "next/cache";
 import { ReturnType, InputType } from "./types";
 import { createSafeAction } from "@/lib/create-safe-action";
@@ -21,7 +21,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   // remove all connections
   try {
     const unassignTransactions = ids.map((id) =>
-      db.workplace.update({
+      db.category.update({
         where: {
           id,
         },
@@ -42,30 +42,30 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
-  let workplaces;
+  let categories;
 
   try {
     const transactions = ids.map((id) =>
-      db.workplace.delete({
+      db.category.delete({
         where: {
           id: id,
         },
       })
     );
 
-    workplaces = await db.$transaction(transactions);
+    categories = await db.$transaction(transactions);
   } catch (error) {
     console.log(error);
     return {
-      error: "Failed to delete selected workplaces",
+      error: "Failed to delete selected categories",
     };
   }
 
-  revalidatePath("/dashboard/workplaces");
-  return { data: workplaces };
+  revalidatePath("/dashboard/categories");
+  return { data: categories };
 };
 
-export const deleteManyWorkplaces = createSafeAction(
-  DeleteManyWorkplaces,
+export const deleteManyCategories = createSafeAction(
+  DeleteManyCategories,
   handler
 );

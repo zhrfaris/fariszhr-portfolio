@@ -94,7 +94,7 @@ model Workplace {
 
 model Category {
   id   String @id @default(auto()) @map("_id") @db.ObjectId
-  slug String
+  slug String @unique
   name String
 
   postIds String[] @db.ObjectId
