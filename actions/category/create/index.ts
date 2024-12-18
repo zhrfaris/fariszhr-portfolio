@@ -61,7 +61,4 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   return { data: category };
 };
 
-export const createCateCreateCategory = createSafeAction(
-  CreateCategory,
-  handler
-);
+export const createCategory = createSafeAction(CreateCategory, handler);
