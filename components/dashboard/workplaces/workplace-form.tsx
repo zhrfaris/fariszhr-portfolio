@@ -12,6 +12,7 @@ import { createWorkplace } from "@/actions/workplace/create";
 import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
 import { useRouter } from "next/navigation";
+import { updateWorkplace } from "@/actions/workplace/update";
 
 interface WorkplaceFormProps {
   workplace?: Workplace;
@@ -28,7 +29,11 @@ const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
     initialImage: workplace?.image || undefined,
   });
 
-  const { execute, fieldErrors, isLoading } = useAction(createWorkplace, {
+  const {
+    execute: executeCreate,
+    fieldErrors: createFieldErrors,
+    isLoading: createIsLoading,
+  } = useAction(createWorkplace, {
     onProceed: () => {
       toast.loading("Create workplace...", { id: "loading-create-workplace" });
     },
@@ -42,6 +47,24 @@ const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
     },
   });
 
+  const {
+    execute: executeUpdate,
+    fieldErrors: updateFieldErrors,
+    isLoading: updateIsLoading,
+  } = useAction(updateWorkplace, {
+    onProceed: () => {
+      toast.loading("Update workplace...", { id: "loading-update-workplace" });
+    },
+    onSuccess: async () => {
+      toast.success("Workplace updated!");
+      await deleteUnUsedImages();
+      router.push("/dashboard/workplaces");
+    },
+    onComplete: () => {
+      toast.dismiss("loading-update-workplace");
+    },
+  });
+
   const formAction = (formData: FormData) => {
     const name = formData.get("name") as string;
     const url = formData.get("url") as string;
@@ -51,7 +74,20 @@ const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
       return;
     }
 
-    execute({
+    if (workplace?.id) {
+      executeUpdate({
+        id: workplace.id,
+        name,
+        url,
+        image: {
+          ...workplaceImage,
+          img_type: workplaceImage?.img_type ?? undefined,
+        },
+      });
+      return;
+    }
+
+    executeCreate({
       name,
       url,
       image: {
@@ -94,7 +130,7 @@ const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
             id="name"
             defaultValue={workplace?.name}
             required={true}
-            errors={fieldErrors}
+            errors={workplace?.id ? createFieldErrors : updateFieldErrors}
           />
         </FormWrapper>
         <FormWrapper>
@@ -102,10 +138,10 @@ const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
             label="Workplace Website / Social URL"
             id="url"
             defaultValue={workplace?.url || ""}
-            errors={fieldErrors}
+            errors={workplace?.id ? createFieldErrors : updateFieldErrors}
           />
         </FormWrapper>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={createIsLoading || updateIsLoading}>
           Save
         </Button>
       </form>
