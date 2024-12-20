@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { getCategoryById, getCategories } from ".";
+import { getPosts, getPostById } from ".";
 
-export type Categories = Prisma.PromiseReturnType<typeof getCategories>;
-export type Category = Prisma.PromiseReturnType<typeof getCategoryById>;
+export type Posts = Prisma.PromiseReturnType<typeof getPosts>;
+export type Post = Prisma.PromiseReturnType<typeof getPostById>;

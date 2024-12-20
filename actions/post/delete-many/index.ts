@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { DeleteManyCategories } from "./schema";
+import { DeleteManyPosts } from "./schema";
 import { revalidatePath } from "next/cache";
 import { ReturnType, InputType } from "./types";
 import { createSafeAction } from "@/lib/create-safe-action";
@@ -21,15 +21,14 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   // remove all connections
   try {
     const unassignTransactions = ids.map((id) =>
-      db.category.update({
+      db.post.update({
         where: {
           id,
         },
         data: {
-          posts: { set: [] },
-          user: {
-            disconnect: true,
-          },
+          categories: { set: [] },
+          authorId: { set: undefined },
+          workplaceId: { set: undefined },
         },
       })
     );
@@ -42,30 +41,27 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
-  let categories;
+  let posts;
 
   try {
     const transactions = ids.map((id) =>
-      db.category.delete({
+      db.post.delete({
         where: {
           id: id,
         },
       })
     );
 
-    categories = await db.$transaction(transactions);
+    posts = await db.$transaction(transactions);
   } catch (error) {
     console.log(error);
     return {
-      error: "Failed to delete selected categories",
+      error: "Failed to delete selected posts",
     };
   }
 
-  revalidatePath("/dashboard/categories");
-  return { data: categories };
+  revalidatePath("/dashboard/posts");
+  return { data: posts };
 };
 
-export const deleteManyCategories = createSafeAction(
-  DeleteManyCategories,
-  handler
-);
+export const deleteManyPosts = createSafeAction(DeleteManyPosts, handler);

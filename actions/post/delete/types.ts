@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { Category } from "@prisma/client";
-import { DeleteCategory } from "./schema";
+import { Post } from "@prisma/client";
+import { DeletePost } from "./schema";
 import { ActionState } from "@/lib/create-safe-action";
 
-export type InputType = z.infer<typeof DeleteCategory>;
-export type ReturnType = ActionState<InputType, Category>;
+export type InputType = z.infer<typeof DeletePost>;
+export type ReturnType = ActionState<InputType, Post>;

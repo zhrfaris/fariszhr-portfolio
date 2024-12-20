@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { DeleteCategory } from "./schema";
+import { DeletePost } from "./schema";
 import { revalidatePath } from "next/cache";
 import { ReturnType, InputType } from "./types";
 import { createSafeAction } from "@/lib/create-safe-action";
@@ -18,40 +18,39 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   const { id } = data;
 
-  const existCategory = await db.category.findUnique({
+  const existPost = await db.post.findUnique({
     where: { id },
   });
 
-  if (!existCategory) {
+  if (!existPost) {
     return {
-      error: `category doesn't exist`,
+      error: `post doesn't exist`,
     };
   }
 
   // remove all connections
   try {
-    await db.category.update({
+    await db.post.update({
       where: {
         id,
       },
       data: {
-        posts: { set: [] },
-        user: {
-          disconnect: true,
-        },
+        categories: { set: [] },
+        authorId: { set: undefined },
+        workplaceId: { set: undefined },
       },
     });
   } catch (error) {
     console.log(error);
     return {
-      error: "Failed to unassign all category relations",
+      error: "Failed to unassign all post relations",
     };
   }
 
-  let category;
+  let post;
 
   try {
-    category = await db.category.delete({
+    post = await db.post.delete({
       where: {
         id,
       },
@@ -63,8 +62,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
-  revalidatePath("/dashboard/categories");
-  return { data: category };
+  revalidatePath("/dashboard/posts");
+  return { data: post };
 };
 
-export const deleteCategory = createSafeAction(DeleteCategory, handler);
+export const deletePost = createSafeAction(DeletePost, handler);

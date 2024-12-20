@@ -2,14 +2,14 @@
 
 import { db } from "@/lib/db";
 
-export const getCategories = async (userId: string) => {
-  return await db.category.findMany({ where: { user: { id: userId } } });
+export const getPosts = async (userId: string) => {
+  return await db.post.findMany({ where: { author: { id: userId } } });
 };
 
-export const getCategoryById = async (id: string) => {
-  return await db.category.findUnique({ where: { id } });
+export const getPostById = async (id: string) => {
+  return await db.post.findUnique({ where: { id } });
 };
 
-export const getCategoryBySlug = async (slug: string) => {
-  return await db.category.findUnique({ where: { slug } });
+export const getPostBySlug = async (slug: string) => {
+  return await db.post.findUnique({ where: { slug } });
 };

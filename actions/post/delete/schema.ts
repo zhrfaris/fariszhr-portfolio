@@ -1,5 +1,5 @@
 import { z } from "zod";
 
-export const DeleteCategory = z.object({
+export const DeletePost = z.object({
   id: z.string(),
 });
