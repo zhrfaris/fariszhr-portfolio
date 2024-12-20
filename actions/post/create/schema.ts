@@ -1,0 +1,45 @@
+import { Image, Status } from "@/actions/types";
+import { z } from "zod";
+
+export const ContentImageType = z.enum(["FULL", "DEFAULT"]);
+
+export const PostSectionContent = z.object({
+  content: z.string({
+    required_error: "Content is required",
+    invalid_type_error: "Content is required",
+  }),
+  image: Image.optional(),
+  content_image_type: ContentImageType,
+});
+
+export const PostSection = z.object({
+  title: z.string({
+    required_error: "Title is required",
+    invalid_type_error: "Title is required",
+  }),
+  icon_type: z.string({
+    required_error: "Icon is required",
+    invalid_type_error: "Icon is required",
+  }),
+  contents: z.array(PostSectionContent),
+});
+
+export const CreatePost = z.object({
+  title: z.string({
+    required_error: "Title is required",
+    invalid_type_error: "Title is required",
+  }),
+  excerpt: z.string({
+    required_error: "Short Description is required",
+    invalid_type_error: "Short Description is required",
+  }),
+  status: Status,
+  header_image: Image.required(),
+  thumbnail_image: Image.required(),
+  thumbnail_gif: Image.optional(),
+
+  post_sections: z.array(PostSection),
+
+  categoryIds: z.array(z.string()).optional(),
+  workplaceId: z.string().optional(),
+});

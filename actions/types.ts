@@ -9,3 +9,5 @@ export const Image = z.object({
   img_height: z.number(),
   img_type: z.string().optional(),
 });
+
+export const Status = z.enum(["ACTIVE", "INACTIVE"]);
