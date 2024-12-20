@@ -34,8 +34,8 @@ export const CreatePost = z.object({
     invalid_type_error: "Short Description is required",
   }),
   status: Status,
-  header_image: Image.required(),
-  thumbnail_image: Image.required(),
+  header_image: Image,
+  thumbnail_image: Image,
   thumbnail_gif: Image.optional(),
 
   post_sections: z.array(PostSection),
