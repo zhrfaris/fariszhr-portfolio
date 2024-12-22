@@ -4,15 +4,22 @@ import React from "react";
 import { Button, buttonVariants } from "../shadcn/button";
 import PopoverForm, { BasicFormProps } from "../form/popover-form";
 
+type ButtonLink = {
+  href: string;
+  children: React.ReactNode;
+};
+
 function DbPageWrapper<TData>({
   title,
   children,
+  buttonLink,
   createButtonUrl,
   CreateFormComponent,
 }: {
   title: string;
   children: React.ReactNode;
   createButtonUrl?: string;
+  buttonLink?: ButtonLink;
   CreateFormComponent?: React.ComponentType<BasicFormProps<TData>>;
 }) {
   return (
@@ -25,6 +32,14 @@ function DbPageWrapper<TData>({
             className={cn(buttonVariants({ size: "sm" }))}
           >
             Create New
+          </Link>
+        )}
+        {buttonLink && (
+          <Link
+            href={buttonLink.href}
+            className={cn(buttonVariants({ size: "sm" }))}
+          >
+            {buttonLink.children}
           </Link>
         )}
         {CreateFormComponent && (

@@ -101,7 +101,6 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
 
   return {
     currentImage,
-    onDeleteCloudinaryImage,
     onSuccessUploadImageHandler,
     deleteUnUsedImages,
   };

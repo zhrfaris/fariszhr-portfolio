@@ -12,6 +12,7 @@ interface ImagePlaceholderProps {
   alt?: string;
   className?: string;
   classNameWrapper?: string;
+  classNameEditButton?: string;
   quality?: number;
   onEdit?: () => void;
 }
@@ -21,6 +22,7 @@ const ImagePlaceholder = ({
   img_url,
   className,
   classNameWrapper,
+  classNameEditButton,
   img_url_placeholder,
   quality = 75,
   onEdit,
@@ -58,7 +60,10 @@ const ImagePlaceholder = ({
                 e.preventDefault();
                 onEdit();
               }}
-              className="absolute bottom-0 inset-x-0 w-full bg-foreground/80 text-background hidden group-hover:flex rounded-none"
+              className={cn(
+                "absolute bottom-0 inset-x-0 w-full bg-foreground/80 text-background hidden group-hover:flex rounded-none",
+                classNameEditButton
+              )}
             >
               <Pen className="h-4 w-4" />
             </Button>
@@ -86,7 +91,10 @@ const ImagePlaceholder = ({
                 e.preventDefault();
                 onEdit();
               }}
-              className="absolute bottom-0 inset-x-0 w-full group-hover:bg-black/80 text-background hidden group-hover:flex rounded-none"
+              className={cn(
+                "absolute bottom-0 inset-x-0 w-full group-hover:bg-black/80 text-background hidden group-hover:flex rounded-none",
+                classNameEditButton
+              )}
             >
               <Pen className="h-4 w-4" />
             </Button>

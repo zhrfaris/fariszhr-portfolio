@@ -7,7 +7,7 @@ export const Image = z.object({
   img_url_placeholder: z.string(),
   img_width: z.number(),
   img_height: z.number(),
-  img_type: z.string().optional(),
+  img_type: z.string().nullish(),
 });
 
 export const Status = z.enum(["ACTIVE", "INACTIVE"]);

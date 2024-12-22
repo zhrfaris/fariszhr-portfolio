@@ -7,30 +7,27 @@ import FormInput from "@/components/form/form-input";
 import FormWrapper from "@/components/form/form-wrapper";
 import { useAction } from "@/hooks/use-action";
 import { Status } from "@prisma/client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Image as ImageType } from "@prisma/client";
 import { z } from "zod";
 import { CreatePost } from "@/actions/post/create/schema";
 import { Button } from "@/components/shadcn/button";
+import FormImageUpload, {
+  FormImageUploadHandle,
+} from "@/components/form/form-image-upload";
+import FormTextarea from "@/components/form/form-textarea";
+import ListPostSection from "./list-post-section";
 
 interface PostFormProps {
   initialData?: Post;
 }
 
 const PostForm = ({ initialData }: PostFormProps) => {
-  // const [headerImage, setHeaderImage] = useState<ImageType | undefined>(
-  const [headerImage] = useState<ImageType | undefined>(
-    initialData?.header_image
-  );
-  // const [thumbnailImage, setThumbnailImage] = useState<ImageType | undefined>(
-  const [thumbnailImage] = useState<ImageType | undefined>(
-    initialData?.thumbnail_image
-  );
-  // const [thumbnailGif, setThumbnailGif] = useState<ImageType | undefined>(
-  const [thumbnailGif] = useState<ImageType | undefined>(
-    initialData?.thumbnail_gif ?? undefined
-  );
+  const headerImageRef = useRef<FormImageUploadHandle>(null);
+  const thumbnailImageRef = useRef<FormImageUploadHandle>(null);
+  const thumbnailGifRef = useRef<FormImageUploadHandle>(null);
+
+  const [saveAsDraft, setSaveAsDraft] = useState<boolean>(false);
 
   const {
     execute: executeCreate,
@@ -67,7 +64,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
   const formAction = (formData: FormData) => {
     const title = formData.get("title") as string;
     const excerpt = formData.get("excerpt") as string;
-    const status = formData.get("status") as Status;
+
+    const headerImage = headerImageRef.current?.image;
+    const thumbnailImage = thumbnailImageRef.current?.image;
+    const thumbnailGif = thumbnailGifRef.current?.image;
 
     if (!headerImage) {
       toast.error("Header image is required");
@@ -82,7 +82,7 @@ const PostForm = ({ initialData }: PostFormProps) => {
     const payload: z.infer<typeof CreatePost> = {
       title,
       excerpt,
-      status,
+      status: saveAsDraft ? Status.INACTIVE : Status.ACTIVE,
       header_image: {
         ...headerImage,
         img_type: headerImage.img_type ?? undefined,
@@ -111,20 +111,71 @@ const PostForm = ({ initialData }: PostFormProps) => {
   };
 
   return (
-    <form action={formAction} className="flex-1 space-y-6">
-      <FormWrapper>
-        <FormInput
-          label="Title"
-          id="title"
-          defaultValue={initialData?.title}
-          required={true}
-          errors={initialData?.id ? updateFieldErrors : createFieldErrors}
+    <>
+      <form id="post-form" action={formAction} className="flex-1 space-y-6">
+        <FormImageUpload
+          ref={headerImageRef}
+          label="Header Image"
+          initialImage={initialData?.header_image || undefined}
         />
-      </FormWrapper>
-      <Button type="submit" disabled={createIsLoading || updateIsLoading}>
-        Save
-      </Button>
-    </form>
+        <FormWrapper>
+          <FormImageUpload
+            ref={thumbnailImageRef}
+            label="Thumbnail Image"
+            initialImage={initialData?.thumbnail_image || undefined}
+          />
+          <FormImageUpload
+            ref={thumbnailGifRef}
+            label="Thumbnail Gif"
+            initialImage={initialData?.thumbnail_image || undefined}
+          />
+        </FormWrapper>
+
+        <FormWrapper>
+          <FormInput
+            label="Title"
+            id="title"
+            defaultValue={initialData?.title}
+            required={true}
+            errors={initialData?.id ? updateFieldErrors : createFieldErrors}
+          />
+          <FormTextarea
+            label="Short Description"
+            id="excerpt"
+            defaultValue={initialData?.excerpt}
+            required={true}
+            errors={initialData?.id ? updateFieldErrors : createFieldErrors}
+          />
+        </FormWrapper>
+
+        <FormWrapper>
+          <FormInput label="Workplace" id="workplace" />
+          <FormInput label="Categories" id="categories" />
+        </FormWrapper>
+      </form>
+
+      <ListPostSection />
+
+      <div className="flex gap-4">
+        <Button
+          type="submit"
+          form="post-form"
+          variant="outline"
+          onClick={() => setSaveAsDraft(true)}
+          disabled={createIsLoading || updateIsLoading}
+        >
+          Save as Draft
+        </Button>
+        <Button
+          type="submit"
+          form="post-form"
+          onClick={() => setSaveAsDraft(false)}
+          disabled={createIsLoading || updateIsLoading}
+        >
+          Publish
+        </Button>
+      </div>
+    </>
   );
 };
 
