@@ -7,7 +7,7 @@ import FormInput from "@/components/form/form-input";
 import FormWrapper from "@/components/form/form-wrapper";
 import { useAction } from "@/hooks/use-action";
 import { Status } from "@prisma/client";
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { CreatePost } from "@/actions/post/create/schema";
@@ -17,6 +17,7 @@ import FormImageUpload, {
 } from "@/components/form/form-image-upload";
 import FormTextarea from "@/components/form/form-textarea";
 import ListPostSection from "./list-post-section";
+import { usePostForm } from "@/hooks/use-post-form";
 
 interface PostFormProps {
   initialData?: Post;
@@ -27,7 +28,7 @@ const PostForm = ({ initialData }: PostFormProps) => {
   const thumbnailImageRef = useRef<FormImageUploadHandle>(null);
   const thumbnailGifRef = useRef<FormImageUploadHandle>(null);
 
-  const [saveAsDraft, setSaveAsDraft] = useState<boolean>(false);
+  const { saveAsDraft, setSaveAsDraft } = usePostForm((state) => state);
 
   const {
     execute: executeCreate,

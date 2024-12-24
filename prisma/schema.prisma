@@ -58,6 +58,8 @@ model Post {
 }
 
 type PostSection {
+  id        String
+  order     Int
   title     String
   icon_type String
 
@@ -65,6 +67,8 @@ type PostSection {
 }
 
 type PostSectionContent {
+  id      String
+  order   Int
   content String
   image   Image?
 

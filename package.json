@@ -31,6 +31,7 @@
     "cloudinary": "^2.5.1",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
+    "isomorphic-dompurify": "^2.19.0",
     "lenis": "^1.1.17",
     "lucide-react": "^0.461.0",
     "next": "15.0.3",
@@ -45,7 +46,8 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "tinymce": "^7.6.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",

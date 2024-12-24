@@ -2,13 +2,12 @@
 
 import { PostSection, PostSectionContent } from "@/actions/post/create/types";
 import FormInput from "@/components/form/form-input";
-// import PopoverForm from "@/components/form/popover-form";
 import { Button } from "@/components/shadcn/button";
-import React, { useState } from "react";
 import { toast } from "sonner";
 import PostSectionContentForm from "./post-section-content-form";
-// import DialogForm from "@/components/form/dialog-form";
-// import SheetForm from "@/components/form/sheet-form";
+import { usePostForm } from "@/hooks/use-post-form";
+import { Label } from "@/components/shadcn/label";
+import PostSectionContentItem from "./post-section-content-item";
 
 interface PostSectionFormProps {
   addSection: (section: PostSection) => void;
@@ -16,9 +15,16 @@ interface PostSectionFormProps {
 }
 
 const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
-  const [showSectionContentForm, setShowSectionContentForm] =
-    useState<boolean>(true);
-  const [contents, setContents] = useState<PostSectionContent[]>([]);
+  const {
+    contents,
+    sections,
+    showFormSection,
+    showFormContent,
+    editContentData,
+    setContents,
+    setShowFormContent,
+    setEditContentData,
+  } = usePostForm((state) => state);
 
   const formAction = (formData: FormData) => {
     const title = formData.get("title") as string;
@@ -30,6 +36,8 @@ const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
     }
 
     const payload: PostSection = {
+      id: initialData?.id || crypto.randomUUID(),
+      order: initialData?.order || sections.length || 0,
       title,
       icon_type,
       contents,
@@ -38,13 +46,13 @@ const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
     addSection(payload);
   };
 
-  const addSectionContentHandler = (content: PostSectionContent) => {
-    setContents((prev) => [...prev, content]);
-    setShowSectionContentForm(false);
+  const changeSectionContentHandler = (content: PostSectionContent) => {
+    setContents([...contents, content]);
+    setShowFormContent(false);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full border border-black/30 rounded-md p-4">
       <form
         id="post-section-form"
         action={formAction}
@@ -67,25 +75,55 @@ const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
       </form>
 
       {contents.length > 0 && (
-        <div className="flex items-center justify-center h-56 border border-black/30 rounded-md">
-          {contents.map((content, index) => (
-            <div key={index}>
-              <p>{content.content}</p>
-            </div>
-          ))}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold text-foreground/70">
+            Section Contents
+          </Label>
+          <div className="flex flex-col h-fit gap-3">
+            {contents
+              .sort((a, b) => a.order - b.order)
+              .map((content, index) => (
+                <PostSectionContentItem key={index} content={content} />
+              ))}
+          </div>
         </div>
       )}
 
-      {showSectionContentForm && (
+      {showFormContent && !editContentData && (
         <div>
-          <PostSectionContentForm addContent={addSectionContentHandler} />
+          <PostSectionContentForm changeContent={changeSectionContentHandler} />
         </div>
       )}
 
       <div className="flex gap-4">
-        <Button type="submit" form="post-section-form">
-          Save
-        </Button>
+        {showFormSection &&
+          !showFormContent &&
+          !editContentData &&
+          contents.length >= 1 && (
+            <Button type="submit" form="post-section-form">
+              Save Section
+            </Button>
+          )}
+        {!showFormContent && !editContentData && (
+          <Button type="button" onClick={() => setShowFormContent(true)}>
+            Add {contents.length > 0 ? "More" : ""} Content
+          </Button>
+        )}
+        {showFormContent && (
+          <Button form="post-content-form" type="submit">
+            Save content
+          </Button>
+        )}
+        {editContentData && (
+          <>
+            <Button form="post-content-form" type="submit">
+              Save changes
+            </Button>
+            <Button type="button" onClick={() => setEditContentData(null)}>
+              Cancel
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );

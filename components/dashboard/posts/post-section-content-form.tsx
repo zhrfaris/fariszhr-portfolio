@@ -7,18 +7,20 @@ import FormImageUpload, {
 import FormInput from "@/components/form/form-input";
 import FormTextEditor from "@/components/form/form-rich-text-editor";
 import { BasicFormProps } from "@/components/form/popover-form";
-import { Button } from "@/components/shadcn/button";
+import { usePostForm } from "@/hooks/use-post-form";
 import React, { useRef } from "react";
 
 interface PostSectionContentFormProps {
-  addContent: (Content: PostSectionContent) => void;
+  changeContent: (Content: PostSectionContent) => void;
 }
 
 const PostSectionContentForm = ({
-  addContent,
+  changeContent,
   initialData,
 }: BasicFormProps<PostSectionContent, PostSectionContentFormProps>) => {
   const contentImageRef = useRef<FormImageUploadHandle>(null);
+
+  const { contents } = usePostForm((state) => state);
 
   const formAction = (formData: FormData) => {
     const content = formData.get("content") as string;
@@ -26,15 +28,19 @@ const PostSectionContentForm = ({
 
     const image = contentImageRef?.current?.image;
 
-    addContent({
+    const payload: PostSectionContent = {
+      id: initialData?.id || crypto.randomUUID(),
+      order: initialData?.order || contents.length || 0,
       content,
       image,
       content_image_type: "DEFAULT",
-    });
+    };
+
+    changeContent(payload);
   };
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form id="post-content-form" action={formAction} className="space-y-6">
       <FormTextEditor
         id="content"
         label="Section content"
@@ -65,10 +71,6 @@ const PostSectionContentForm = ({
           defaultValue={initialData?.content_image_type}
         />
       )}
-
-      <div className="flex gap-4">
-        <Button type="submit">Save</Button>
-      </div>
     </form>
   );
 };

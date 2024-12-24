@@ -2,28 +2,32 @@
 
 import { PostSection } from "@/actions/post/create/types";
 import { Label } from "@/components/shadcn/label";
-import React, { useState } from "react";
 import PostSectionForm from "./post-section-form";
+import { usePostForm } from "@/hooks/use-post-form";
+import { Button } from "@/components/shadcn/button";
 
 const ListPostSection = () => {
-  const [showFormPostSection, setShowFormPostSection] =
-    useState<boolean>(false);
-  const [sections, setSections] = useState<PostSection[]>([]);
+  const { sections, showFormSection, setSections, setShowFormSection } =
+    usePostForm((state) => state);
 
-  const addSectionHandler = () => setShowFormPostSection(true);
+  const addSectionHandler = () => setShowFormSection(true);
 
   return (
     <div className="space-y-2">
       <Label className="text-sm font-semibold text-foreground/70">
         Section List
       </Label>
-      <div className="flex items-center justify-center min-h-56 border border-black/30 rounded-md p-4">
-        {sections.length <= 0 && !showFormPostSection && (
-          <p>
+      <div className="flex min-h-56 items-center border border-black/30 rounded-md p-4">
+        {sections.length <= 0 && !showFormSection && (
+          <p className="text-center w-full">
             No section has been added to this post,{" "}
-            <span className="text-sky-400" onClick={addSectionHandler}>
+            <Button
+              variant="ghost"
+              className="text-sky-400"
+              onClick={addSectionHandler}
+            >
               Add one
-            </span>
+            </Button>
           </p>
         )}
         {sections.map((section, index) => (
@@ -31,7 +35,7 @@ const ListPostSection = () => {
             <p>{section.title}</p>
           </div>
         ))}
-        {showFormPostSection && (
+        {showFormSection && (
           <PostSectionForm
             addSection={(section: PostSection) =>
               setSections([...sections, section])

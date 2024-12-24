@@ -18,6 +18,7 @@ interface FormInputProps {
   defaultValue?: string;
   showTogglePassword?: boolean;
   onBlur?: () => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
@@ -30,6 +31,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
       errors,
       label,
       onBlur,
+      onChange,
       placeholder,
       required,
       type,
@@ -68,6 +70,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
               name={id}
               type={!showTogglePassword ? type : currentType}
               onBlur={onBlur}
+              onChange={onChange}
               required={required}
               placeholder={placeholder}
               defaultValue={defaultValue}

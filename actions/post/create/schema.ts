@@ -4,6 +4,8 @@ import { z } from "zod";
 export const ContentImageType = z.enum(["FULL", "DEFAULT"]);
 
 export const PostSectionContent = z.object({
+  id: z.string(),
+  order: z.number(),
   content: z.string({
     required_error: "Content is required",
     invalid_type_error: "Content is required",
@@ -13,6 +15,8 @@ export const PostSectionContent = z.object({
 });
 
 export const PostSection = z.object({
+  id: z.string(),
+  order: z.number(),
   title: z.string({
     required_error: "Title is required",
     invalid_type_error: "Title is required",
