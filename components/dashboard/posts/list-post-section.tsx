@@ -8,10 +8,21 @@ import { Button } from "@/components/shadcn/button";
 import PostSectionItem from "./post-section-item";
 
 const ListPostSection = () => {
-  const { sections, showFormSection, setSections, setShowFormSection } =
-    usePostForm((state) => state);
+  const {
+    sections,
+    showFormSection,
+    editSectionData,
+    setSections,
+    setContents,
+    setShowFormSection,
+    setShowFormContent,
+  } = usePostForm((state) => state);
 
-  const addSectionHandler = () => setShowFormSection(true);
+  const addSectionHandler = () => {
+    setShowFormSection(true);
+    setShowFormContent(true);
+    setContents([]);
+  };
 
   const onChangeSectionHandler = (section: PostSection) => {
     setSections([...sections, section]);
@@ -23,7 +34,7 @@ const ListPostSection = () => {
       <Label className="text-sm font-semibold text-foreground/70">
         Section List
       </Label>
-      <div className="flex flex-col min-h-56 items-center justify-center border border-black/30 rounded-md p-4">
+      <div className="flex flex-col min-h-56 justify-center border border-black/30 rounded-md p-4">
         {sections.length <= 0 && !showFormSection && (
           <p className="text-center w-full">
             No section has been added to this post,{" "}
@@ -40,8 +51,15 @@ const ListPostSection = () => {
           <PostSectionItem key={section.id} section={section} />
         ))}
         {showFormSection && (
-          <PostSectionForm addSection={onChangeSectionHandler} />
+          <PostSectionForm sectionChange={onChangeSectionHandler} />
         )}
+        <div className="flex items-start gap-4 mt-4">
+          {!showFormSection && !editSectionData && (
+            <Button type="button" onClick={addSectionHandler}>
+              Add {sections.length > 0 ? "More" : ""} Section
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -80,6 +80,11 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
     setContents(updatedContents);
   };
 
+  const editItemHandler = () => {
+    setEditContentData(content);
+    setShowFormContent(false);
+  };
+
   const listMenu: DropdownMenuItem[] = [
     {
       label: "Move up",
@@ -95,7 +100,7 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
     },
     {
       label: "Edit",
-      onClick: () => setEditContentData(content),
+      onClick: editItemHandler,
       Icon: Pen,
     },
     {

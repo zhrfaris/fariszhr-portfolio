@@ -11,20 +11,26 @@ import PostSectionContentItem from "./post-section-content-item";
 import FormSelectIcon from "@/components/form/form-select-icon";
 
 interface PostSectionFormProps {
-  addSection: (section: PostSection) => void;
+  sectionChange: (section: PostSection) => void;
   initialData?: PostSection;
 }
 
-const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
+const PostSectionForm = ({
+  sectionChange,
+  initialData,
+}: PostSectionFormProps) => {
   const {
     contents,
     sections,
     showFormSection,
     showFormContent,
     editContentData,
+    editSectionData,
     setContents,
     setShowFormContent,
     setEditContentData,
+    setShowFormSection,
+    setEditSectionData,
   } = usePostForm((state) => state);
 
   const formAction = (formData: FormData) => {
@@ -44,7 +50,7 @@ const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
       contents,
     };
 
-    addSection(payload);
+    sectionChange(payload);
   };
 
   const changeSectionContentHandler = (content: PostSectionContent) => {
@@ -52,8 +58,19 @@ const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
     setShowFormContent(false);
   };
 
+  const cancelFormSectionHandler = () => {
+    setShowFormSection(false);
+    setContents([]);
+    setEditSectionData(null);
+  };
+
+  const cancelFormContentHandler = () => {
+    setShowFormContent(false);
+    setEditContentData(null);
+  };
+
   return (
-    <div className="space-y-6 w-full border border-black/30 rounded-md p-4">
+    <div className="space-y-6 w-full border border-black/30 rounded-md p-4 mb-4">
       <form
         id="post-section-form"
         action={formAction}
@@ -100,7 +117,7 @@ const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
       )}
 
       <div className="flex gap-4">
-        {showFormSection &&
+        {(showFormSection || editSectionData) &&
           !showFormContent &&
           !editContentData &&
           contents.length >= 1 && (
@@ -123,10 +140,50 @@ const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
             <Button form="post-content-form" type="submit">
               Save changes
             </Button>
-            <Button type="button" onClick={() => setEditContentData(null)}>
-              Cancel
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditContentData(null)}
+            >
+              Cancel Edit Content
             </Button>
           </>
+        )}
+        {!!showFormSection && !!showFormContent && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={cancelFormSectionHandler}
+          >
+            Cancel Add Section
+          </Button>
+        )}
+        {!!showFormSection && !showFormContent && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={cancelFormSectionHandler}
+          >
+            Cancel Add Section
+          </Button>
+        )}
+        {!!editSectionData && !editContentData && !showFormContent && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={cancelFormSectionHandler}
+          >
+            Cancel Edit Section
+          </Button>
+        )}
+        {showFormContent && contents.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={cancelFormContentHandler}
+          >
+            Cancel Add Content
+          </Button>
         )}
       </div>
     </div>

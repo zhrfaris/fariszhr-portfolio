@@ -9,6 +9,7 @@ import FormTextEditor from "@/components/form/form-rich-text-editor";
 import { BasicFormProps } from "@/components/form/popover-form";
 import { usePostForm } from "@/hooks/use-post-form";
 import React, { useRef } from "react";
+import { toast } from "sonner";
 
 interface PostSectionContentFormProps {
   changeContent: (Content: PostSectionContent) => void;
@@ -27,6 +28,11 @@ const PostSectionContentForm = ({
     // const content_image_type = formData.get("content_image_type") as string;
 
     const image = contentImageRef?.current?.image;
+
+    if (!content) {
+      toast.error("Section content is required");
+      return;
+    }
 
     const payload: PostSectionContent = {
       id: initialData?.id || crypto.randomUUID(),

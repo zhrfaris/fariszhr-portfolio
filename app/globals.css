@@ -100,5 +100,5 @@ body {
 #innerHTML:not(.no-style) p,
 #innerHTML:not(.no-style) ul,
 #innerHTML:not(.no-style) ol {
-  @apply mb-6;
+  @apply mb-2 last-of-type:mb-0;
 }
