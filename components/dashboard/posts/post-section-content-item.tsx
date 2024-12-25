@@ -8,7 +8,6 @@ import DropdownMenuWrapper, {
 } from "@/components/wrappers/dropdown-menu-wrapper";
 import { usePostForm } from "@/hooks/use-post-form";
 import { EllipsisVertical, MoveDown, MoveUp, Pen, Trash2 } from "lucide-react";
-import React from "react";
 import PostSectionContentForm from "./post-section-content-form";
 
 interface PostSectionContentItemProps {
@@ -67,9 +66,14 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
     setContents(udpatedContents);
   };
 
-  // TODO: fix bug: messed up order after deleting item
-  const deleteItem = () =>
-    setContents(contents.filter((c) => c.id !== content.id));
+  const deleteItem = () => {
+    const updatedContents = contents.filter((c) => c.id !== content.id);
+
+    // Update order of the remaining items
+    updatedContents.forEach((c, index) => (c.order = index));
+
+    setContents(updatedContents);
+  };
 
   const listMenu: DropdownMenuItem[] = [
     {
@@ -94,6 +98,7 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
       color: "danger",
       onClick: deleteItem,
       Icon: Trash2,
+      showAlert: true,
     },
   ];
 
