@@ -22,7 +22,7 @@ const PostSectionContentForm = ({
 
   const { contents } = usePostForm((state) => state);
 
-  const formAction = (formData: FormData) => {
+  const formAction = async (formData: FormData) => {
     const content = formData.get("content") as string;
     // const content_image_type = formData.get("content_image_type") as string;
 
@@ -30,13 +30,14 @@ const PostSectionContentForm = ({
 
     const payload: PostSectionContent = {
       id: initialData?.id || crypto.randomUUID(),
-      order: initialData?.order || contents.length || 0,
+      order: initialData?.order ?? contents.length,
       content,
       image,
       content_image_type: "DEFAULT",
     };
 
     changeContent(payload);
+    await contentImageRef?.current?.deleteUnusedImage();
   };
 
   return (

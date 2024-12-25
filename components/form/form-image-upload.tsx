@@ -6,6 +6,7 @@ import React, { forwardRef, useImperativeHandle } from "react";
 import { Image as ImageType } from "@prisma/client";
 import ImagePlaceholder from "../common/image-placeholder";
 import { Label } from "../shadcn/label";
+import { cn } from "@/lib/utils";
 
 interface FormImageUploadProps {
   initialImage?: ImageType;
@@ -38,7 +39,12 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
             {label}
           </Label>
         )}
-        <div className="w-full h-72 bg-muted rounded-sm">
+        <div
+          className={cn(
+            "w-full bg-muted rounded-sm",
+            currentImage?.img_url ? "min-h-72" : "h-72"
+          )}
+        >
           <CldUploadWidget
             onSuccess={onSuccessUploadImageHandler}
             uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
@@ -51,13 +57,16 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
           >
             {({ open }) => (
               <ImagePlaceholder
-                classNameWrapper="rounded-sm"
+                classNameWrapper={cn(
+                  "rounded-sm",
+                  currentImage?.img_url && "h-fit"
+                )}
                 classNameEditButton="size-8 rounded-sm bottom-auto left-auto top-4 right-4"
                 img_url={currentImage?.img_url}
                 img_url_placeholder={currentImage?.img_url_placeholder}
-                onEdit={() => {
-                  open();
-                }}
+                onEdit={() => open()}
+                width={currentImage?.img_width}
+                height={currentImage?.img_height}
               />
             )}
           </CldUploadWidget>

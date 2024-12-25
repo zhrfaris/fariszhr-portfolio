@@ -9,12 +9,17 @@ import DropdownMenuWrapper, {
 import { usePostForm } from "@/hooks/use-post-form";
 import { EllipsisVertical, MoveDown, MoveUp, Pen, Trash2 } from "lucide-react";
 import PostSectionContentForm from "./post-section-content-form";
+import Image from "next/image";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface PostSectionContentItemProps {
   content: PostSectionContent;
 }
 
 const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
+  const [showMore, setShowMore] = useState(false);
+
   const {
     editContentData,
     contents,
@@ -66,7 +71,7 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
     setContents(udpatedContents);
   };
 
-  const deleteItem = () => {
+  const deleteItemHandler = () => {
     const updatedContents = contents.filter((c) => c.id !== content.id);
 
     // Update order of the remaining items
@@ -96,7 +101,7 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
     {
       label: "Delete",
       color: "danger",
-      onClick: deleteItem,
+      onClick: deleteItemHandler,
       Icon: Trash2,
       showAlert: true,
     },
@@ -112,11 +117,38 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
   }
 
   return (
-    <div className="flex items-start border border-black/30 rounded-md p-4">
-      <div className="flex-1">
-        <SanitizedHtml innerHTML={content.content} />
+    <div className="border border-black/30 rounded-md p-4 pt-12 relative ">
+      <div
+        className={cn(
+          "flex items-start",
+          showMore ? "max-h-none" : "max-h-36 overflow-hidden rounded-sm"
+        )}
+      >
+        <div className="flex-1 space-y-4">
+          <SanitizedHtml innerHTML={content.content} />
+          {content.image && (
+            <div className="w-full rounded-lg overflow-hidden">
+              <Image
+                src={content.image?.img_url}
+                alt=""
+                className="w-full object-contain"
+                width={content.image?.img_width}
+                height={content.image?.img_width}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      <div className="">
+      {(content.image || content.content.length > 512) && (
+        <Button
+          className="w-full mt-4"
+          variant="outline"
+          onClick={() => setShowMore(!showMore)}
+        >
+          {showMore ? "Show less" : "Show more"}
+        </Button>
+      )}
+      <div className="absolute top-2 right-2">
         <DropdownMenuWrapper align="end" listMenu={listMenu}>
           <Button variant="ghost" size="icon">
             <EllipsisVertical />

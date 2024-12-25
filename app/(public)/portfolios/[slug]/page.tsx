@@ -1,9 +1,8 @@
 import { generateLoremIpsum } from "@/lib/utils";
 
 import React from "react";
-import PortfolioDetail, {
-  PortfolioSection,
-} from "@/components/portfolio-detail/portfolio-detail";
+import PortfolioDetail from "@/components/portfolio-detail/portfolio-detail";
+import { PostSection } from "@/actions/post/create/types";
 
 // interface PortfolioDetailPageProps {
 //   params: Promise<{ slug: string }>;
@@ -12,66 +11,126 @@ import PortfolioDetail, {
 const PortfolioDetailPage = async () => {
   // const { slug } = await params;
 
-  const sections: PortfolioSection[] = [
+  const sections: PostSection[] = [
     {
-      id: 1,
+      id: "1",
       title: "What is Pinhome Home Service?",
-      description: generateLoremIpsum(200),
+      contents: [
+        {
+          id: "1",
+          content: generateLoremIpsum(200),
+          content_image_type: "DEFAULT",
+          order: 0,
+          image: undefined,
+        },
+      ],
+      icon_type: "graduation_cap",
+      order: 0,
     },
     {
-      id: 2,
+      id: "2",
       title: "Role",
-      description: generateLoremIpsum(200),
+      contents: [
+        {
+          id: "1",
+          content: generateLoremIpsum(200),
+          content_image_type: "DEFAULT",
+          order: 0,
+          image: undefined,
+        },
+      ],
+      icon_type: "graduation_cap",
+      order: 1,
     },
     {
-      id: 3,
+      id: "3",
       title: "Development & Release Timeline",
-      description: generateLoremIpsum(200),
+      contents: [
+        {
+          id: "1",
+          content: generateLoremIpsum(200),
+          content_image_type: "DEFAULT",
+          order: 0,
+          image: undefined,
+        },
+      ],
+      icon_type: "graduation_cap",
+      order: 2,
     },
     {
-      id: 4,
+      id: "4",
       title: "Add service duration during on-going order feature",
-      description: generateLoremIpsum(300),
+      contents: [
+        {
+          id: "1",
+          content: generateLoremIpsum(200),
+          content_image_type: "DEFAULT",
+          order: 0,
+          image: undefined,
+        },
+      ],
+      icon_type: "graduation_cap",
+      order: 3,
     },
     {
-      id: 5,
+      id: "5",
       title: "Background",
-      description: generateLoremIpsum(400),
+      contents: [
+        {
+          id: "1",
+          content: generateLoremIpsum(200),
+          content_image_type: "DEFAULT",
+          order: 0,
+          image: undefined,
+        },
+      ],
+      icon_type: "graduation_cap",
+      order: 4,
     },
     {
-      id: 6,
+      id: "6",
       title: "Project Challenges",
-      description: generateLoremIpsum(200),
+      contents: [
+        {
+          id: "1",
+          content: generateLoremIpsum(200),
+          content_image_type: "DEFAULT",
+          order: 0,
+          image: undefined,
+        },
+      ],
+      icon_type: "graduation_cap",
+      order: 5,
     },
     {
-      id: 7,
+      id: "7",
       title: "Research",
-      description: generateLoremIpsum(600),
+      contents: [
+        {
+          id: "1",
+          content: generateLoremIpsum(200),
+          content_image_type: "DEFAULT",
+          order: 0,
+          image: undefined,
+        },
+      ],
+      icon_type: "graduation_cap",
+      order: 6,
     },
     {
-      id: 8,
+      id: "8",
       title: "Design Proposal",
-      description: generateLoremIpsum(600),
-    },
-    {
-      id: 9,
-      title: "Key Findings",
-      description: generateLoremIpsum(400),
-    },
-    {
-      id: 10,
-      title: "Solution",
-      description: generateLoremIpsum(400),
-    },
-    {
-      id: 11,
-      title: "Outcome",
-      description: generateLoremIpsum(150),
-    },
-    {
-      id: 12,
-      title: "Learning",
-      description: generateLoremIpsum(200),
+      contents: [
+        {
+          id: "1",
+          content: generateLoremIpsum(200),
+          content_image_type: "DEFAULT",
+          order: 0,
+          image: undefined,
+        },
+      ],
+      icon_type: "graduation_cap",
+      order: 7,
     },
   ];
 

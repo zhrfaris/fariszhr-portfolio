@@ -1,20 +1,15 @@
 "use client";
 
-import { source_serif_pro } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { Button } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
 import { ArrowUp } from "lucide-react";
-
-export type PortfolioSection = {
-  id: number;
-  title: string;
-  description: string;
-};
+import PortfolioSection from "./portfolio-section";
+import { PostSection } from "@/actions/post/create/types";
 
 interface PortfolioDetailProps {
-  sections: PortfolioSection[];
+  sections: PostSection[];
 }
 
 const PortfolioDetail = ({ sections }: PortfolioDetailProps) => {
@@ -45,11 +40,7 @@ const PortfolioDetail = ({ sections }: PortfolioDetailProps) => {
 
           {/* Portfolio Sections */}
           {sections.map((section) => (
-            <PortfolioSection
-              key={section.id}
-              title={section.title}
-              description={section.description}
-            />
+            <PortfolioSection key={section.id} section={section} />
           ))}
         </div>
       </div>
@@ -58,22 +49,3 @@ const PortfolioDetail = ({ sections }: PortfolioDetailProps) => {
 };
 
 export default PortfolioDetail;
-
-interface PortfolioSectionProps {
-  title: string;
-  description: string;
-}
-
-const PortfolioSection = ({ description, title }: PortfolioSectionProps) => {
-  return (
-    <div className="section space-y-4 pb-6 border-b">
-      <div className="section-title flex items-center gap-4">
-        <div className="size-8 rounded-full bg-[#3251a5]"></div>
-        <h3 className={cn(source_serif_pro.className, "text-xl font-bold")}>
-          {title}
-        </h3>
-      </div>
-      <p>{description}</p>
-    </div>
-  );
-};

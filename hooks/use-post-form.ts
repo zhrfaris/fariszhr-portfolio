@@ -26,7 +26,7 @@ type Action = {
 export const usePostForm = create<State & Action>((set) => ({
   saveAsDraft: false,
   showFormSection: false,
-  showFormContent: false,
+  showFormContent: true,
   contents: [],
   sections: [],
   editContentData: null,

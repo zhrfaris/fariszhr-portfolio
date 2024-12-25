@@ -64,7 +64,7 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
         toast.error(`Error deleting item: ${error}`);
       },
       onSuccess: () => {
-        toast.success("Unused profile image deleted!");
+        toast.success("Unused image deleted!");
       },
     });
   };

@@ -8,6 +8,7 @@ import PostSectionContentForm from "./post-section-content-form";
 import { usePostForm } from "@/hooks/use-post-form";
 import { Label } from "@/components/shadcn/label";
 import PostSectionContentItem from "./post-section-content-item";
+import FormSelectIcon from "@/components/form/form-select-icon";
 
 interface PostSectionFormProps {
   addSection: (section: PostSection) => void;
@@ -59,18 +60,21 @@ const PostSectionForm = ({ addSection, initialData }: PostSectionFormProps) => {
         className="flex-1 space-y-6"
       >
         <div className="flex gap-4">
-          <FormInput
+          <FormSelectIcon
             label="Section Icon"
             id="icon_type"
             defaultValue={initialData?.icon_type}
             required={true}
           />
-          <FormInput
-            label="Section Title"
-            id="title"
-            defaultValue={initialData?.title}
-            required={true}
-          />
+          <div className="flex-1">
+            <FormInput
+              label="Section Title"
+              id="title"
+              defaultValue={initialData?.title}
+              placeholder="Insert section title"
+              required={true}
+            />
+          </div>
         </div>
       </form>
 
