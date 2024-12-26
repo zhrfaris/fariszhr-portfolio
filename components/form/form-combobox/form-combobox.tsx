@@ -78,6 +78,7 @@ interface FormComboboxProps<TData extends FormComboboxBaseData> {
   sideSheetWidth?: "sm" | "md" | "lg" | "full";
   initialSelected?: string[];
   selectedChipMode?: "chip" | "list";
+  selectionType?: "single" | "multiple";
   className?: string;
 }
 
@@ -90,6 +91,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
   sideSheetWidth = "lg",
   placeholder = "search...",
   selectedChipMode = "list",
+  selectionType = "multiple",
   className,
   getData,
   onUnassign,
@@ -117,8 +119,32 @@ function FormCombobox<TData extends FormComboboxBaseData>({
     onUpdateSelected,
   });
 
-  const renderCommandComponent = () => (
-    <div className="relative w-full px-2 max-w-[780px]">
+  const renderCommandInput = () => {
+    if (selectionType === "single" && listSelected.length > 0) {
+      return null;
+    }
+
+    return (
+      <CommandInput
+        value={searchValue}
+        disabled={disabled || isFirstLoad || isLoadingData}
+        onKeyUp={onKeyupHandler}
+        placeholder={
+          isFirstLoad || isLoadingData ? "Loading Data..." : placeholder
+        }
+        onValueChange={(search) => setSearchValue(search)}
+        className="border-none h-9 px-4 bg-muted text-base rounded-none"
+        classNameWrapper={listSelected.length <= 0 ? "border-none" : ""}
+      />
+    );
+  };
+
+  const renderCreateButton = () => {
+    if (selectionType === "single" && listSelected.length > 0) {
+      return null;
+    }
+
+    return (
       <Button
         type="button"
         onClick={openSheet}
@@ -128,50 +154,53 @@ function FormCombobox<TData extends FormComboboxBaseData>({
       >
         <PlusCircle className="size-5" />
       </Button>
+    );
+  };
+
+  const renderSuggestion = () => {
+    if (searchValue === "") return null;
+
+    return (
+      <div className="absolute top-10 inset-x-0 w-full h-fit rounded-lg overflow-hidden z-20">
+        <CommandList className="bg-muted text-base">
+          {!listSelected.some((item) => item.slug === searchValue) &&
+            searchValue?.length >= 3 && (
+              <CommandEmpty className="p-4 text-sm text-left">
+                Not found, press <code onClick={openSheet}>Enter</code> to
+                create &quot;
+                {searchValue}&quot; as {label}
+              </CommandEmpty>
+            )}
+          <CommandGroup className="bg-muted text-base">
+            {listOption.map((d) => (
+              <CommandItem
+                className="border aria-selected:border-black/10 border-transparent aria-selected:text-foreground text-foreground/60 cursor-pointer"
+                key={d.id}
+                value={d.slug}
+                onSelect={() => onSelectHandler(d)}
+              >
+                <div className="flex flex-col space-y-2">
+                  <span className="font-semibold">{d.option_name}</span>
+                  {d.option_description && (
+                    <span className="max-h-[125px] line-clamp-[2] text-sm">
+                      {replaceHTMLTagFromString(d.option_description, 350)}
+                    </span>
+                  )}
+                </div>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </div>
+    );
+  };
+
+  const renderCommandComponent = () => (
+    <div className="relative w-full px-2 max-w-[780px]">
+      {renderCreateButton()}
       <Command className="bg-muted">
-        <CommandInput
-          value={searchValue}
-          disabled={disabled || isFirstLoad || isLoadingData}
-          onKeyUp={onKeyupHandler}
-          placeholder={
-            isFirstLoad || isLoadingData ? "Loading Data..." : placeholder
-          }
-          onValueChange={(search) => setSearchValue(search)}
-          className="border-none h-9 px-4 bg-muted text-base rounded-none"
-        />
-        {searchValue !== "" && (
-          <div className="absolute top-10 inset-x-0 w-full h-fit rounded-lg overflow-hidden z-20">
-            <CommandList className="bg-muted text-base">
-              {!listSelected.some((item) => item.slug === searchValue) &&
-                searchValue?.length >= 3 && (
-                  <CommandEmpty className="p-4 text-sm text-left">
-                    Not found, press <code onClick={openSheet}>Enter</code> to
-                    create &quot;
-                    {searchValue}&quot; as {label}
-                  </CommandEmpty>
-                )}
-              <CommandGroup className="bg-muted text-base">
-                {listOption.map((d) => (
-                  <CommandItem
-                    className="border aria-selected:border-black/10 border-transparent aria-selected:text-foreground text-foreground/60 cursor-pointer"
-                    key={d.id}
-                    value={d.slug}
-                    onSelect={() => onSelectHandler(d)}
-                  >
-                    <div className="flex flex-col space-y-2">
-                      <span className="font-semibold">{d.option_name}</span>
-                      {d.option_description && (
-                        <span className="max-h-[125px] line-clamp-[2] text-sm">
-                          {replaceHTMLTagFromString(d.option_description, 350)}
-                        </span>
-                      )}
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </div>
-        )}
+        {renderCommandInput()}
+        {renderSuggestion()}
       </Command>
     </div>
   );
@@ -179,9 +208,10 @@ function FormCombobox<TData extends FormComboboxBaseData>({
   const renderSelectedComponent = () => (
     <ul
       className={cn(
-        "items-stretch gap-2 text-sm px-2 py-4",
+        "items-stretch gap-2 text-sm px-2",
+        selectionType === "single" && listSelected.length > 0 ? "py-2" : "py-4",
         selectedChipMode === "chip" && "flex flex-wrap",
-        selectedChipMode === "list" && "grid grid-cols-1 @md:grid-cols-2"
+        selectedChipMode === "list" && "grid grid-cols-1"
       )}
     >
       {listSelected.map((data) => (
@@ -260,6 +290,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
         className={cn(
           "border border-input rounded-lg bg-muted",
           listSelected.length > 0 && "pt-2",
+          selectionType === "single" && listSelected.length > 0 && "pt-0",
           className
         )}
       >

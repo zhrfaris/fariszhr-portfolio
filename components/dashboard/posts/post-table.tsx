@@ -103,7 +103,7 @@ export const postColumns: ColumnDef<NonNullable<Post>>[] = [
 
       return (
         <div className="max-w-[450px]">
-          <p>{categories.map((c) => c.name).join(", ")}</p>
+          <p>{categories?.map((c) => c.name).join(", ")}</p>
         </div>
       );
     },
@@ -127,7 +127,7 @@ export const postColumns: ColumnDef<NonNullable<Post>>[] = [
 
       return (
         <div className="max-w-[450px]">
-          <p>{capitalizeEachWord(workplace.name)}</p>
+          <p>{capitalizeEachWord(workplace?.name)}</p>
         </div>
       );
     },

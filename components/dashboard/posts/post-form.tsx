@@ -22,12 +22,18 @@ import FormCombobox from "@/components/form/form-combobox/form-combobox";
 import { getCategoriesComboboxAction } from "@/actions/category/get-list";
 import CategoryForm from "../categories/category-form";
 import { unassignPostFromCategory } from "@/actions/category/unassign-post";
+import { getWorkplacesComboboxAction } from "@/actions/workplace/get-list";
+import WorkplaceForm from "../workplaces/workplace-form";
+import { unassignPostFromWorkplace } from "@/actions/workplace/unassign-post";
+import { useRouter } from "next/navigation";
 
 interface PostFormProps {
   initialData?: Post;
 }
 
 const PostForm = ({ initialData }: PostFormProps) => {
+  const router = useRouter();
+
   const headerImageRef = useRef<FormImageUploadHandle>(null);
   const thumbnailImageRef = useRef<FormImageUploadHandle>(null);
   const thumbnailGifRef = useRef<FormImageUploadHandle>(null);
@@ -35,8 +41,13 @@ const PostForm = ({ initialData }: PostFormProps) => {
   const [categories, setCategories] = useState<string[]>(
     initialData?.categoryIds ?? []
   );
+  const [workplaces, setWorkplaces] = useState<string[]>(
+    initialData?.workplaceId ? [initialData?.workplaceId] : []
+  );
 
-  const { saveAsDraft, setSaveAsDraft } = usePostForm((state) => state);
+  const { saveAsDraft, sections, setSaveAsDraft } = usePostForm(
+    (state) => state
+  );
 
   const {
     execute: executeCreate,
@@ -48,6 +59,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
     },
     onSuccess: async () => {
       toast.success("Post created!");
+      await headerImageRef.current?.deleteUnusedImage();
+      await thumbnailImageRef.current?.deleteUnusedImage();
+      await thumbnailGifRef.current?.deleteUnusedImage();
+      router.push("/dashboard/posts");
     },
     onComplete: () => {
       toast.dismiss("loading-create-post");
@@ -88,6 +103,11 @@ const PostForm = ({ initialData }: PostFormProps) => {
       return;
     }
 
+    if (sections.length <= 0) {
+      toast.error("Add at least one section");
+      return;
+    }
+
     const payload: z.infer<typeof CreatePost> = {
       title,
       excerpt,
@@ -103,9 +123,9 @@ const PostForm = ({ initialData }: PostFormProps) => {
       thumbnail_gif: thumbnailGif
         ? { ...thumbnailGif, img_type: thumbnailGif.img_type ?? undefined }
         : undefined,
-      post_sections: [],
-      categoryIds: [],
-      workplaceId: "",
+      post_sections: sections,
+      categoryIds: categories,
+      workplaceId: workplaces[0],
     };
 
     if (initialData?.id) {
@@ -121,7 +141,11 @@ const PostForm = ({ initialData }: PostFormProps) => {
 
   return (
     <>
-      <form id="post-form" action={formAction} className="flex-1 space-y-6">
+      <form
+        id="post-form"
+        action={formAction}
+        className="flex-1 space-y-6 @container"
+      >
         <FormImageUpload
           ref={headerImageRef}
           label="Header Image"
@@ -158,7 +182,21 @@ const PostForm = ({ initialData }: PostFormProps) => {
         </FormWrapper>
 
         <FormWrapper>
-          <FormInput label="Workplace" id="workplace" />
+          <div>
+            <FormCombobox
+              parentId={initialData?.id}
+              label="Workplace"
+              placeholder="Select Workplace..."
+              getData={getWorkplacesComboboxAction}
+              initialSelected={workplaces}
+              FormCreateComponent={WorkplaceForm}
+              sideSheetWidth="sm"
+              onUnassign={unassignPostFromWorkplace}
+              onUpdateSelected={(selected) => setWorkplaces(selected)}
+              disabled={createIsLoading || updateIsLoading}
+              selectionType="single"
+            />
+          </div>
           <div>
             <FormCombobox
               parentId={initialData?.id}
@@ -174,7 +212,6 @@ const PostForm = ({ initialData }: PostFormProps) => {
               selectedChipMode="chip"
             />
           </div>
-          {/* <FormInput label="Categories" id="categories" /> */}
         </FormWrapper>
       </form>
 

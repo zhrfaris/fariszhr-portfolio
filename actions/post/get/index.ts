@@ -2,8 +2,18 @@
 
 import { db } from "@/lib/db";
 
-export const getPosts = async (userId: string) => {
-  return await db.post.findMany({ where: { author: { id: userId } } });
+export const getPosts = async (
+  userId: string,
+  options?: { selectAllRelations?: boolean }
+) => {
+  return await db.post.findMany({
+    where: { author: { id: userId } },
+    include: {
+      categories: options?.selectAllRelations,
+      author: options?.selectAllRelations,
+      workplace: options?.selectAllRelations,
+    },
+  });
 };
 
 export const getPostById = async (id: string) => {

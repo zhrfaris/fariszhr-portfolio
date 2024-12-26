@@ -88,7 +88,7 @@ const ProfileForm = ({ user }: { user: User }) => {
           )}
         </CldUploadWidget>
       </div>
-      <form action={formAction} className="flex-1 space-y-6">
+      <form action={formAction} className="flex-1 space-y-6 @container">
         <FormWrapper>
           <FormInput
             label="Name"

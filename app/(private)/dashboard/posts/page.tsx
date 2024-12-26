@@ -12,7 +12,7 @@ const ManagePostPage = async () => {
     redirect("/login");
   }
 
-  const posts = await getPosts(session?.user.id);
+  const posts = await getPosts(session?.user.id, { selectAllRelations: true });
 
   return (
     <DbPageWrapper title="Posts" createButtonUrl="/dashboard/posts/create">

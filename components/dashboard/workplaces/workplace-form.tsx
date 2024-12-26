@@ -13,12 +13,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/shadcn/button";
 import { useRouter } from "next/navigation";
 import { updateWorkplace } from "@/actions/workplace/update";
+import { FormCreateComponentOnComboboxProps } from "@/components/form/form-combobox/form-combobox";
 
-interface WorkplaceFormProps {
+interface WorkplaceFormProps extends FormCreateComponentOnComboboxProps {
   workplace?: Workplace;
 }
 
-const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
+const WorkplaceForm = ({ workplace, onSuccess }: WorkplaceFormProps) => {
   const router = useRouter();
 
   const {
@@ -37,9 +38,15 @@ const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
     onProceed: () => {
       toast.loading("Create workplace...", { id: "loading-create-workplace" });
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       toast.success("Workplace created!");
       await deleteUnUsedImages();
+
+      if (!!onSuccess) {
+        onSuccess(data.id);
+        return;
+      }
+
       router.push("/dashboard/workplaces");
     },
     onComplete: () => {
@@ -98,7 +105,7 @@ const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 md:gap-8 md:items-start">
+    <div className="flex flex-col @md:flex-row gap-4 @md:gap-8 @md:items-start">
       <div className="size-56 bg-muted rounded-sm flex items-center justify-center">
         <CldUploadWidget
           onSuccess={onSuccessUploadImageHandler}
@@ -123,7 +130,7 @@ const WorkplaceForm = ({ workplace }: WorkplaceFormProps) => {
           )}
         </CldUploadWidget>
       </div>
-      <form action={formAction} className="flex-1 space-y-6">
+      <form action={formAction} className="flex-1 space-y-6 @container">
         <FormWrapper>
           <FormInput
             label="Name"

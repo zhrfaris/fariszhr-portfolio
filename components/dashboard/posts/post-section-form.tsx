@@ -76,7 +76,7 @@ const PostSectionForm = ({
         action={formAction}
         className="flex-1 space-y-6"
       >
-        <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
           <FormSelectIcon
             label="Section Icon"
             id="icon_type"

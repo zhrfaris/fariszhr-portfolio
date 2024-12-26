@@ -70,7 +70,7 @@ const CategoryForm = ({
   };
 
   return (
-    <form action={formAction} className="flex-1 space-y-6">
+    <form action={formAction} className="flex-1 space-y-6 @container">
       <FormInput
         label="Name"
         id="name"
