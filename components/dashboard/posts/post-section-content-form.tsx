@@ -1,11 +1,16 @@
 "use client";
 
+import {
+  contentImageEnum,
+  contentImages,
+  ContentImageType,
+} from "@/actions/post/create/schema";
 import { PostSectionContent } from "@/actions/post/create/types";
 import FormImageUpload, {
   FormImageUploadHandle,
 } from "@/components/form/form-image-upload";
-import FormInput from "@/components/form/form-input";
 import FormTextEditor from "@/components/form/form-rich-text-editor";
+import FormSelect from "@/components/form/form-select";
 import { BasicFormProps } from "@/components/form/popover-form";
 import { usePostForm } from "@/hooks/use-post-form";
 import React, { useRef } from "react";
@@ -25,7 +30,9 @@ const PostSectionContentForm = ({
 
   const formAction = async (formData: FormData) => {
     const content = formData.get("content") as string;
-    // const content_image_type = formData.get("content_image_type") as string;
+    const content_image_type = formData.get(
+      "content_image_type"
+    ) as ContentImageType;
 
     const image = contentImageRef?.current?.image;
 
@@ -39,7 +46,7 @@ const PostSectionContentForm = ({
       order: initialData?.order ?? contents.length,
       content,
       image,
-      content_image_type: "DEFAULT",
+      content_image_type,
     };
 
     changeContent(payload);
@@ -71,13 +78,14 @@ const PostSectionContentForm = ({
         }
       />
 
-      {contentImageRef?.current?.image && (
-        <FormInput
-          label="Image type"
-          id="content_image_type"
-          defaultValue={initialData?.content_image_type}
-        />
-      )}
+      <FormSelect
+        id="content_image_type"
+        label="Image type"
+        values={contentImages}
+        defaultValue={
+          initialData?.content_image_type ?? contentImageEnum.Values.DEFAULT
+        }
+      />
     </form>
   );
 };

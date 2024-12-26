@@ -54,7 +54,7 @@ const ImagePlaceholder = ({
           onEdit();
         }}
         className={cn(
-          "absolute bottom-0 inset-x-0 w-full group-hover:bg-slate-700 text-background hidden group-hover:flex rounded-none group-hover:mix-blend-difference",
+          "absolute bottom-0 inset-x-0 w-full group-hover:bg-white text-black hidden group-hover:flex rounded-none group-hover:mix-blend-difference",
           classNameEditButton
         )}
       >

@@ -54,7 +54,7 @@ const ListPostSection = () => {
           <PostSectionForm sectionChange={onChangeSectionHandler} />
         )}
         <div className="flex items-start gap-4 mt-4">
-          {!showFormSection && !editSectionData && (
+          {!showFormSection && !editSectionData && sections.length > 0 && (
             <Button type="button" onClick={addSectionHandler}>
               Add {sections.length > 0 ? "More" : ""} Section
             </Button>

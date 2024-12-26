@@ -10,7 +10,7 @@ import { usePostForm } from "@/hooks/use-post-form";
 import { EllipsisVertical, MoveDown, MoveUp, Pen, Trash2 } from "lucide-react";
 import PostSectionContentForm from "./post-section-content-form";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface PostSectionContentItemProps {
@@ -18,7 +18,10 @@ interface PostSectionContentItemProps {
 }
 
 const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
-  const [showMore, setShowMore] = useState(false);
+  const [showMore, setShowMore] = useState(true);
+  const [showShowMoreButton, setShowShowMoreButton] = useState(false);
+
+  const contentItemRef = useRef<HTMLDivElement>(null);
 
   const {
     editContentData,
@@ -112,6 +115,17 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
     },
   ];
 
+  useEffect(() => {
+    if (!contentItemRef.current) return;
+
+    const clientHeight = contentItemRef.current.clientHeight;
+
+    if (clientHeight > 300) {
+      setShowMore(false);
+      setShowShowMoreButton(true);
+    }
+  }, []);
+
   if (content.id === editContentData?.id) {
     return (
       <PostSectionContentForm
@@ -124,15 +138,16 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
   return (
     <div className="border border-black/30 rounded-md p-4 pt-12 relative ">
       <div
+        ref={contentItemRef}
         className={cn(
           "flex items-start",
-          showMore ? "max-h-none" : "max-h-36 overflow-hidden rounded-sm"
+          showMore ? "max-h-none" : "max-h-[300px] overflow-hidden rounded-sm"
         )}
       >
         <div className="flex-1 space-y-4">
           <SanitizedHtml innerHTML={content.content} />
           {content.image && (
-            <div className="w-full rounded-lg overflow-hidden">
+            <div className="relative w-full rounded-lg overflow-hidden">
               <Image
                 src={content.image?.img_url}
                 alt=""
@@ -140,11 +155,14 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
                 width={content.image?.img_width}
                 height={content.image?.img_width}
               />
+              <div className="absolute top-4 left-4 bg-white text-black mix-blend-difference rounded-lg p-2 text-sm capitalize">
+                {content.content_image_type}
+              </div>
             </div>
           )}
         </div>
       </div>
-      {(content.image || content.content.length > 512) && (
+      {showShowMoreButton && (
         <Button
           className="w-full mt-4"
           variant="outline"

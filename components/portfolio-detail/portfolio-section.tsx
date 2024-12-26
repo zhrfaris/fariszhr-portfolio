@@ -1,36 +1,85 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import { source_serif_pro } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { PostSection } from "@/actions/post/create/types";
 import SanitizedHtml from "../common/sanitized-html";
 import { SectionIcon } from "../form/form-select-icon";
 import { iconTypeChecker } from "@/lib/icons";
+import Image from "next/image";
+import { Button } from "../shadcn/button";
 
 interface PortfolioSectionProps {
   section: PostSection;
 }
 
 const PortfolioSection = ({ section }: PortfolioSectionProps) => {
+  const [isShowMore, setIsShowMore] = useState(true);
+  const [showShowMoreButton, setShowShowMoreButton] = useState(false);
+  const sectionItemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sectionItemRef.current) return;
+
+    const clientHeight = sectionItemRef.current.clientHeight;
+
+    if (clientHeight > 400) {
+      setIsShowMore(false);
+      setShowShowMoreButton(true);
+    }
+  }, []);
+
   return (
-    <div className="section space-y-4 pb-6 border-b">
-      <div className="section-title flex items-center gap-4">
-        {/* <div className="size-8 rounded-full bg-[#3251a5]"></div> */}
-        <SectionIcon
-          size={38}
-          iconId={iconTypeChecker(section.icon_type)}
-          alt={`icon of ${section.icon_type}`}
-        />
-        <h3 className={cn(source_serif_pro.className, "text-xl font-bold")}>
-          {section.title}
-        </h3>
+    <div className="space-y-4">
+      <div
+        ref={sectionItemRef}
+        className={cn(
+          "section space-y-4 pb-6 border-b",
+          isShowMore ? "max-h-none" : "max-h-[400px] overflow-hidden"
+        )}
+      >
+        <div className="section-title flex items-center gap-4">
+          <SectionIcon
+            size={38}
+            iconId={iconTypeChecker(section.icon_type)}
+            alt={`icon of ${section.icon_type}`}
+          />
+          <h3 className={cn(source_serif_pro.className, "text-xl font-bold")}>
+            {section.title}
+          </h3>
+        </div>
+        <div className="space-y-6">
+          {section.contents.map((content) => (
+            <div key={content.id} className="space-y-6">
+              <SanitizedHtml innerHTML={content.content} />
+              {/* add image here */}
+              {content.image && (
+                <div className="w-full min-h-12 rounded-3xl overflow-hidden">
+                  <Image
+                    src={content.image.img_url}
+                    placeholder="blur"
+                    blurDataURL={content.image.img_url_placeholder}
+                    alt=""
+                    width={content.image.img_width}
+                    height={content.image.img_height}
+                    className="w-full object-contain"
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-      <div>
-        {section.contents.map((content) => (
-          <div key={content.id}>
-            <SanitizedHtml innerHTML={content.content} />
-          </div>
-        ))}
-      </div>
+      {showShowMoreButton && (
+        <Button
+          onClick={() => setIsShowMore(!isShowMore)}
+          variant="outline"
+          className="w-full"
+        >
+          Show {isShowMore ? "Less" : "More"}
+        </Button>
+      )}
     </div>
   );
 };

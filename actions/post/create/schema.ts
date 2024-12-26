@@ -1,7 +1,9 @@
 import { Image, Status } from "@/actions/types";
 import { z } from "zod";
 
-export const ContentImageType = z.enum(["FULL", "DEFAULT"]);
+export const contentImageEnum = z.enum(["FULL", "DEFAULT"]);
+export const contentImages = Object.values(contentImageEnum.Values);
+export type ContentImageType = z.infer<typeof contentImageEnum>;
 
 export const PostSectionContent = z.object({
   id: z.string(),
@@ -11,7 +13,7 @@ export const PostSectionContent = z.object({
     invalid_type_error: "Content is required",
   }),
   image: Image.optional(),
-  content_image_type: ContentImageType,
+  content_image_type: contentImageEnum,
 });
 
 export const PostSection = z.object({
