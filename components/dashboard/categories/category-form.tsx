@@ -3,6 +3,7 @@
 import { createCategory } from "@/actions/category/create";
 import { Category } from "@/actions/category/get/types";
 import { updateCategory } from "@/actions/category/update";
+import { FormCreateComponentOnComboboxProps } from "@/components/form/form-combobox/form-combobox";
 import FormInput from "@/components/form/form-input";
 import { BasicFormProps } from "@/components/form/popover-form";
 import { Button } from "@/components/shadcn/button";
@@ -10,9 +11,15 @@ import { useAction } from "@/hooks/use-action";
 import React from "react";
 import { toast } from "sonner";
 
-// interface CategoryFormProps extends BasicFormProps<Category> {}
+interface CategoryFormProps
+  extends BasicFormProps<Category>,
+    FormCreateComponentOnComboboxProps {}
 
-const CategoryForm = ({ initialData, onSubmit }: BasicFormProps<Category>) => {
+const CategoryForm = ({
+  initialData,
+  onSubmit,
+  onSuccess,
+}: CategoryFormProps) => {
   const {
     execute: executeCreate,
     fieldErrors: createFieldErrors,
@@ -21,8 +28,12 @@ const CategoryForm = ({ initialData, onSubmit }: BasicFormProps<Category>) => {
     onProceed: () => {
       toast.loading("Creating category...", { id: "loading-create-category" });
     },
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       toast.success("Category created!");
+      if (!!onSuccess) {
+        onSuccess(data.id);
+        return;
+      }
       if (onSubmit) onSubmit();
     },
     onComplete: () => {

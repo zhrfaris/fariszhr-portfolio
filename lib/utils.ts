@@ -46,3 +46,6 @@ export async function imageUrlToBase64(imageUrl: string): Promise<string> {
     throw error;
   }
 }
+
+export const replaceHTMLTagFromString = (str: string, slice?: number) =>
+  str.replace(/(<([^>]+)>)/gi, "").slice(0, slice);

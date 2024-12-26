@@ -13,3 +13,13 @@ export const getWorkplaceById = async (id: string) => {
 export const getWorkplaceBySlug = async (slug: string) => {
   return await db.workplace.findUnique({ where: { slug } });
 };
+
+export const getWorkplacesCombobox = async () => {
+  return await db.workplace.findMany({
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+    },
+  });
+};

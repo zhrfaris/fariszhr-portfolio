@@ -31,6 +31,7 @@
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.5.1",
     "clsx": "^2.1.1",
+    "cmdk": "^0.2.1",
     "crypto-js": "^4.2.0",
     "isomorphic-dompurify": "^2.19.0",
     "lenis": "^1.1.17",

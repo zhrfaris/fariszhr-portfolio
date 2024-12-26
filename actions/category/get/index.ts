@@ -13,3 +13,13 @@ export const getCategoryById = async (id: string) => {
 export const getCategoryBySlug = async (slug: string) => {
   return await db.category.findUnique({ where: { slug } });
 };
+
+export const getCategoriesCombobox = async () => {
+  return await db.category.findMany({
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+    },
+  });
+};

@@ -7,7 +7,7 @@ import FormInput from "@/components/form/form-input";
 import FormWrapper from "@/components/form/form-wrapper";
 import { useAction } from "@/hooks/use-action";
 import { Status } from "@prisma/client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { CreatePost } from "@/actions/post/create/schema";
@@ -18,6 +18,10 @@ import FormImageUpload, {
 import FormTextarea from "@/components/form/form-textarea";
 import ListPostSection from "./list-post-section";
 import { usePostForm } from "@/hooks/use-post-form";
+import FormCombobox from "@/components/form/form-combobox/form-combobox";
+import { getCategoriesComboboxAction } from "@/actions/category/get-list";
+import CategoryForm from "../categories/category-form";
+import { unassignPostFromCategory } from "@/actions/category/unassign-post";
 
 interface PostFormProps {
   initialData?: Post;
@@ -27,6 +31,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
   const headerImageRef = useRef<FormImageUploadHandle>(null);
   const thumbnailImageRef = useRef<FormImageUploadHandle>(null);
   const thumbnailGifRef = useRef<FormImageUploadHandle>(null);
+
+  const [categories, setCategories] = useState<string[]>(
+    initialData?.categoryIds ?? []
+  );
 
   const { saveAsDraft, setSaveAsDraft } = usePostForm((state) => state);
 
@@ -151,7 +159,22 @@ const PostForm = ({ initialData }: PostFormProps) => {
 
         <FormWrapper>
           <FormInput label="Workplace" id="workplace" />
-          <FormInput label="Categories" id="categories" />
+          <div>
+            <FormCombobox
+              parentId={initialData?.id}
+              label="Category"
+              placeholder="Select Category..."
+              getData={getCategoriesComboboxAction}
+              initialSelected={categories}
+              FormCreateComponent={CategoryForm}
+              sideSheetWidth="sm"
+              onUnassign={unassignPostFromCategory}
+              onUpdateSelected={(selected) => setCategories(selected)}
+              disabled={createIsLoading || updateIsLoading}
+              selectedChipMode="chip"
+            />
+          </div>
+          {/* <FormInput label="Categories" id="categories" /> */}
         </FormWrapper>
       </form>
 
