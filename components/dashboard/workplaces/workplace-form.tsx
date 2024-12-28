@@ -88,7 +88,7 @@ const WorkplaceForm = ({ workplace, onSuccess }: WorkplaceFormProps) => {
         url,
         image: {
           ...workplaceImage,
-          img_type: workplaceImage?.img_type ?? undefined,
+          img_type: workplaceImage?.img_type,
         },
       });
       return;
@@ -99,7 +99,7 @@ const WorkplaceForm = ({ workplace, onSuccess }: WorkplaceFormProps) => {
       url,
       image: {
         ...workplaceImage,
-        img_type: workplaceImage?.img_type ?? undefined,
+        img_type: workplaceImage?.img_type,
       },
     });
   };

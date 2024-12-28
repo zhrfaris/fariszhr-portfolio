@@ -59,7 +59,7 @@ const ProfileForm = ({ user }: { user: User }) => {
       cv_url,
       deck_intro_url,
       photo: profileImage
-        ? { ...profileImage, img_type: profileImage?.img_type ?? undefined }
+        ? { ...profileImage, img_type: profileImage?.img_type }
         : undefined,
     });
   };
