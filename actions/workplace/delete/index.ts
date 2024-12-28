@@ -28,6 +28,34 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
+  // delete image from cloudinary storage
+  const allCoverPublicIds: string[] = [];
+
+  if (!!existWorkplace?.image?.public_id) {
+    allCoverPublicIds.push(existWorkplace?.image?.public_id);
+  }
+
+  if (allCoverPublicIds.length > 0) {
+    try {
+      const deleteGalleriesTransaction = allCoverPublicIds.map((id) =>
+        fetch(`${process.env.API_BASE_URL}/api/image/delete`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ public_id: id }),
+        })
+      );
+
+      await Promise.all(deleteGalleriesTransaction);
+    } catch (error) {
+      console.log(error);
+      return {
+        error: "Error while deleting posts images",
+      };
+    }
+  }
+
   // remove all connections
   try {
     await db.workplace.update({
