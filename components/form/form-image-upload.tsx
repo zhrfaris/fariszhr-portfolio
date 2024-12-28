@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 interface FormImageUploadProps {
   initialImage?: ImageType;
   label?: string;
+  showDeleteButton?: boolean;
 }
 
 export interface FormImageUploadHandle {
@@ -19,11 +20,15 @@ export interface FormImageUploadHandle {
 }
 
 const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
-  ({ initialImage, label }, ref) => {
-    const { currentImage, deleteUnUsedImages, onSuccessUploadImageHandler } =
-      useCloudinary({
-        initialImage,
-      });
+  ({ initialImage, label, showDeleteButton }, ref) => {
+    const {
+      currentImage,
+      deleteUnUsedImages,
+      deleteCurrentImage,
+      onSuccessUploadImageHandler,
+    } = useCloudinary({
+      initialImage,
+    });
 
     useImperativeHandle(ref, () => ({
       deleteUnusedImage: deleteUnUsedImages,
@@ -61,10 +66,11 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
                   "rounded-sm",
                   currentImage?.img_url && "h-fit"
                 )}
-                classNameEditButton="size-8 rounded-sm bottom-auto left-auto top-4 right-4"
+                classNameButtons="size-8 rounded-sm bottom-auto left-auto top-4 right-4"
                 img_url={currentImage?.img_url}
                 img_url_placeholder={currentImage?.img_url_placeholder}
                 onEdit={() => open()}
+                onDelete={showDeleteButton ? deleteCurrentImage : undefined}
                 width={currentImage?.img_width}
                 height={currentImage?.img_height}
               />

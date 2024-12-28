@@ -7,7 +7,7 @@ import FormInput from "@/components/form/form-input";
 import FormWrapper from "@/components/form/form-wrapper";
 import { useAction } from "@/hooks/use-action";
 import { Status } from "@prisma/client";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { CreatePost } from "@/actions/post/create/schema";
@@ -44,10 +44,15 @@ const PostForm = ({ initialData }: PostFormProps) => {
   const [workplaces, setWorkplaces] = useState<string[]>(
     initialData?.workplaceId ? [initialData?.workplaceId] : []
   );
-
-  const { saveAsDraft, sections, setSaveAsDraft } = usePostForm(
+  const { saveAsDraft, sections, setSections, setSaveAsDraft } = usePostForm(
     (state) => state
   );
+
+  useEffect(() => {
+    if (initialData) {
+      setSections(initialData?.post_sections);
+    }
+  }, [initialData, setSections]);
 
   const {
     execute: executeCreate,
@@ -79,6 +84,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
     },
     onSuccess: async () => {
       toast.success("Post updated!");
+      await headerImageRef.current?.deleteUnusedImage();
+      await thumbnailImageRef.current?.deleteUnusedImage();
+      await thumbnailGifRef.current?.deleteUnusedImage();
+      router.push("/dashboard/posts");
     },
     onComplete: () => {
       toast.dismiss("loading-update-post");
@@ -114,14 +123,14 @@ const PostForm = ({ initialData }: PostFormProps) => {
       status: saveAsDraft ? Status.INACTIVE : Status.ACTIVE,
       header_image: {
         ...headerImage,
-        img_type: headerImage.img_type ?? undefined,
+        img_type: headerImage.img_type,
       },
       thumbnail_image: {
         ...thumbnailImage,
-        img_type: thumbnailImage.img_type ?? undefined,
+        img_type: thumbnailImage.img_type,
       },
       thumbnail_gif: thumbnailGif
-        ? { ...thumbnailGif, img_type: thumbnailGif.img_type ?? undefined }
+        ? { ...thumbnailGif, img_type: thumbnailGif.img_type }
         : undefined,
       post_sections: sections,
       categoryIds: categories,
@@ -160,7 +169,8 @@ const PostForm = ({ initialData }: PostFormProps) => {
           <FormImageUpload
             ref={thumbnailGifRef}
             label="Thumbnail Gif"
-            initialImage={initialData?.thumbnail_image || undefined}
+            initialImage={initialData?.thumbnail_gif || undefined}
+            showDeleteButton={true}
           />
         </FormWrapper>
 

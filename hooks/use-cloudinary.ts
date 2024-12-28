@@ -58,13 +58,27 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
   const deleteUnUsedImages = async () => {
     if (!willDeleteImage) return;
 
-    toast.info("Deleting unused profile image...");
+    toast.info("Deleting unused image...");
     await onDeleteCloudinaryImage(willDeleteImage?.public_id, {
       onError: (error) => {
         toast.error(`Error deleting item: ${error}`);
       },
       onSuccess: () => {
         toast.success("Unused image deleted!");
+      },
+    });
+  };
+
+  const deleteCurrentImage = async () => {
+    if (!currentImage) return;
+
+    toast.info("Deleting image...");
+    await onDeleteCloudinaryImage(currentImage?.public_id, {
+      onError: (error) => {
+        toast.error(`Error deleting item: ${error}`);
+      },
+      onSuccess: () => {
+        toast.success("image deleted!");
       },
     });
   };
@@ -103,6 +117,7 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
     currentImage,
     onSuccessUploadImageHandler,
     deleteUnUsedImages,
+    deleteCurrentImage,
   };
 };
 

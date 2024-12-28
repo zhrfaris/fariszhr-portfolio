@@ -12,10 +12,11 @@ import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
 
 import { Workplace } from "@/actions/workplace/get/types";
 import { Post } from "@/actions/post/get/types";
-import { capitalizeEachWord } from "@/lib/utils";
+import { capitalizeEachWord, cn } from "@/lib/utils";
 import { Category } from "@/actions/category/get/types";
 import { deletePost } from "@/actions/post/delete";
 import { deleteManyPosts } from "@/actions/post/delete-many";
+import { Status } from "@/actions/types";
 
 export const postColumns: ColumnDef<NonNullable<Post>>[] = [
   {
@@ -151,7 +152,16 @@ export const postColumns: ColumnDef<NonNullable<Post>>[] = [
 
       return (
         <div className="max-w-[450px]">
-          <p>{capitalizeEachWord(status)}</p>
+          <p
+            className={cn(
+              "font-bold",
+              status === Status.Values.ACTIVE
+                ? "text-green-500"
+                : "text-red-500"
+            )}
+          >
+            {capitalizeEachWord(status)}
+          </p>
         </div>
       );
     },

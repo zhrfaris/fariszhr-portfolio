@@ -12,7 +12,7 @@ export const PostSectionContent = z.object({
     required_error: "Content is required",
     invalid_type_error: "Content is required",
   }),
-  image: Image.optional(),
+  image: Image.optional().or(z.null()),
   content_image_type: contentImageEnum,
 });
 

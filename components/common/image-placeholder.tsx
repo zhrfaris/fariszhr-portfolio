@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/shadcn/button";
 import { cn } from "@/lib/utils";
-import { ImageIcon, Pen } from "lucide-react";
+import { ImageIcon, Pen, Trash2 } from "lucide-react";
 import Image, { StaticImageData } from "next/image";
 import React, { useEffect, useState } from "react";
 
@@ -12,11 +12,12 @@ interface ImagePlaceholderProps {
   alt?: string;
   className?: string;
   classNameWrapper?: string;
-  classNameEditButton?: string;
+  classNameButtons?: string;
   quality?: number;
   width?: number;
   height?: number;
   onEdit?: () => void;
+  onDelete?: () => Promise<void>;
 }
 
 const ImagePlaceholder = ({
@@ -24,12 +25,13 @@ const ImagePlaceholder = ({
   img_url,
   className,
   classNameWrapper,
-  classNameEditButton,
+  classNameButtons,
   img_url_placeholder,
   quality = 75,
   width,
   height,
   onEdit,
+  onDelete,
 }: ImagePlaceholderProps) => {
   const [isMounted, setisMounted] = useState(false);
 
@@ -39,27 +41,44 @@ const ImagePlaceholder = ({
     setisMounted(true);
   }, [isMounted]);
 
-  const EditButton = () => {
-    const showButton = !!onEdit && isMounted;
-
-    if (!showButton) {
+  const Buttons = () => {
+    if (!isMounted) {
       return null;
     }
 
     return (
-      <Button
-        size="icon"
-        onClick={(e) => {
-          e.preventDefault();
-          onEdit();
-        }}
-        className={cn(
-          "absolute bottom-0 inset-x-0 w-full group-hover:bg-white text-black hidden group-hover:flex rounded-none group-hover:mix-blend-difference",
-          classNameEditButton
+      <div className="absolute top-2 right-2 group-hover:flex gap-4 hidden">
+        {onEdit && (
+          <Button
+            size="icon"
+            onClick={(e) => {
+              e.preventDefault();
+              onEdit();
+            }}
+            className={cn(
+              "bg-white text-black rounded-none mix-blend-difference",
+              classNameButtons
+            )}
+          >
+            <Pen className="h-4 w-4" />
+          </Button>
         )}
-      >
-        <Pen className="h-4 w-4" />
-      </Button>
+        {onDelete && img_url && (
+          <Button
+            size="icon"
+            onClick={async (e) => {
+              e.preventDefault();
+              await onDelete();
+            }}
+            className={cn(
+              "bg-red-500 text-white rounded-none",
+              classNameButtons
+            )}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     );
   };
 
@@ -82,7 +101,7 @@ const ImagePlaceholder = ({
             className={cn("object-contain w-full", className)}
             {...(width && height && { width, height })}
           />
-          <EditButton />
+          <Buttons />
         </>
       ) : (
         <>
@@ -99,7 +118,7 @@ const ImagePlaceholder = ({
           >
             <ImageIcon className="text-white size-12" />
           </div>
-          <EditButton />
+          <Buttons />
         </>
       )}
     </div>
