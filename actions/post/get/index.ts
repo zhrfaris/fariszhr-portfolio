@@ -17,9 +17,15 @@ export const getPosts = async (
 };
 
 export const getPostById = async (id: string) => {
-  return await db.post.findUnique({ where: { id } });
+  return await db.post.findUnique({
+    where: { id },
+    include: { categories: true, workplace: true },
+  });
 };
 
 export const getPostBySlug = async (slug: string) => {
-  return await db.post.findUnique({ where: { slug } });
+  return await db.post.findUnique({
+    where: { slug },
+    include: { categories: true, workplace: true },
+  });
 };

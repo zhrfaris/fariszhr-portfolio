@@ -12,9 +12,10 @@ import { Button } from "../shadcn/button";
 
 interface PortfolioSectionProps {
   section: PostSection;
+  showFull?: boolean;
 }
 
-const PortfolioSection = ({ section }: PortfolioSectionProps) => {
+const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
   const [isShowMore, setIsShowMore] = useState(true);
   const [showShowMoreButton, setShowShowMoreButton] = useState(false);
   const sectionItemRef = useRef<HTMLDivElement>(null);
@@ -24,11 +25,13 @@ const PortfolioSection = ({ section }: PortfolioSectionProps) => {
 
     const clientHeight = sectionItemRef.current.clientHeight;
 
+    if (showFull) return;
+
     if (clientHeight > 400) {
       setIsShowMore(false);
       setShowShowMoreButton(true);
     }
-  }, []);
+  }, [showFull]);
 
   return (
     <div className="space-y-4">

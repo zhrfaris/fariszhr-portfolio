@@ -11,9 +11,13 @@ type State = {
   showFormContent: boolean;
   editContentData: PostSectionContent | null;
   editSectionData: PostSection | null;
+  title: string;
+  excerpt: string;
 };
 
 type Action = {
+  setTitle: (title: string) => void;
+  setExcerpt: (excerpt: string) => void;
   setSaveAsDraft: (bool: boolean) => void;
   setShowFormSection: (bool: boolean) => void;
   setShowFormContent: (bool: boolean) => void;
@@ -24,6 +28,8 @@ type Action = {
 };
 
 export const usePostForm = create<State & Action>((set) => ({
+  title: "",
+  excerpt: "",
   saveAsDraft: false,
   showFormSection: false,
   showFormContent: true,
@@ -31,6 +37,8 @@ export const usePostForm = create<State & Action>((set) => ({
   sections: [],
   editContentData: null,
   editSectionData: null,
+  setTitle: (title) => set(() => ({ title })),
+  setExcerpt: (excerpt) => set(() => ({ excerpt })),
   setEditContentData: (data) => set(() => ({ editContentData: data })),
   setEditSectionData: (data) => set(() => ({ editSectionData: data })),
   setSections: (sections) => set(() => ({ sections })),

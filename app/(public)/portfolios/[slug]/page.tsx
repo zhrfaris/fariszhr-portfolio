@@ -1,17 +1,14 @@
-import { generateLoremIpsum } from "@/lib/utils";
-
 import React from "react";
 import PortfolioDetail from "@/components/portfolio-detail/portfolio-detail";
-import { PostSection } from "@/actions/post/create/types";
+import { getPostBySlug } from "@/actions/post/get";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 
-// interface PortfolioDetailPageProps {
-//   params: Promise<{ slug: string }>;
-// }
+interface PortfolioDetailPageProps {
+  params: Promise<{ slug: string }>;
+}
 
-const PortfolioDetailPage = async () => {
-  // const { slug } = await params;
-
-  const sections: PostSection[] = [
+/* const sections: PostSection[] = [
     {
       id: "1",
       title: "What is Pinhome Home Service?",
@@ -132,9 +129,19 @@ const PortfolioDetailPage = async () => {
       icon_type: "graduation_cap",
       order: 7,
     },
-  ];
+  ]; */
 
-  return <PortfolioDetail sections={sections} />;
+const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
+  const { slug } = await params;
+  const session = await auth();
+
+  const post = await getPostBySlug(slug);
+
+  if (!post) {
+    redirect("/");
+  }
+
+  return <PortfolioDetail post={post} showEditButton={!!session?.user?.id} />;
 };
 
 export default PortfolioDetailPage;

@@ -14,7 +14,9 @@ interface FormTextareaProps {
   errors?: Record<string, string[] | undefined>;
   className?: string;
   defaultValue?: string;
+  value?: string | number;
   onBlur?: () => void;
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
 const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
@@ -22,7 +24,7 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
     {
       id,
       className,
-      defaultValue = "",
+      defaultValue,
       disabled,
       errors,
       label,
@@ -30,6 +32,8 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
       placeholder,
       required,
       readonly,
+      onChange,
+      value,
     },
     ref
   ) => {
@@ -55,6 +59,8 @@ const FormTextarea = forwardRef<HTMLTextAreaElement, FormTextareaProps>(
               defaultValue={defaultValue}
               disabled={disabled}
               readOnly={readonly}
+              value={value}
+              onChange={onChange}
               className={cn(
                 "px-4 flex items-center bg-muted text-base h-9",
                 className

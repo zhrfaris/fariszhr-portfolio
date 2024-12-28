@@ -44,15 +44,34 @@ const PostForm = ({ initialData }: PostFormProps) => {
   const [workplaces, setWorkplaces] = useState<string[]>(
     initialData?.workplaceId ? [initialData?.workplaceId] : []
   );
-  const { saveAsDraft, sections, setSections, setSaveAsDraft } = usePostForm(
-    (state) => state
-  );
+  const {
+    saveAsDraft,
+    sections,
+    editSectionData,
+    editContentData,
+    showFormSection,
+    showFormContent,
+    title,
+    excerpt,
+    setTitle,
+    setExcerpt,
+    setSections,
+    setSaveAsDraft,
+  } = usePostForm((state) => state);
 
   useEffect(() => {
     if (initialData) {
+      setTitle(initialData?.title);
+      setExcerpt(initialData?.excerpt);
       setSections(initialData?.post_sections);
     }
-  }, [initialData, setSections]);
+  }, [initialData, setExcerpt, setSections, setTitle]);
+
+  const resetForm = () => {
+    setTitle("");
+    setExcerpt("");
+    setSections([]);
+  };
 
   const {
     execute: executeCreate,
@@ -64,6 +83,7 @@ const PostForm = ({ initialData }: PostFormProps) => {
     },
     onSuccess: async () => {
       toast.success("Post created!");
+      resetForm();
       await headerImageRef.current?.deleteUnusedImage();
       await thumbnailImageRef.current?.deleteUnusedImage();
       await thumbnailGifRef.current?.deleteUnusedImage();
@@ -84,6 +104,7 @@ const PostForm = ({ initialData }: PostFormProps) => {
     },
     onSuccess: async () => {
       toast.success("Post updated!");
+      resetForm();
       await headerImageRef.current?.deleteUnusedImage();
       await thumbnailImageRef.current?.deleteUnusedImage();
       await thumbnailGifRef.current?.deleteUnusedImage();
@@ -94,10 +115,7 @@ const PostForm = ({ initialData }: PostFormProps) => {
     },
   });
 
-  const formAction = (formData: FormData) => {
-    const title = formData.get("title") as string;
-    const excerpt = formData.get("excerpt") as string;
-
+  const formAction = () => {
     const headerImage = headerImageRef.current?.image;
     const thumbnailImage = thumbnailImageRef.current?.image;
     const thumbnailGif = thumbnailGifRef.current?.image;
@@ -114,6 +132,16 @@ const PostForm = ({ initialData }: PostFormProps) => {
 
     if (sections.length <= 0) {
       toast.error("Add at least one section");
+      return;
+    }
+
+    if (showFormSection || editSectionData) {
+      toast.warning("You have unsaved changes in Section form");
+      return;
+    }
+
+    if (showFormContent || editContentData) {
+      toast.warning("You have unsaved changes in Content form");
       return;
     }
 
@@ -178,14 +206,16 @@ const PostForm = ({ initialData }: PostFormProps) => {
           <FormInput
             label="Title"
             id="title"
-            defaultValue={initialData?.title}
             required={true}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             errors={initialData?.id ? updateFieldErrors : createFieldErrors}
           />
           <FormTextarea
             label="Short Description"
             id="excerpt"
-            defaultValue={initialData?.excerpt}
+            value={excerpt}
+            onChange={(e) => setExcerpt(e.target.value)}
             required={true}
             errors={initialData?.id ? updateFieldErrors : createFieldErrors}
           />

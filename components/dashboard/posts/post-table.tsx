@@ -3,7 +3,7 @@ import { Button } from "@/components/shadcn/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/shadcn/checkbox";
 import { DataTable } from "@/components/table/data-table";
-import { ArrowUpDown, Pen, Trash } from "lucide-react";
+import { ArrowUpDown, Pen, SquareArrowOutUpRight, Trash } from "lucide-react";
 
 import { toast } from "sonner";
 import { useAction } from "@/hooks/use-action";
@@ -264,6 +264,15 @@ const ActionButtons = ({ initialData }: { initialData: NonNullable<Post> }) => {
 
   return (
     <div className="flex gap-4 items-center">
+      <Link href={`/dashboard/posts/${initialData?.slug}`}>
+        <Button
+          size="icon"
+          variant="outline"
+          className="hover:text-primary-foreground hover:bg-primary"
+        >
+          <SquareArrowOutUpRight className="h-4 w-4" />
+        </Button>
+      </Link>
       <Link href={`/dashboard/posts/${initialData?.slug}/edit`}>
         <Button
           size="icon"

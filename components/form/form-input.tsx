@@ -17,6 +17,7 @@ interface FormInputProps {
   className?: string;
   defaultValue?: string;
   showTogglePassword?: boolean;
+  value?: string | number;
   onBlur?: () => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -26,7 +27,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
     {
       id,
       className,
-      defaultValue = "",
+      defaultValue,
       disabled,
       errors,
       label,
@@ -36,6 +37,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
       required,
       type,
       readonly,
+      value,
       showTogglePassword,
     },
     ref
@@ -76,6 +78,7 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
               defaultValue={defaultValue}
               disabled={disabled}
               readOnly={readonly}
+              value={value}
               className={cn(
                 "px-4 flex items-center bg-muted text-base h-9",
                 className
