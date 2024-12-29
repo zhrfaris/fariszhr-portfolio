@@ -4,19 +4,38 @@ import { source_serif_pro } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { Button } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
+import { User } from "@/actions/user/get/type";
+import { useUser } from "@/hooks/use-user";
+import { useEffect } from "react";
+import Image from "next/image";
 
-const HeroSection = () => {
+const HeroSection = ({ user }: { user: User }) => {
   const { scrollToSectionId } = useLenisScroll();
-
   const scrollToShowcase = () => scrollToSectionId("showcase");
+  const setUser = useUser((state) => state.setUser);
+
+  useEffect(() => {
+    if (!user) return;
+    setUser(user);
+  }, [user, setUser]);
 
   return (
     <div className="p-4 space-y-4 text-center flex flex-col items-center justify-center min-h-screen mt-12 md:mt-0">
       <div className="flex flex-col  items-center justify-center flex-1 gap-8">
-        <div className="profile-pict size-[120px] rounded-full bg-zinc-300"></div>
+        <div className="profile-pict size-[120px] rounded-full overflow-hidden bg-zinc-300 relative">
+          {user?.photo?.img_url && (
+            <Image
+              alt=""
+              src={user?.photo?.img_url}
+              placeholder="blur"
+              blurDataURL={user?.photo?.img_url_placeholder}
+              fill
+            />
+          )}
+        </div>
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Muhammad Faris Azhar</h1>
-          <p>Product Designer</p>
+          <h1 className="text-2xl font-semibold">{user?.name}</h1>
+          <p>{user?.occupation}</p>
         </div>
         <h2
           className={cn(
@@ -24,7 +43,7 @@ const HeroSection = () => {
             "text-5xl md:text-6xl font-semibold max-w-screen-md"
           )}
         >
-          Humanizing technology through design
+          {user?.tagline}
         </h2>
         <div className="pt-8">
           <Button onClick={scrollToShowcase}>See Works & Experience</Button>
