@@ -6,10 +6,12 @@ import React from "react";
 import styles from "./header.module.scss";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "../shadcn/button";
-import { AlignJustify } from "lucide-react";
+import { AlignJustify, FileText, Mail } from "lucide-react";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
 import { useUser } from "@/hooks/use-user";
 import { usePathname } from "next/navigation";
+import MainButton from "../common/main-button";
+import LinkedInIcon from "../icons/linkedin-icon";
 
 const Header = () => {
   const { scrollToSectionId, scrollToTop } = useLenisScroll();
@@ -17,7 +19,7 @@ const Header = () => {
   const pathname = usePathname();
 
   const NavWrapper = ({ children }: { children: React.ReactNode }) => (
-    <nav className="z-50 hidden md:flex items-center gap-6 ">{children}</nav>
+    <nav className="z-50 hidden md:flex items-center gap-4">{children}</nav>
   );
 
   const consoleLog = () => console.log("clicked");
@@ -73,14 +75,23 @@ const Header = () => {
   const SocialButtons = () => {
     return (
       <NavWrapper>
-        {user?.cv_url && (
+        {user?.linkedin_url && (
           <Link
-            href={user?.cv_url}
+            href={user?.linkedin_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold"
           >
-            Download CV
+            <MainButton rounded={true} size="icon">
+              <LinkedInIcon className="!size-6" />
+            </MainButton>
+          </Link>
+        )}
+        {user?.cv_url && (
+          <Link href={user?.cv_url} target="_blank" rel="noopener noreferrer">
+            <MainButton rounded={true}>
+              <FileText />
+              Download CV
+            </MainButton>
           </Link>
         )}
         {user?.email && (
@@ -88,9 +99,11 @@ const Header = () => {
             href={`mailto:${user?.email}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold"
           >
-            Contact Me
+            <MainButton rounded={true}>
+              <Mail />
+              Contact Me
+            </MainButton>
           </Link>
         )}
       </NavWrapper>

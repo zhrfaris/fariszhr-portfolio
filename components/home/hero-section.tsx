@@ -2,12 +2,13 @@
 
 import { source_serif_pro } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
-import { Button } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
 import { User } from "@/actions/user/get/type";
 import { useUser } from "@/hooks/use-user";
 import { useEffect } from "react";
 import Image from "next/image";
+import MainButton from "../common/main-button";
+import { MoveDown } from "lucide-react";
 
 const HeroSection = ({ user }: { user: User }) => {
   const { scrollToSectionId } = useLenisScroll();
@@ -46,7 +47,10 @@ const HeroSection = ({ user }: { user: User }) => {
           {user?.tagline}
         </h2>
         <div className="pt-8">
-          <Button onClick={scrollToShowcase}>See Works & Experience</Button>
+          <MainButton onClick={scrollToShowcase}>
+            <MoveDown />
+            See Works & Experience
+          </MainButton>
         </div>
       </div>
       <div className="min-h-[100px] w-full flex flex-col items-center justify-center gap-6 py-12">
