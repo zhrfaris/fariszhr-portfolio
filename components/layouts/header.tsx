@@ -8,14 +8,14 @@ import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "../shadcn/button";
 import { AlignJustify, FileText, Mail } from "lucide-react";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
-import { useUser } from "@/hooks/use-user";
 import { usePathname } from "next/navigation";
 import MainButton from "../common/main-button";
 import LinkedInIcon from "../icons/linkedin-icon";
+import { usePublicData } from "@/hooks/use-pablic-data";
 
 const Header = () => {
   const { scrollToSectionId, scrollToTop } = useLenisScroll();
-  const { user } = useUser((state) => state);
+  const user = usePublicData((state) => state.user);
   const pathname = usePathname();
 
   const NavWrapper = ({ children }: { children: React.ReactNode }) => (

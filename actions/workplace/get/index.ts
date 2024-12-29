@@ -6,6 +6,10 @@ export const getWorkplaces = async (userId: string) => {
   return await db.workplace.findMany({ where: { user: { id: userId } } });
 };
 
+export const getWorkplacesBySlug = async (username: string) => {
+  return await db.workplace.findMany({ where: { user: { username } } });
+};
+
 export const getWorkplaceById = async (id: string) => {
   return await db.workplace.findUnique({ where: { id } });
 };
