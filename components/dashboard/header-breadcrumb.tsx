@@ -50,7 +50,7 @@ const HeaderBreadcrumb = () => {
       return;
     }
 
-    console.log({ crumbs });
+    // console.log({ crumbs });
 
     const transformLabel = (slug: string) => {
       return capitalizeEachWord(slug.split("-").join(" "));

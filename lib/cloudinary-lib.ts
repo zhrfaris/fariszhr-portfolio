@@ -1,7 +1,5 @@
 import cloudinary from "cloudinary";
-import { toast } from "sonner";
 import { Image as ImageType } from "@prisma/client";
-import { imageUrlToBase64 } from "./utils";
 
 export type CldImageUploadFetchResponse = {
   asset_id: string;
@@ -97,22 +95,22 @@ export const destroyCloudinaryImage = (
 };
 
 // https://cloudinary.com/documentation/image_upload_api_reference#upload_response
-export const uploadCloudinaryImage = async (filePath: string) => {
+export const uploadCloudinaryImage = async (base64: string) => {
   const upload_preset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-  if (!filePath) {
-    toast.error("filePath is required");
+  if (!base64) {
+    console.log("base64 is required");
     return;
   }
 
   if (!upload_preset) {
-    toast.error("upload_preset is required");
+    console.log("upload_preset is required");
     return;
   }
 
   try {
     const response: CldImageUploadFetchResponse =
-      await cloudinary.v2.uploader.unsigned_upload(filePath, upload_preset, {
+      await cloudinary.v2.uploader.unsigned_upload(base64, upload_preset, {
         sources: ["local", "url"],
         clientAllowedFormats: ["png", "jpg", "jpeg", "gif", "svg"],
         maxFileSize: 3_000_000,
@@ -125,20 +123,14 @@ export const uploadCloudinaryImage = async (filePath: string) => {
       img_url_thumbnail: response.secure_url,
       img_width: response.width,
       img_height: response.height,
-      img_url_placeholder: response.secure_url,
+      img_url_placeholder: base64.split("base64,")[1],
       img_type: response.format,
     };
 
-    try {
-      const base64 = await imageUrlToBase64(image.img_url_thumbnail);
-      image.img_url_placeholder = base64;
-    } catch (error) {
-      console.error("Error fetching or encoding image:", error);
-    }
-
     return image;
   } catch (error) {
-    toast.error("Upload image failed");
+    console.log(error);
+    // toast.error("Upload image failed");
     throw error;
   }
 };

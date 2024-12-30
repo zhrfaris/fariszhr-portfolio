@@ -5,7 +5,8 @@ import {
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const { filePath }: { filePath: string } = await request.json();
+  const { base64 }: { base64: string } = await request.json();
+
   try {
     initializeCloudinary();
   } catch (error) {
@@ -20,10 +21,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const image = await uploadCloudinaryImage(filePath);
+    const image = await uploadCloudinaryImage(base64);
 
-    return NextResponse.json({ data: { image } }, { status: 200 });
+    return NextResponse.json({ image }, { status: 200 });
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       {
         error: {

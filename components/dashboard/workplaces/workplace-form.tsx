@@ -1,12 +1,9 @@
 "use client";
 
 import { Workplace } from "@/actions/workplace/get/types";
-import ImagePlaceholder from "@/components/common/image-placeholder";
 import FormInput from "@/components/form/form-input";
 import FormWrapper from "@/components/form/form-wrapper";
-import { CldUploadWidget } from "next-cloudinary";
-import React from "react";
-import useCloudinary from "@/hooks/use-cloudinary";
+import React, { useRef } from "react";
 import { useAction } from "@/hooks/use-action";
 import { createWorkplace } from "@/actions/workplace/create";
 import { toast } from "sonner";
@@ -14,21 +11,22 @@ import { Button } from "@/components/shadcn/button";
 import { useRouter } from "next/navigation";
 import { updateWorkplace } from "@/actions/workplace/update";
 import { FormCreateComponentOnComboboxProps } from "@/components/form/form-combobox/form-combobox";
+import FormImageUpload, {
+  FormImageUploadHandle,
+} from "@/components/form/form-image-upload";
 
 interface WorkplaceFormProps extends FormCreateComponentOnComboboxProps {
   workplace?: Workplace;
 }
 
-const WorkplaceForm = ({ workplace, onSuccess }: WorkplaceFormProps) => {
+const WorkplaceForm = ({
+  workplace,
+  essential,
+  onSuccess,
+}: WorkplaceFormProps) => {
   const router = useRouter();
 
-  const {
-    currentImage: workplaceImage,
-    deleteUnUsedImages,
-    onSuccessUploadImageHandler,
-  } = useCloudinary({
-    initialImage: workplace?.image || undefined,
-  });
+  const workplaceImageRef = useRef<FormImageUploadHandle>(null);
 
   const {
     execute: executeCreate,
@@ -40,7 +38,7 @@ const WorkplaceForm = ({ workplace, onSuccess }: WorkplaceFormProps) => {
     },
     onSuccess: async (data) => {
       toast.success("Workplace created!");
-      await deleteUnUsedImages();
+      await workplaceImageRef.current?.deleteUnusedImage();
 
       if (!!onSuccess) {
         onSuccess(data.id);
@@ -64,7 +62,7 @@ const WorkplaceForm = ({ workplace, onSuccess }: WorkplaceFormProps) => {
     },
     onSuccess: async () => {
       toast.success("Workplace updated!");
-      await deleteUnUsedImages();
+      await workplaceImageRef.current?.deleteUnusedImage();
       router.push("/dashboard/workplaces");
     },
     onComplete: () => {
@@ -75,6 +73,8 @@ const WorkplaceForm = ({ workplace, onSuccess }: WorkplaceFormProps) => {
   const formAction = (formData: FormData) => {
     const name = formData.get("name") as string;
     const url = formData.get("url") as string;
+
+    const workplaceImage = workplaceImageRef.current?.image;
 
     if (!workplaceImage) {
       toast.error("Workplace image is required!");
@@ -106,31 +106,18 @@ const WorkplaceForm = ({ workplace, onSuccess }: WorkplaceFormProps) => {
 
   return (
     <div className="flex flex-col @md:flex-row gap-4 @md:gap-8 @md:items-start">
-      <div className="size-56 bg-muted rounded-sm flex items-center justify-center">
-        <CldUploadWidget
-          onSuccess={onSuccessUploadImageHandler}
-          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-          options={{
-            sources: ["local", "url"],
-            clientAllowedFormats: ["png", "jpg", "jpeg", "gif", "svg"],
-            maxFileSize: 3_000_000,
-            multiple: false,
-          }}
-        >
-          {({ open }) => (
-            <ImagePlaceholder
-              classNameWrapper="rounded-sm"
-              className="object-contain p-4"
-              img_url={workplaceImage?.img_url}
-              img_url_placeholder={workplaceImage?.img_url_placeholder}
-              onEdit={() => {
-                open();
-              }}
-            />
-          )}
-        </CldUploadWidget>
-      </div>
       <form action={formAction} className="flex-1 space-y-6 @container">
+        <FormWrapper>
+          <FormImageUpload
+            ref={workplaceImageRef}
+            label="Workplace Logo"
+            initialImage={workplace?.image || undefined}
+            className="h-fit min-h-0 p-4 max-w-40"
+            classNameWidgetWrapper="overflow-visible"
+            classNameButtons="-top-4 -right-16 flex"
+            uploadWIthAPI={essential}
+          />
+        </FormWrapper>
         <FormWrapper>
           <FormInput
             label="Name"

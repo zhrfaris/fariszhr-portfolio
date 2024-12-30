@@ -54,15 +54,13 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
         <div className="max-w-screen-md mx-auto space-y-8 py-12">
           {/* Portfolio Title Header */}
           <div className="portfolio-title-header flex items-center gap-4">
-            <div className="w-fit max-w-40 h-8 relative">
-              <Image
-                src={post.workplace.image.img_url}
-                alt=""
-                width={post.workplace.image.img_width}
-                height={post.workplace.image.img_height}
-                className="max-w-40 max-h-8 object-contain"
-              />
-            </div>
+            <Image
+              src={post.workplace.image.img_url}
+              alt=""
+              width={post.workplace.image.img_width}
+              height={post.workplace.image.img_height}
+              className="max-w-40 h-fit object-contain"
+            />
             <h4>
               {post.categories.map((category) => category.name).join(" - ")}
             </h4>

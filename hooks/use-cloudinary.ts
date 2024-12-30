@@ -27,6 +27,35 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
     ImageType | undefined
   >();
 
+  const onUploadCloudinaryImage = async (base64: string) => {
+    try {
+      const response = await fetch(`/api/image/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ base64 }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload item");
+      }
+
+      // console.log({ response });
+
+      const data = await response.json();
+
+      // console.log({ data });
+
+      setCurrentImage(data.image);
+    } catch (error) {
+      console.log(error);
+      toast.error(`Error uploading item: ${error}`);
+    } finally {
+      toast.success("Image uploaded!");
+    }
+  };
+
   const onDeleteCloudinaryImage = async (
     public_id: string,
     option?: { onError?: (error: any) => void; onSuccess?: () => void }
@@ -116,6 +145,7 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
   return {
     currentImage,
     onSuccessUploadImageHandler,
+    onUploadCloudinaryImage,
     deleteUnUsedImages,
     deleteCurrentImage,
   };

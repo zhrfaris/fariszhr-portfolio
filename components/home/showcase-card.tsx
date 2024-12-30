@@ -68,9 +68,9 @@ const ShowcaseCard = ({
       <div
         className={cn(
           "size-full px-8 py-px flex gap-4 justify-between items-center relative",
-          type !== "wide" && "flex-col pt-4",
-          type === "wide" && "pl-4 md:pl-8 pr-0 md:pr-8",
-          type === "default" && "px-0"
+          type !== "wide" && "flex-col pt-4 px-0",
+          type === "wide" && "pl-4 md:pl-8 pr-0 md:pr-8"
+          // type === "default" && "px-0"
         )}
       >
         <div
@@ -104,8 +104,9 @@ const ShowcaseCard = ({
             blurDataURL={image_blur_data_url}
             className={cn(
               "object-cover size-full md:object-contain",
-              type === "default" && "object-bottom",
-              type === "wide" && "object-left-top md:object-center"
+              type === "wide"
+                ? "object-left-top md:object-center"
+                : "object-bottom"
             )}
           />
         </div>

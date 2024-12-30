@@ -49,5 +49,18 @@ export async function imageUrlToBase64(imageUrl: string): Promise<string> {
   }
 }
 
+export const convertFileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      const result = e.target?.result as string;
+      const base64String = result.split(",")[1];
+      resolve(base64String);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 export const replaceHTMLTagFromString = (str: string, slice?: number) =>
   str.replace(/(<([^>]+)>)/gi, "").slice(0, slice);

@@ -47,7 +47,12 @@ const ImagePlaceholder = ({
     }
 
     return (
-      <div className="absolute top-2 right-2 group-hover:flex gap-4 hidden">
+      <div
+        className={cn(
+          "absolute top-2 right-2 group-hover:flex gap-4 hidden",
+          classNameButtons
+        )}
+      >
         {onEdit && (
           <Button
             size="icon"
@@ -56,8 +61,7 @@ const ImagePlaceholder = ({
               onEdit();
             }}
             className={cn(
-              "bg-white text-black rounded-none mix-blend-difference",
-              classNameButtons
+              "bg-white text-black rounded-md mix-blend-difference"
             )}
           >
             <Pen className="h-4 w-4" />
@@ -70,10 +74,7 @@ const ImagePlaceholder = ({
               e.preventDefault();
               await onDelete();
             }}
-            className={cn(
-              "bg-red-500 text-white rounded-none",
-              classNameButtons
-            )}
+            className={cn("bg-red-500 text-white rounded-md")}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
