@@ -24,7 +24,7 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
         <Link
           href={`/dashboard/posts/${post.slug}/edit`}
           className={buttonVariants({
-            className: "absolute z-40 top-16 right-12 rounded-full shadow-md",
+            className: "absolute z-40 top-20 right-8 rounded-full shadow-md",
           })}
         >
           <Pen />

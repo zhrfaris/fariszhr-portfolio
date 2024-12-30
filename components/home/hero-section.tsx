@@ -3,8 +3,6 @@
 import { source_serif_pro } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
-import { User } from "@/actions/user/get/type";
-import { useEffect } from "react";
 import Image from "next/image";
 import MainButton from "../common/main-button";
 import { MoveDown } from "lucide-react";
@@ -14,20 +12,13 @@ import Link from "next/link";
 import TooltipWrapper from "../wrappers/tooltip-wrapper";
 
 const HeroSection = ({
-  user,
   workplaces,
 }: {
-  user: User;
   workplaces: NonNullable<Workplace>[];
 }) => {
   const { scrollToSectionId } = useLenisScroll();
   const scrollToShowcase = () => scrollToSectionId("showcase");
-  const setUser = usePublicData((state) => state.setUser);
-
-  useEffect(() => {
-    if (!user) return;
-    setUser(user);
-  }, [user, setUser]);
+  const user = usePublicData((state) => state.user);
 
   const WorkplaceCard = ({
     workplace,

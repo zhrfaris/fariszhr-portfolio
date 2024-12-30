@@ -57,6 +57,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
     setExcerpt,
     setSections,
     setSaveAsDraft,
+    setShowFormContent,
+    setShowFormSection,
+    setEditContentData,
+    setEditSectionData,
   } = usePostForm((state) => state);
 
   useEffect(() => {
@@ -71,6 +75,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
     setTitle("");
     setExcerpt("");
     setSections([]);
+    setShowFormContent(false);
+    setShowFormSection(false);
+    setEditContentData(null);
+    setEditSectionData(null);
   };
 
   const {
@@ -239,17 +247,17 @@ const PostForm = ({ initialData }: PostFormProps) => {
           </div>
           <div>
             <FormCombobox
-              parentId={initialData?.id}
               label="Category"
-              placeholder="Select Category..."
-              getData={getCategoriesComboboxAction}
-              initialSelected={categories}
-              FormCreateComponent={CategoryForm}
               sideSheetWidth="sm"
-              onUnassign={unassignPostFromCategory}
-              onUpdateSelected={(selected) => setCategories(selected)}
-              disabled={createIsLoading || updateIsLoading}
               selectedChipMode="chip"
+              parentId={initialData?.id}
+              initialSelected={categories}
+              placeholder="Select Category..."
+              FormCreateComponent={CategoryForm}
+              onUnassign={unassignPostFromCategory}
+              getData={getCategoriesComboboxAction}
+              disabled={createIsLoading || updateIsLoading}
+              onUpdateSelected={(selected) => setCategories(selected)}
             />
           </div>
         </FormWrapper>
@@ -257,7 +265,18 @@ const PostForm = ({ initialData }: PostFormProps) => {
 
       <ListPostSection />
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 justify-end">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => {
+            router.push("/dashboard/posts");
+            resetForm();
+          }}
+          disabled={createIsLoading || updateIsLoading}
+        >
+          Cancel
+        </Button>
         <Button
           type="submit"
           form="post-form"

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
 
 import styles from "./header.module.scss";
 import { cn } from "@/lib/utils";
@@ -12,11 +12,17 @@ import { usePathname } from "next/navigation";
 import MainButton from "../common/main-button";
 import LinkedInIcon from "../icons/linkedin-icon";
 import { usePublicData } from "@/hooks/use-pablic-data";
+import { User } from "@/actions/user/get/type";
 
-const Header = () => {
+const Header = ({ user }: { user: User }) => {
   const { scrollToSectionId, scrollToTop } = useLenisScroll();
-  const user = usePublicData((state) => state.user);
+  const setUser = usePublicData((state) => state.setUser);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (!user) return;
+    setUser(user);
+  }, [user, setUser]);
 
   const NavWrapper = ({ children }: { children: React.ReactNode }) => (
     <nav className="z-50 hidden md:flex items-center gap-4">{children}</nav>
