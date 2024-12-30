@@ -1,7 +1,7 @@
 import React from "react";
 import PortfolioDetail from "@/components/portfolio-detail/portfolio-detail";
 import { getPostBySlug } from "@/actions/post/get";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 
 interface PortfolioDetailPageProps {
@@ -138,7 +138,7 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
   const post = await getPostBySlug(slug);
 
   if (!post) {
-    redirect("/");
+    notFound();
   }
 
   return <PortfolioDetail post={post} showEditButton={!!session?.user?.id} />;

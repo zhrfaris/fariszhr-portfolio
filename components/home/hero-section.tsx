@@ -10,6 +10,8 @@ import MainButton from "../common/main-button";
 import { MoveDown } from "lucide-react";
 import { usePublicData } from "@/hooks/use-pablic-data";
 import { Workplace } from "@/actions/workplace/get/types";
+import Link from "next/link";
+import TooltipWrapper from "../wrappers/tooltip-wrapper";
 
 const HeroSection = ({
   user,
@@ -26,6 +28,42 @@ const HeroSection = ({
     if (!user) return;
     setUser(user);
   }, [user, setUser]);
+
+  const WorkplaceCard = ({
+    workplace,
+  }: {
+    workplace: NonNullable<Workplace>;
+  }) => {
+    const WorkplaceWrapper = ({ children }: { children: React.ReactNode }) => {
+      if (!workplace.url) {
+        return <>{children}</>;
+      }
+
+      return (
+        <Link href={workplace.url} target="_blank" rel="noopener noreferrer">
+          {children}
+        </Link>
+      );
+    };
+
+    return (
+      <WorkplaceWrapper>
+        <TooltipWrapper tooltip_text={workplace.name} side="bottom">
+          <div className="h-12 rounded-lg">
+            <Image
+              alt=""
+              src={workplace.image.img_url}
+              placeholder="blur"
+              blurDataURL={workplace.image.img_url_placeholder}
+              width={workplace.image.img_width}
+              height={workplace.image.img_height}
+              className="size-full object-contain max-w-40 grayscale"
+            />
+          </div>
+        </TooltipWrapper>
+      </WorkplaceWrapper>
+    );
+  };
 
   return (
     <div className="p-4 space-y-4 text-center flex flex-col items-center justify-center min-h-screen mt-12 md:mt-0">
@@ -64,27 +102,9 @@ const HeroSection = ({
         <h4>The Company I&apos;ve been collaborated with</h4>
         <div className="flex items-center gap-8 flex-wrap justify-center">
           {workplaces.map((workplace, i) => (
-            <div key={i} className="h-12 rounded-lg">
-              <Image
-                alt=""
-                src={workplace.image.img_url}
-                placeholder="blur"
-                blurDataURL={workplace.image.img_url_placeholder}
-                width={workplace.image.img_width}
-                height={workplace.image.img_height}
-                className="size-full object-contain max-w-40 grayscale"
-              />
-            </div>
+            <WorkplaceCard key={i} workplace={workplace} />
           ))}
         </div>
-        {/* <div className="flex items-center gap-8 flex-wrap justify-center">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-12 rounded-lg bg-zinc-300 w-[150px]"
-            ></div>
-          ))}
-        </div> */}
       </div>
     </div>
   );

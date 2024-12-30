@@ -16,6 +16,21 @@ export const getPosts = async (
   });
 };
 
+export const getPostsShowCase = async (username: string) => {
+  return await db.post.findMany({
+    where: { author: { username }, status: "ACTIVE" },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      excerpt: true,
+      thumbnail_image: true,
+      thumbnail_gif: true,
+    },
+    take: 4,
+  });
+};
+
 export const getPostById = async (id: string) => {
   return await db.post.findUnique({
     where: { id },

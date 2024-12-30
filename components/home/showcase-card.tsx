@@ -4,32 +4,46 @@ import styles from "./showcase-card.module.scss";
 import { cn } from "@/lib/utils";
 import { source_serif_pro } from "@/lib/fonts";
 import Link from "next/link";
+import Image from "next/image";
 
 const ShowcaseCard = ({
+  link,
   title,
+  target,
+  className,
   description,
   type = "default",
-  className,
-  slug,
+  image_blur_data_url,
+  image_url,
 }: {
   title: string;
   description: string;
-  type?: "default" | "wide" | "small";
+  image_url: string;
+  image_blur_data_url?: string;
+  link?: string;
+  target?: "_blank";
   className?: string;
-  slug?: string;
+  type?: "default" | "wide" | "small";
 }) => {
   const Wrapper = ({
     children,
-    slug,
+    link,
     className,
+    target,
   }: {
     children: React.ReactNode;
     className?: string;
-    slug?: string;
+    link?: string;
+    target?: "_blank";
   }) => {
-    if (!!slug) {
+    if (!!link) {
       return (
-        <Link className={className} href={`/portfolios/${slug}`}>
+        <Link
+          className={className}
+          href={link}
+          target={target}
+          rel={target === "_blank" ? "noopener noreferrer" : undefined}
+        >
           {children}
         </Link>
       );
@@ -40,9 +54,10 @@ const ShowcaseCard = ({
 
   return (
     <Wrapper
-      slug={slug}
+      link={link}
+      target={target}
       className={cn(
-        "rounded-xl h-[215px] overflow-hidden col-span-12",
+        "rounded-xl md:h-[277px] aspect-[2/1] md:aspect-auto overflow-hidden col-span-12",
         type === "default" && "md:col-span-6",
         type === "wide" && "md:col-span-8",
         type === "small" && "md:col-span-4",
@@ -52,8 +67,10 @@ const ShowcaseCard = ({
     >
       <div
         className={cn(
-          "size-full px-8 py-px flex gap-4 justify-between items-center",
-          type !== "wide" && "flex-col pt-4"
+          "size-full px-8 py-px flex gap-4 justify-between items-center relative",
+          type !== "wide" && "flex-col pt-4",
+          type === "wide" && "pl-4 md:pl-8 pr-0 md:pr-8",
+          type === "default" && "px-0"
         )}
       >
         <div
@@ -75,10 +92,24 @@ const ShowcaseCard = ({
         </div>
         <div
           className={cn(
-            "img border border-zinc-900 flex-1 w-full h-full",
+            "img flex-1 w-full h-full relative",
             type !== "wide" && "rounded-xl rounded-b-none"
           )}
-        ></div>
+        >
+          <Image
+            alt=""
+            src={image_url}
+            fill
+            placeholder={image_blur_data_url ? "blur" : undefined}
+            blurDataURL={image_blur_data_url}
+            className={cn(
+              "object-cover size-full md:object-contain",
+              type === "default" && "object-bottom",
+              type === "wide" && "object-left-top md:object-center"
+            )}
+          />
+        </div>
+        <div className="img_overlay absolute inset-x-0 bottom-0 w-full h-24 bg-gradient-to-t from-white/50 to-transparent" />
       </div>
     </Wrapper>
   );
