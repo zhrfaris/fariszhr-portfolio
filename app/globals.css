@@ -93,8 +93,12 @@ body {
   @apply text-sm;
 }
 
-#innerHTML:not(.no-style) li {
+#innerHTML:not(.no-style) ul li {
   @apply list-disc ml-4;
+}
+
+#innerHTML:not(.no-style) ol li {
+  @apply list-decimal ml-4;
 }
 
 #innerHTML:not(.no-style) p,

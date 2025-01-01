@@ -8,7 +8,9 @@ import SanitizedHtml from "../common/sanitized-html";
 import { SectionIcon } from "../form/form-select-icon";
 import { iconTypeChecker } from "@/lib/icons";
 import Image from "next/image";
-import { Button } from "../shadcn/button";
+import { Button, buttonVariants } from "../shadcn/button";
+import Link from "next/link";
+import { Maximize } from "lucide-react";
 
 interface PortfolioSectionProps {
   section: PostSection;
@@ -58,7 +60,7 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
               <SanitizedHtml innerHTML={content.content} />
               {/* add image here */}
               {content.image && (
-                <div className="w-full min-h-12 rounded-3xl overflow-hidden">
+                <div className="w-full min-h-12 rounded-3xl overflow-hidden border-2 border-zinc-300 relative">
                   <Image
                     src={content.image.img_url}
                     placeholder="blur"
@@ -68,6 +70,18 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
                     height={content.image.img_height}
                     className="w-full object-contain"
                   />
+                  <Link
+                    className={buttonVariants({
+                      size: "icon",
+                      variant: "outline",
+                      className: "absolute bottom-4 right-4",
+                    })}
+                    href={content.image.img_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Maximize />
+                  </Link>
                 </div>
               )}
             </div>
