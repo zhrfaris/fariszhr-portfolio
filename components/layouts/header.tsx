@@ -13,8 +13,16 @@ import MainButton from "../common/main-button";
 import LinkedInIcon from "../icons/linkedin-icon";
 import { usePublicData } from "@/hooks/use-pablic-data";
 import { User } from "@/actions/user/get/type";
+import { Session } from "next-auth";
+import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
 
-const Header = ({ user }: { user: User }) => {
+const Header = ({
+  user,
+  session,
+}: {
+  user: User;
+  session?: Session | null;
+}) => {
   const { scrollToSectionId, scrollToTop } = useLenisScroll();
   const setUser = usePublicData((state) => state.setUser);
   const pathname = usePathname();
@@ -52,6 +60,7 @@ const Header = ({ user }: { user: User }) => {
                   "font-semibold hover:bg-transparent hover:text-black text-base",
                 variant: "ghost",
               })}
+              onEnded={() => console.log("navigate end")}
             >
               Works & Experiences
             </Link>
@@ -110,6 +119,17 @@ const Header = ({ user }: { user: User }) => {
               <Mail />
               Contact Me
             </MainButton>
+          </Link>
+        )}
+        {session?.user?.id && (
+          <Link
+            href={"/dashboard"}
+            className="size-10 rounded-full shadow-2xl border border-input"
+          >
+            <Avatar className="size-full">
+              <AvatarImage src="/avatar.png" />
+              <AvatarFallback>ZHR</AvatarFallback>
+            </Avatar>
           </Link>
         )}
       </NavWrapper>

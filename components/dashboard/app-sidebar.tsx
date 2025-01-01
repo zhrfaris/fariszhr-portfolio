@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   Blocks,
   BriefcaseBusiness,
+  Globe,
   House,
   Newspaper,
   User,
@@ -94,6 +95,19 @@ export function AppSidebar({
       </SidebarContent>
       {session && (
         <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <Link href="/">
+                <SidebarMenuButton>
+                  {/* group-data-[state=expanded]:hidden */}
+                  <Globe className="" />
+                  <h4 className="group-data-[collapsible=icon]:hidden">
+                    Back To Web
+                  </h4>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          </SidebarMenu>
           <NavUser user={user} />
         </SidebarFooter>
       )}
