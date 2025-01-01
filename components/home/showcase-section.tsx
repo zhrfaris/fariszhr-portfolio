@@ -35,6 +35,7 @@ const ShowcaseSection = ({ posts }: { posts: PostsShowCase }) => {
               image_url={post.thumbnail_image.img_url}
               image_blur_data_url={post.thumbnail_image.img_url_placeholder}
               type={index % 3 === 0 ? "wide" : "small"}
+              prefetch={true}
             />
           ))}
           {/* <ShowcaseCard

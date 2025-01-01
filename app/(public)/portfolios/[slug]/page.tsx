@@ -137,7 +137,7 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
 
   const post = await getPostBySlug(slug);
 
-  if (!post) {
+  if (!post || post.status === "INACTIVE") {
     notFound();
   }
 

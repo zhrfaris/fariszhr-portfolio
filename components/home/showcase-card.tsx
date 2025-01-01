@@ -15,6 +15,7 @@ const ShowcaseCard = ({
   type = "default",
   image_blur_data_url,
   image_url,
+  prefetch,
 }: {
   title: string;
   description: string;
@@ -24,6 +25,7 @@ const ShowcaseCard = ({
   target?: "_blank";
   className?: string;
   type?: "default" | "wide" | "small";
+  prefetch?: boolean;
 }) => {
   const Wrapper = ({
     children,
@@ -43,6 +45,7 @@ const ShowcaseCard = ({
           href={link}
           target={target}
           rel={target === "_blank" ? "noopener noreferrer" : undefined}
+          prefetch={prefetch}
         >
           {children}
         </Link>

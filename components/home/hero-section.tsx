@@ -10,6 +10,7 @@ import { usePublicData } from "@/hooks/use-pablic-data";
 import { Workplace } from "@/actions/workplace/get/types";
 import Link from "next/link";
 import TooltipWrapper from "../wrappers/tooltip-wrapper";
+import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
 
 const HeroSection = ({
   workplaces,
@@ -59,20 +60,15 @@ const HeroSection = ({
   return (
     <div className="p-4 space-y-4 text-center flex flex-col items-center justify-center min-h-screen mt-12 md:mt-0">
       <div className="flex flex-col  items-center justify-center flex-1 gap-8">
-        <div className="profile-pict size-[120px] rounded-full overflow-hidden bg-zinc-300 relative">
-          {user?.photo?.img_url && (
-            <Image
-              alt=""
-              src={user?.photo?.img_url}
-              placeholder="blur"
-              blurDataURL={user?.photo?.img_url_placeholder}
-              fill
-            />
-          )}
-        </div>
+        <Avatar className="size-[120px]">
+          <AvatarImage src={user?.photo?.img_url} />
+          <AvatarFallback>ZHR</AvatarFallback>
+        </Avatar>
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">{user?.name}</h1>
-          <p>{user?.occupation}</p>
+          <h1 className="text-2xl font-semibold">
+            {user?.name ?? "Muhammad Faris Azhar"}
+          </h1>
+          <p>{user?.occupation ?? "Product Designer"}</p>
         </div>
         <h2
           className={cn(
@@ -80,7 +76,7 @@ const HeroSection = ({
             "text-5xl md:text-6xl font-semibold max-w-screen-md"
           )}
         >
-          {user?.tagline}
+          {user?.tagline ?? "Humanizing technology through design"}
         </h2>
         <div className="pt-8">
           <MainButton onClick={scrollToShowcase}>
