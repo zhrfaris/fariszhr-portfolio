@@ -1,12 +1,14 @@
 "use client";
 
 import useCloudinary from "@/hooks/use-cloudinary";
-import {
-  CldUploadWidget,
-  CloudinaryUploadWidgetInstanceMethodOpenOptions,
-  CloudinaryUploadWidgetSources,
-} from "next-cloudinary";
-import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import { CldUploadWidget } from "next-cloudinary";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { Image as ImageType } from "@prisma/client";
 import ImagePlaceholder from "../common/image-placeholder";
 import { Label } from "../shadcn/label";
@@ -37,7 +39,7 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
       className,
       classNameButtons,
       classNameWidgetWrapper,
-      uploadWIthAPI,
+      uploadWIthAPI = false,
     },
     ref
   ) => {
@@ -51,6 +53,8 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
       initialImage,
     });
 
+    const [isMounted, setIsMounted] = useState(false);
+
     useImperativeHandle(ref, () => ({
       deleteUnusedImage: deleteUnUsedImages,
       get image() {
@@ -58,16 +62,15 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
       },
     }));
 
-    const WidgetWrapper = ({
-      children,
-    }: {
-      children: (props: {
-        open: (
-          widgetSource?: CloudinaryUploadWidgetSources,
-          options?: CloudinaryUploadWidgetInstanceMethodOpenOptions
-        ) => void;
-      }) => React.ReactNode;
-    }) => {
+    useEffect(() => {
+      setIsMounted(true);
+
+      return () => {
+        setIsMounted(false);
+      };
+    }, []);
+
+    const SdkUploader = () => {
       const inputFileRef = useRef<HTMLInputElement>(null);
 
       const selectFile = () => {
@@ -92,41 +95,73 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
         }
       };
 
-      if (uploadWIthAPI) {
-        return (
-          <>
-            {children({ open: selectFile })}
-            <input
-              ref={inputFileRef}
-              onChange={onFileChange}
-              type="file"
-              name="img_url"
-              className="hidden"
-              accept=".png, .jpg, .jpeg, .gif, .svg"
-            />
-          </>
-        );
-      } else {
-        return (
-          <CldUploadWidget
-            onSuccess={onSuccessUploadImageHandler}
-            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-            options={{
-              sources: ["local", "url"],
-              clientAllowedFormats: ["png", "jpg", "jpeg", "gif", "svg"],
-              maxFileSize: 3_000_000,
-              multiple: false,
-            }}
-          >
-            {({ open }) => (
-              <>
-                {typeof children === "function" ? children({ open }) : children}
-              </>
+      return (
+        <>
+          <ImagePlaceholder
+            classNameWrapper={cn(
+              "rounded-sm",
+              currentImage?.img_url && "h-fit",
+              classNameWidgetWrapper
             )}
-          </CldUploadWidget>
-        );
-      }
+            classNameButtons={cn(
+              "size-8 rounded-sm bottom-auto left-auto top-4 right-4",
+              classNameButtons
+            )}
+            img_url={currentImage?.img_url}
+            img_url_placeholder={currentImage?.img_url_placeholder}
+            onEdit={() => selectFile()}
+            onDelete={showDeleteButton ? deleteCurrentImage : undefined}
+            width={currentImage?.img_width}
+            height={currentImage?.img_height}
+          />
+          <input
+            ref={inputFileRef}
+            onChange={onFileChange}
+            type="file"
+            name="img_url"
+            className="hidden"
+            accept=".png, .jpg, .jpeg, .gif, .svg"
+          />
+        </>
+      );
     };
+
+    const WidgetUploader = () => {
+      return (
+        <CldUploadWidget
+          onSuccess={onSuccessUploadImageHandler}
+          uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+          options={{
+            sources: ["local", "url"],
+            clientAllowedFormats: ["png", "jpg", "jpeg", "gif", "svg"],
+            maxFileSize: 3_000_000,
+            multiple: false,
+          }}
+        >
+          {({ open: openWidget }) => (
+            <ImagePlaceholder
+              classNameWrapper={cn(
+                "rounded-sm",
+                currentImage?.img_url && "h-fit",
+                classNameWidgetWrapper
+              )}
+              classNameButtons={cn(
+                "size-8 rounded-sm bottom-auto left-auto top-4 right-4",
+                classNameButtons
+              )}
+              img_url={currentImage?.img_url}
+              img_url_placeholder={currentImage?.img_url_placeholder}
+              onEdit={() => openWidget()}
+              onDelete={showDeleteButton ? deleteCurrentImage : undefined}
+              width={currentImage?.img_width}
+              height={currentImage?.img_height}
+            />
+          )}
+        </CldUploadWidget>
+      );
+    };
+
+    if (!isMounted) return null;
 
     return (
       <div className="w-full space-y-2">
@@ -142,57 +177,7 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
             className
           )}
         >
-          <WidgetWrapper>
-            {({ open }) => (
-              <ImagePlaceholder
-                classNameWrapper={cn(
-                  "rounded-sm",
-                  currentImage?.img_url && "h-fit",
-                  classNameWidgetWrapper
-                )}
-                classNameButtons={cn(
-                  "size-8 rounded-sm bottom-auto left-auto top-4 right-4",
-                  classNameButtons
-                )}
-                img_url={currentImage?.img_url}
-                img_url_placeholder={currentImage?.img_url_placeholder}
-                onEdit={() => open()}
-                onDelete={showDeleteButton ? deleteCurrentImage : undefined}
-                width={currentImage?.img_width}
-                height={currentImage?.img_height}
-              />
-            )}
-          </WidgetWrapper>
-          {/* <CldUploadWidget
-            onSuccess={onSuccessUploadImageHandler}
-            uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
-            options={{
-              sources: ["local", "url"],
-              clientAllowedFormats: ["png", "jpg", "jpeg", "gif", "svg"],
-              maxFileSize: 3_000_000,
-              multiple: false,
-            }}
-          >
-            {({ open }) => (
-              <ImagePlaceholder
-                classNameWrapper={cn(
-                  "rounded-sm",
-                  currentImage?.img_url && "h-fit",
-                  classNameWidgetWrapper
-                )}
-                classNameButtons={cn(
-                  "size-8 rounded-sm bottom-auto left-auto top-4 right-4",
-                  classNameButtons
-                )}
-                img_url={currentImage?.img_url}
-                img_url_placeholder={currentImage?.img_url_placeholder}
-                onEdit={() => open()}
-                onDelete={showDeleteButton ? deleteCurrentImage : undefined}
-                width={currentImage?.img_width}
-                height={currentImage?.img_height}
-              />
-            )}
-          </CldUploadWidget> */}
+          {uploadWIthAPI ? <SdkUploader /> : <WidgetUploader />}
         </div>
       </div>
     );

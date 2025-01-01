@@ -60,6 +60,7 @@ const PostSectionForm = ({
 
   const cancelFormSectionHandler = () => {
     setShowFormSection(false);
+    setShowFormContent(false);
     setContents([]);
     setEditSectionData(null);
   };
