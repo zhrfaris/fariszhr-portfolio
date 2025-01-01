@@ -34,6 +34,8 @@ const useLenisScroll = () => {
   const scrollToSectionId = (sectionId: string) => {
     const showcaseSection = document.getElementById(sectionId);
 
+    console.log({ showcaseSection, lenisRef: lenisRef.current?.scrollTo });
+
     if (showcaseSection && lenisRef.current) {
       // Use Lenis scroll method for smooth scrolling
       lenisRef.current.scrollTo(showcaseSection, {

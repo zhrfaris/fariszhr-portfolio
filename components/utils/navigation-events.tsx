@@ -1,14 +1,13 @@
 "use client";
 
 import useLenisScroll from "@/hooks/use-lenis-scroll";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useEffect } from "react";
 
 const NavigationEvents = () => {
   const pathname = usePathname();
+  const searhParams = useSearchParams();
   const { scrollToSectionId } = useLenisScroll();
-
-  const [isMounted, setIsMounted] = useState(false);
 
   const scrollToSectionIdCB = useCallback(
     (id: string) => scrollToSectionId(id),
@@ -16,26 +15,14 @@ const NavigationEvents = () => {
   );
 
   useEffect(() => {
-    setIsMounted(true);
-
-    return () => {
-      setIsMounted(false);
-    };
-  }, [pathname]);
-
-  useEffect(() => {
     const hash = window.location.hash;
-
-    if (!isMounted) {
-      return;
-    }
 
     if (hash) {
       setTimeout(() => {
         scrollToSectionIdCB(hash.replace("#", ""));
-      }, 700);
+      }, 800);
     }
-  }, [isMounted, pathname, scrollToSectionIdCB]);
+  }, [pathname, searhParams, scrollToSectionIdCB]);
 
   return null;
 };

@@ -36,7 +36,7 @@ const Header = ({
     <nav className="z-50 hidden md:flex items-center gap-4">{children}</nav>
   );
 
-  const consoleLog = () => console.log("clicked");
+  const consoleLog = () => console.log("open mobile menu");
 
   const NavButtons = () => {
     return (
@@ -50,6 +50,7 @@ const Header = ({
                   "font-semibold hover:bg-transparent hover:text-black text-base",
                 variant: "ghost",
               })}
+              prefetch={true}
             >
               Home
             </Link>
@@ -60,7 +61,7 @@ const Header = ({
                   "font-semibold hover:bg-transparent hover:text-black text-base",
                 variant: "ghost",
               })}
-              onEnded={() => console.log("navigate end")}
+              prefetch={true}
             >
               Works & Experiences
             </Link>
