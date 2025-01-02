@@ -53,7 +53,9 @@ const HeroSection = async ({ user }: { user?: User }) => {
     <div className="p-4 space-y-4 text-center flex flex-col items-center justify-center min-h-screen mt-12 md:mt-0">
       <div className="flex flex-col  items-center justify-center flex-1 gap-8">
         <Avatar className="size-[120px]">
-          <AvatarImage src={user?.photo?.img_url} />
+          <AvatarImage
+            src={user?.photo?.img_url ?? "/faris-profile-pict-grayscale.png"}
+          />
           <AvatarFallback>ZHR</AvatarFallback>
         </Avatar>
         <div className="space-y-1">
