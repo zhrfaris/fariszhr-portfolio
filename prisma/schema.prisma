@@ -50,8 +50,8 @@ model Post {
   categoryIds String[]   @db.ObjectId
   categories  Category[] @relation(fields: [categoryIds], references: [id])
 
-  workplace   Workplace @relation(fields: [workplaceId], references: [id])
-  workplaceId String    @db.ObjectId
+  workplace   Workplace? @relation(fields: [workplaceId], references: [id])
+  workplaceId String?    @db.ObjectId
 
   author   User   @relation(fields: [authorId], references: [id])
   authorId String @db.ObjectId

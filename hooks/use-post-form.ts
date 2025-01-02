@@ -32,7 +32,7 @@ export const usePostForm = create<State & Action>((set) => ({
   excerpt: "",
   saveAsDraft: false,
   showFormSection: false,
-  showFormContent: true,
+  showFormContent: false,
   contents: [],
   sections: [],
   editContentData: null,

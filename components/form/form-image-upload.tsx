@@ -39,7 +39,7 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
       className,
       classNameButtons,
       classNameWidgetWrapper,
-      uploadWIthAPI = false,
+      uploadWIthAPI = true,
     },
     ref
   ) => {
@@ -91,7 +91,19 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
             return;
           }
 
-          onUploadCloudinaryImage(`data:${file.type};base64,` + base64);
+          toast.loading("Uploading image...", { id: "loading-upload-image" });
+
+          onUploadCloudinaryImage(`data:${file.type};base64,` + base64)
+            .then(() => {
+              toast.success("Image uploaded successfully");
+            })
+            .catch((error) => {
+              console.error(error);
+              toast.error("Failed to upload image");
+            })
+            .finally(() => {
+              toast.dismiss("loading-upload-image");
+            });
         }
       };
 
