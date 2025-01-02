@@ -57,45 +57,51 @@ const ShowcaseCard = ({
     return <div className={className}>{children}</div>;
   };
 
+  const TitleNDesc = () => (
+    <div
+      className={cn(
+        "text text-center",
+        type === "wide" && "max-w-[150px] text-left",
+        // type === "small" &&
+        //   "max-w-[150px] md:max-w-[200px] text-left md:text-center"
+        type === "small" && "max-w-[200px] text-center"
+      )}
+    >
+      {title && (
+        <h3
+          className={cn(
+            source_serif_pro.className,
+            "text-sm font-semibold mb-1"
+          )}
+        >
+          {title}
+        </h3>
+      )}
+      {description && <p className="text-xs">{description}</p>}
+    </div>
+  );
+
   return (
     <Wrapper
       link={link}
       target={target}
       className={cn(
-        "rounded-xl md:h-[277px] aspect-[2/1] md:aspect-auto overflow-hidden col-span-12",
+        "rounded-xl md:h-[215px] aspect-[2/1] md:aspect-auto overflow-hidden col-span-12",
         type === "default" && "md:col-span-6",
-        type === "wide" && "md:col-span-8",
-        type === "small" && "md:col-span-4",
+        type === "wide" && "md:col-span-7",
+        type === "small" && "md:col-span-5",
         styles.card,
         className
       )}
     >
       <div
         className={cn(
-          "size-full px-8 py-px flex gap-4 justify-between items-center relative",
-          type !== "wide" && "flex-col pt-4 px-0",
-          type === "wide" && "pl-4 md:pl-8 pr-0 md:pr-8"
+          "size-full px-8 py-px flex justify-between items-center relative",
+          type === "wide" ? "pl-4 md:pl-6 pr-0" : "flex-col gap-4 pt-4 px-0"
+          // type === "small" && "flex-row gap-2 md:flex-col pl-4 md:pl-0"
         )}
       >
-        <div
-          className={cn(
-            "text text-center",
-            type === "wide" && "max-w-[150px] text-left",
-            type === "small" && "max-w-[200px]"
-          )}
-        >
-          {title && (
-            <h3
-              className={cn(
-                source_serif_pro.className,
-                "text-sm font-semibold mb-1"
-              )}
-            >
-              {title}
-            </h3>
-          )}
-          {description && <p className="text-xs">{description}</p>}
-        </div>
+        <TitleNDesc />
         {image_url && (
           <div
             className={cn(
@@ -113,7 +119,8 @@ const ShowcaseCard = ({
                 "object-cover size-full md:object-contain",
                 type === "wide"
                   ? "object-left-top md:object-center"
-                  : "object-bottom"
+                  : "object-bottom",
+                type === "small" && "object-contain"
               )}
             />
           </div>

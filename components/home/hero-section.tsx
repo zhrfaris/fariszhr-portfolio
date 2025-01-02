@@ -33,7 +33,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
     return (
       <WorkplaceWrapper>
         <TooltipWrapper tooltip_text={workplace.name} side="bottom">
-          <div className="h-12 rounded-lg">
+          <div className="h-6 max-w-24 md:max-w-none md:h-12 rounded-lg ">
             <Image
               alt=""
               src={workplace.image.img_url}
@@ -50,8 +50,8 @@ const HeroSection = async ({ user }: { user?: User }) => {
   };
 
   return (
-    <div className="p-4 space-y-4 text-center flex flex-col items-center justify-center min-h-screen mt-12 md:mt-0">
-      <div className="flex flex-col  items-center justify-center flex-1 gap-8">
+    <div className="p-4 space-y-2 md:space-y-4 text-center flex flex-col items-center justify-center min-h-[95vh] md:min-h-screen mt-12 md:mt-0">
+      <div className="flex flex-col items-center justify-center flex-1 gap-4 md:gap-8">
         <Avatar className="size-[120px]">
           <AvatarImage
             src={user?.photo?.img_url ?? "/faris-profile-pict-grayscale.png"}
@@ -59,7 +59,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
           <AvatarFallback>ZHR</AvatarFallback>
         </Avatar>
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">
+          <h1 className="text-xl md:text-2xl font-semibold">
             {user?.name ?? "Muhammad Faris Azhar"}
           </h1>
           <p>{user?.occupation ?? "Product Designer"}</p>
@@ -67,7 +67,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
         <h2
           className={cn(
             source_serif_pro.className,
-            "text-5xl md:text-6xl font-semibold max-w-screen-md"
+            "text-3xl md:text-6xl font-semibold max-w-screen-md"
           )}
         >
           {user?.tagline ?? "Humanizing technology through design"}
@@ -76,8 +76,10 @@ const HeroSection = async ({ user }: { user?: User }) => {
           <HomeCtaButton />
         </div>
       </div>
-      <div className="min-h-[100px] w-full flex flex-col items-center justify-center gap-6 py-12">
-        <h4>The Company I&apos;ve been collaborated with</h4>
+      <div className="min-h-[120px] w-full flex flex-col items-center justify-center gap-6 py-4 md:py-12">
+        <h4 className="text-sm md:text-base">
+          The Company I&apos;ve been collaborated with
+        </h4>
         <div className="flex items-center gap-8 flex-wrap justify-center">
           {workplaces.map((workplace, i) => (
             <WorkplaceCard key={i} workplace={workplace} />
