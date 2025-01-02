@@ -1,25 +1,17 @@
-"use client";
-
 import { source_serif_pro } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
-import useLenisScroll from "@/hooks/use-lenis-scroll";
 import Image from "next/image";
-import MainButton from "../common/main-button";
-import { MoveDown } from "lucide-react";
-import { usePublicData } from "@/hooks/use-pablic-data";
 import { Workplace } from "@/actions/workplace/get/types";
 import Link from "next/link";
 import TooltipWrapper from "../wrappers/tooltip-wrapper";
 import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
+import HomeCtaButton from "./home-cta-button";
+import { getWorkplacesBySlug } from "@/actions/workplace/get";
+import { MAIN_USERNAME } from "@/lib/db";
+import { User } from "@/actions/user/get/type";
 
-const HeroSection = ({
-  workplaces,
-}: {
-  workplaces: NonNullable<Workplace>[];
-}) => {
-  const { scrollToSectionId } = useLenisScroll();
-  const scrollToShowcase = () => scrollToSectionId("showcase");
-  const user = usePublicData((state) => state.user);
+const HeroSection = async ({ user }: { user?: User }) => {
+  const workplaces = await getWorkplacesBySlug(MAIN_USERNAME);
 
   const WorkplaceCard = ({
     workplace,
@@ -79,10 +71,7 @@ const HeroSection = ({
           {user?.tagline ?? "Humanizing technology through design"}
         </h2>
         <div className="pt-8">
-          <MainButton onClick={scrollToShowcase}>
-            <MoveDown />
-            See Works & Experience
-          </MainButton>
+          <HomeCtaButton />
         </div>
       </div>
       <div className="min-h-[100px] w-full flex flex-col items-center justify-center gap-6 py-12">

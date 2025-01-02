@@ -1,92 +1,21 @@
-"use client";
-
 import Link from "next/link";
-import React, { useEffect } from "react";
 
 import styles from "./header.module.scss";
 import { cn } from "@/lib/utils";
-import { Button, buttonVariants } from "../shadcn/button";
-import { AlignJustify, FileText, Mail } from "lucide-react";
-import useLenisScroll from "@/hooks/use-lenis-scroll";
-import { usePathname } from "next/navigation";
+import { FileText, Mail } from "lucide-react";
 import MainButton from "../common/main-button";
 import LinkedInIcon from "../icons/linkedin-icon";
-import { usePublicData } from "@/hooks/use-pablic-data";
-import { User } from "@/actions/user/get/type";
-import { Session } from "next-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
+import NavWrapper from "./nav-wrapper";
+import NavButtons from "./nav-buttons";
+import NavMobile from "./nav-mobile";
+import { auth } from "@/auth";
+import { getUserByUsername } from "@/actions/user/get";
+import { MAIN_USERNAME } from "@/lib/db";
 
-const Header = ({
-  user,
-  session,
-}: {
-  user: User;
-  session?: Session | null;
-}) => {
-  const { scrollToSectionId, scrollToTop } = useLenisScroll();
-  const setUser = usePublicData((state) => state.setUser);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (!user) return;
-    setUser(user);
-  }, [user, setUser]);
-
-  const NavWrapper = ({ children }: { children: React.ReactNode }) => (
-    <nav className="z-50 hidden md:flex items-center gap-4">{children}</nav>
-  );
-
-  const consoleLog = () => console.log("open mobile menu");
-
-  const NavButtons = () => {
-    return (
-      <NavWrapper>
-        {pathname !== "/" ? (
-          <>
-            <Link
-              href={"/"}
-              className={buttonVariants({
-                className:
-                  "font-semibold hover:bg-transparent hover:text-black text-base",
-                variant: "ghost",
-              })}
-              prefetch={true}
-            >
-              Home
-            </Link>
-            <Link
-              href={"/#showcase"}
-              className={buttonVariants({
-                className:
-                  "font-semibold hover:bg-transparent hover:text-black text-base",
-                variant: "ghost",
-              })}
-              prefetch={true}
-            >
-              Works & Experiences
-            </Link>
-          </>
-        ) : (
-          <>
-            <Button
-              onClick={scrollToTop}
-              variant={"ghost"}
-              className="font-semibold hover:bg-transparent hover:text-black text-base"
-            >
-              Home
-            </Button>
-            <Button
-              onClick={() => scrollToSectionId("showcase")}
-              variant={"ghost"}
-              className="font-semibold hover:bg-transparent hover:text-black text-base"
-            >
-              Works & Experiences
-            </Button>
-          </>
-        )}
-      </NavWrapper>
-    );
-  };
+const Header = async () => {
+  const session = await auth();
+  const user = await getUserByUsername(MAIN_USERNAME);
 
   const SocialButtons = () => {
     return (
@@ -147,11 +76,7 @@ const Header = ({
       <SocialButtons />
 
       {/* mobile menu */}
-      <div className="md:hidden z-[60]">
-        <Button size="icon" onClick={consoleLog}>
-          <AlignJustify />
-        </Button>
-      </div>
+      <NavMobile />
 
       {/* gradient blur background */}
       <div className={cn(styles.gradientBlur)}>

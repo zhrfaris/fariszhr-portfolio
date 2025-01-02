@@ -1,17 +1,15 @@
-import { getPostsShowCase } from "@/actions/post/get";
-import { getWorkplacesBySlug } from "@/actions/workplace/get";
+import { getUserByUsername } from "@/actions/user/get";
 import HeroSection from "@/components/home/hero-section";
 import ShowcaseSection from "@/components/home/showcase-section";
 import { MAIN_USERNAME } from "@/lib/db";
 
 export default async function Home() {
-  const workplaces = await getWorkplacesBySlug(MAIN_USERNAME);
-  const posts = await getPostsShowCase(MAIN_USERNAME);
+  const user = await getUserByUsername(MAIN_USERNAME);
 
   return (
     <>
-      <HeroSection workplaces={workplaces} />
-      <ShowcaseSection posts={posts} />
+      <HeroSection user={user} />
+      <ShowcaseSection user={user} />
     </>
   );
 }

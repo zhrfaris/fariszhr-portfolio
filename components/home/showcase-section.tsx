@@ -1,12 +1,11 @@
-"use client";
-
 import React from "react";
 import ShowcaseCard from "./showcase-card";
-import { usePublicData } from "@/hooks/use-pablic-data";
-import { PostsShowCase } from "@/actions/post/get/types";
+import { MAIN_USERNAME } from "@/lib/db";
+import { getPostsShowCase } from "@/actions/post/get";
+import { User } from "@/actions/user/get/type";
 
-const ShowcaseSection = ({ posts }: { posts: PostsShowCase }) => {
-  const { user } = usePublicData((state) => state);
+const ShowcaseSection = async ({ user }: { user: User }) => {
+  const posts = await getPostsShowCase(MAIN_USERNAME);
 
   return (
     <div id="showcase" className="min-h-screen px-4 mb-12">
@@ -38,30 +37,6 @@ const ShowcaseSection = ({ posts }: { posts: PostsShowCase }) => {
               prefetch={true}
             />
           ))}
-          {/* <ShowcaseCard
-            title="Add Service Duration During Ongoing Order"
-            description="Enable customer to extend the service duration"
-            type="wide"
-            link="/portfolios/add-service-duration-during-ongoing-order"
-          />
-          <ShowcaseCard
-            title="Crypto Staking"
-            description="Lock crypto coin for specific period to earn interest"
-            type="small"
-            link="/portfolios/crypto-staking"
-          />
-          <ShowcaseCard
-            title="Shopping Voucher Revamp"
-            description="Shop faster with barnd's refreshed design"
-            type="small"
-            link="/portfolios/shopping-voucher-revamp"
-          />
-          <ShowcaseCard
-            title="Redefine Homepage Visual & Surfacing Voucher"
-            description="Create a cohesive design across platform & simplify access to various voucher"
-            type="wide"
-            link="/portfolios/redefine-homepage-visual-and-surfacing-voucher"
-          /> */}
         </div>
       </div>
     </div>
