@@ -25,7 +25,7 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
           href={`/dashboard/posts/${post.slug}/edit`}
           className={buttonVariants({
             className:
-              "hidden md:block absolute z-40 top-20 right-8 rounded-full shadow-md",
+              "hidden md:flex absolute z-40 top-20 right-8 rounded-full shadow-md",
           })}
         >
           <Pen />

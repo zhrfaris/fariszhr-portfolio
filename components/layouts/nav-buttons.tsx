@@ -22,7 +22,6 @@ const NavButtons = () => {
                 "font-semibold hover:bg-transparent hover:text-black text-base",
               variant: "ghost",
             })}
-            prefetch={true}
           >
             Home
           </Link>
@@ -33,7 +32,6 @@ const NavButtons = () => {
                 "font-semibold hover:bg-transparent hover:text-black text-base",
               variant: "ghost",
             })}
-            prefetch={true}
           >
             Works & Experiences
           </Link>
