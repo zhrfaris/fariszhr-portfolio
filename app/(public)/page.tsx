@@ -5,10 +5,11 @@ import { Suspense } from "react";
 import { MAIN_USERNAME } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import { getUserByUsername } from "@/actions/user/get";
+import { countRequestDuration } from "@/actions/utils";
 
-const getUser = unstable_cache(
+export const getUser = unstable_cache(
   async () => {
-    return await getUserByUsername(MAIN_USERNAME);
+    return await countRequestDuration(getUserByUsername, MAIN_USERNAME);
   },
   ["user"],
   { revalidate: 60 * 10, tags: ["user"] }

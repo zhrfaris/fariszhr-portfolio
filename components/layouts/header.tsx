@@ -1,21 +1,21 @@
 import Link from "next/link";
 
+import NavMobile from "./nav-mobile";
+import NavButtons from "./nav-buttons";
+import NavWrapper from "./nav-wrapper";
 import styles from "./header.module.scss";
-import { cn } from "@/lib/utils";
-import { FileText, Mail } from "lucide-react";
 import MainButton from "../common/main-button";
 import LinkedInIcon from "../icons/linkedin-icon";
-import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
-import NavWrapper from "./nav-wrapper";
-import NavButtons from "./nav-buttons";
-import NavMobile from "./nav-mobile";
+
 import { auth } from "@/auth";
-import { getUserByUsername } from "@/actions/user/get";
-import { MAIN_USERNAME } from "@/lib/db";
+import { cn } from "@/lib/utils";
+import { FileText, Mail } from "lucide-react";
+import { getUser } from "@/app/(public)/page";
+import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
 
 const Header = async () => {
   const session = await auth();
-  const user = await getUserByUsername(MAIN_USERNAME);
+  const user = await getUser();
 
   const SocialButtons = () => {
     return (

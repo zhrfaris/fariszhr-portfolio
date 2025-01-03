@@ -5,10 +5,11 @@ import { getPostsShowCase } from "@/actions/post/get";
 import { User } from "@/actions/user/get/type";
 import ShowcaseSectionWrapper from "./showcase-section-wrapper";
 import { unstable_cache } from "next/cache";
+import { countRequestDuration } from "@/actions/utils";
 
 const getPosts = unstable_cache(
   async () => {
-    return await getPostsShowCase(MAIN_USERNAME);
+    return await countRequestDuration(getPostsShowCase, MAIN_USERNAME);
   },
   ["posts"],
   { revalidate: 60 * 10, tags: ["posts"] }

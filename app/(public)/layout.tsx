@@ -1,7 +1,7 @@
 import LenisProvider from "@/components/utils/providers/lenis-provider";
 import Header from "@/components/layouts/header";
-import { Suspense } from "react";
-import NavigationEvents from "@/components/utils/navigation-events";
+// import { Suspense } from "react";
+// import NavigationEvents from "@/components/utils/navigation-events";
 
 export default async function RootLayout({
   children,
@@ -13,9 +13,9 @@ export default async function RootLayout({
       <Header />
       <LenisProvider>
         <main>{children}</main>
-        <Suspense fallback={null}>
+        {/* <Suspense fallback={null}>
           <NavigationEvents />
-        </Suspense>
+        </Suspense> */}
       </LenisProvider>
     </>
   );

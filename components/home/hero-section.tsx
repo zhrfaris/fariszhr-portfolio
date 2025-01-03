@@ -11,10 +11,11 @@ import { source_serif_pro } from "@/lib/fonts";
 import { Workplace } from "@/actions/workplace/get/types";
 import { getWorkplacesBySlug } from "@/actions/workplace/get";
 import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
+import { countRequestDuration } from "@/actions/utils";
 
 const getWorkplaces = unstable_cache(
   async () => {
-    return await getWorkplacesBySlug(MAIN_USERNAME);
+    return await countRequestDuration(getWorkplacesBySlug, MAIN_USERNAME);
   },
   ["workplaces"],
   { revalidate: 60 * 10, tags: ["workplaces"] }
