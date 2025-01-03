@@ -44,3 +44,18 @@ export const getPostBySlug = async (slug: string) => {
     include: { categories: true, workplace: true },
   });
 };
+
+export const getPostForMetadata = async (slug: string) => {
+  return await db.post.findUnique({
+    where: { slug },
+    select: { title: true, excerpt: true },
+  });
+};
+
+export const getPostIdsShowCase = async (username: string) => {
+  return await db.post.findMany({
+    where: { author: { username }, status: "ACTIVE" },
+    select: { id: true },
+    take: 4,
+  });
+};

@@ -1,12 +1,29 @@
 import React from "react";
 import PortfolioDetail from "@/components/portfolio-detail/portfolio-detail";
-import { getPostBySlug } from "@/actions/post/get";
+import {
+  getPostBySlug,
+  getPostForMetadata,
+  getPostIdsShowCase,
+} from "@/actions/post/get";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { Metadata, ResolvingMetadata } from "next";
+import { MAIN_USERNAME } from "@/lib/db";
 
 interface PortfolioDetailPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export const revalidate = 600;
+
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const posts = await getPostIdsShowCase(MAIN_USERNAME);
+
+  return posts.map((post) => ({
+    id: String(post.id),
+  }));
 }
 
 export async function generateMetadata(
@@ -15,7 +32,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
 
-  const post = await getPostBySlug(slug);
+  const post = await getPostForMetadata(slug);
   const previousImages = (await parent).openGraph?.images || [];
   const notFoundMetadata = {
     title: "Not Found",
