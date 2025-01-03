@@ -53,6 +53,8 @@ const PostForm = ({ initialData }: PostFormProps) => {
     showFormContent,
     title,
     excerpt,
+    slug,
+    setSlug,
     setTitle,
     setExcerpt,
     setSections,
@@ -66,10 +68,11 @@ const PostForm = ({ initialData }: PostFormProps) => {
   useEffect(() => {
     if (initialData) {
       setTitle(initialData?.title);
+      setSlug(initialData?.slug);
       setExcerpt(initialData?.excerpt);
       setSections(initialData?.post_sections);
     }
-  }, [initialData, setExcerpt, setSections, setTitle]);
+  }, [initialData, setExcerpt, setSections, setTitle, setSlug]);
 
   const resetForm = () => {
     setTitle("");
@@ -177,6 +180,7 @@ const PostForm = ({ initialData }: PostFormProps) => {
       executeUpdate({
         ...payload,
         id: initialData.id,
+        slug,
       });
       return;
     }
@@ -191,6 +195,16 @@ const PostForm = ({ initialData }: PostFormProps) => {
         action={formAction}
         className="flex-1 space-y-6 @container"
       >
+        {initialData?.id && (
+          <FormInput
+            label="Post ID"
+            id="slug"
+            required={true}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
+            errors={updateFieldErrors}
+          />
+        )}
         <FormImageUpload
           ref={headerImageRef}
           label="Header Image"

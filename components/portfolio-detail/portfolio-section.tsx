@@ -60,7 +60,7 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
               <SanitizedHtml innerHTML={content.content} />
               {/* add image here */}
               {content.image && (
-                <div className="w-full min-h-12 rounded-3xl overflow-hidden border-2 border-zinc-300 relative">
+                <div className="w-full min-h-12 rounded-2xl overflow-hidden relative">
                   <Image
                     src={content.image.img_url}
                     placeholder="blur"

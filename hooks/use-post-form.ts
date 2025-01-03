@@ -12,10 +12,12 @@ type State = {
   editContentData: PostSectionContent | null;
   editSectionData: PostSection | null;
   title: string;
+  slug: string;
   excerpt: string;
 };
 
 type Action = {
+  setSlug: (slug: string) => void;
   setTitle: (title: string) => void;
   setExcerpt: (excerpt: string) => void;
   setSaveAsDraft: (bool: boolean) => void;
@@ -28,6 +30,7 @@ type Action = {
 };
 
 export const usePostForm = create<State & Action>((set) => ({
+  slug: "",
   title: "",
   excerpt: "",
   saveAsDraft: false,
@@ -37,6 +40,7 @@ export const usePostForm = create<State & Action>((set) => ({
   sections: [],
   editContentData: null,
   editSectionData: null,
+  setSlug: (slug) => set(() => ({ slug })),
   setTitle: (title) => set(() => ({ title })),
   setExcerpt: (excerpt) => set(() => ({ excerpt })),
   setEditContentData: (data) => set(() => ({ editContentData: data })),

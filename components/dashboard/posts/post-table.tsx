@@ -1,22 +1,23 @@
 "use client";
-import { Button } from "@/components/shadcn/button";
-import { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/shadcn/checkbox";
-import { DataTable } from "@/components/table/data-table";
-import { ArrowUpDown, Pen, SquareArrowOutUpRight, Trash } from "lucide-react";
 
+import { z } from "zod";
 import { toast } from "sonner";
+import { Status } from "@/actions/types";
 import { useAction } from "@/hooks/use-action";
-import Link from "next/link";
-import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
-
-import { Workplace } from "@/actions/workplace/get/types";
 import { Post } from "@/actions/post/get/types";
+import { ColumnDef } from "@tanstack/react-table";
+import { deletePost } from "@/actions/post/delete";
+import { Button } from "@/components/shadcn/button";
 import { capitalizeEachWord, cn } from "@/lib/utils";
 import { Category } from "@/actions/category/get/types";
-import { deletePost } from "@/actions/post/delete";
+import { Checkbox } from "@/components/shadcn/checkbox";
+import { Workplace } from "@/actions/workplace/get/types";
+import { DataTable } from "@/components/table/data-table";
 import { deleteManyPosts } from "@/actions/post/delete-many";
-import { Status } from "@/actions/types";
+import { ArrowUpDown, Pen, SquareArrowOutUpRight, Trash } from "lucide-react";
+
+import Link from "next/link";
+import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
 
 export const postColumns: ColumnDef<NonNullable<Post>>[] = [
   {
@@ -148,19 +149,19 @@ export const postColumns: ColumnDef<NonNullable<Post>>[] = [
       );
     },
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+      const status = row.getValue("status") as z.infer<typeof Status>;
 
       return (
         <div className="max-w-[450px]">
           <p
             className={cn(
-              "font-bold",
+              "text-center rounded py-1 px-2",
               status === Status.Values.ACTIVE
-                ? "text-green-500"
-                : "text-red-500"
+                ? "text-green-900 bg-green-200"
+                : "text-sky-900 bg-sky-300"
             )}
           >
-            {capitalizeEachWord(status)}
+            {status === "ACTIVE" ? "Published" : "Draft"}
           </p>
         </div>
       );

@@ -24,10 +24,23 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     status,
     thumbnail_image,
     title,
+    slug,
     categoryIds,
     thumbnail_gif,
     workplaceId,
   } = data;
+
+  const postExist = await db.post.findUnique({
+    where: {
+      slug,
+    },
+  });
+
+  if (postExist && postExist.id !== id) {
+    return {
+      error: "Slug already exist",
+    };
+  }
 
   let post;
 
@@ -38,6 +51,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
       },
       data: {
         title,
+        slug,
         excerpt,
         header_image,
         thumbnail_image,
