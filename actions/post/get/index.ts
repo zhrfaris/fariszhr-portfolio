@@ -52,10 +52,10 @@ export const getPostForMetadata = async (slug: string) => {
   });
 };
 
-export const getPostIdsShowCase = async (username: string) => {
+export const getPostSlugsShowCase = async (username: string) => {
   return await db.post.findMany({
     where: { author: { username }, status: "ACTIVE" },
-    select: { id: true },
+    select: { slug: true },
     take: 4,
   });
 };

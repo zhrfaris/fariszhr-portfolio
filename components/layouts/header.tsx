@@ -7,14 +7,13 @@ import styles from "./header.module.scss";
 import MainButton from "../common/main-button";
 import LinkedInIcon from "../icons/linkedin-icon";
 
-import { auth } from "@/auth";
 import { cn } from "@/lib/utils";
 import { FileText, Mail } from "lucide-react";
 import { getUser } from "@/app/(public)/page";
-import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
+import { Suspense } from "react";
+import LogedinWidget from "./logedin-widget";
 
 const Header = async () => {
-  const session = await auth();
   const user = await getUser();
 
   const SocialButtons = () => {
@@ -51,17 +50,9 @@ const Header = async () => {
             </MainButton>
           </Link>
         )}
-        {session?.user?.id && (
-          <Link
-            href={"/dashboard"}
-            className="size-10 rounded-full shadow-2xl border border-input"
-          >
-            <Avatar className="size-full">
-              <AvatarImage src="/avatar.png" />
-              <AvatarFallback>ZHR</AvatarFallback>
-            </Avatar>
-          </Link>
-        )}
+        <Suspense fallback={null}>
+          <LogedinWidget />
+        </Suspense>
       </NavWrapper>
     );
   };

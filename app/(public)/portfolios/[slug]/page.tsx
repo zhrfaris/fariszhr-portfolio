@@ -3,7 +3,7 @@ import PortfolioDetail from "@/components/portfolio-detail/portfolio-detail";
 import {
   getPostBySlug,
   getPostForMetadata,
-  getPostIdsShowCase,
+  getPostSlugsShowCase,
 } from "@/actions/post/get";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
@@ -19,10 +19,10 @@ export const revalidate = 600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  const posts = await getPostIdsShowCase(MAIN_USERNAME);
+  const posts = await getPostSlugsShowCase(MAIN_USERNAME);
 
   return posts.map((post) => ({
-    id: String(post.id),
+    slug: String(post.slug),
   }));
 }
 
