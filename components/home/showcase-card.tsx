@@ -10,7 +10,6 @@ interface ShowcaseCardProps {
   title?: string;
   description?: string;
   image_url?: string;
-  image_blur_data_url?: string;
   link?: string;
   target?: "_blank";
   className?: string;
@@ -25,7 +24,6 @@ const ShowcaseCard = ({
   className,
   description,
   type = "default",
-  image_blur_data_url,
   image_url,
   prefetch,
 }: ShowcaseCardProps) => {
@@ -113,8 +111,6 @@ const ShowcaseCard = ({
               alt=""
               src={image_url}
               fill
-              placeholder={image_blur_data_url ? "blur" : undefined}
-              blurDataURL={image_blur_data_url}
               className={cn(
                 "object-cover size-full md:object-contain",
                 type === "wide"

@@ -42,7 +42,6 @@ const ShowcaseSection = async ({ user }: { user: User }) => {
             description={post.excerpt}
             link={`/portfolios/${post.slug}`}
             image_url={post.thumbnail_image.img_url}
-            image_blur_data_url={post.thumbnail_image.img_url_placeholder}
             type={index % 3 === 0 ? "wide" : "small"}
           />
         ))}

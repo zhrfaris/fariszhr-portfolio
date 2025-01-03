@@ -48,8 +48,6 @@ const HeroSection = async ({ user }: { user?: User }) => {
             <Image
               alt=""
               src={workplace.image.img_url}
-              placeholder="blur"
-              blurDataURL={workplace.image.img_url_placeholder}
               width={workplace.image.img_width}
               height={workplace.image.img_height}
               className="size-full object-contain max-w-40 grayscale"
