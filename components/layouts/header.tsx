@@ -10,8 +10,8 @@ import LinkedInIcon from "../icons/linkedin-icon";
 import { cn } from "@/lib/utils";
 import { FileText, Mail } from "lucide-react";
 import { getUser } from "@/app/(public)/page";
-import { Suspense } from "react";
-import LogedinWidget from "./logedin-widget";
+// import { Suspense } from "react";
+// import LogedinWidget from "./logedin-widget";
 
 const Header = async () => {
   const user = await getUser();
@@ -50,9 +50,9 @@ const Header = async () => {
             </MainButton>
           </Link>
         )}
-        <Suspense fallback={null}>
+        {/* <Suspense fallback={null}>
           <LogedinWidget />
-        </Suspense>
+        </Suspense> */}
       </NavWrapper>
     );
   };

@@ -6,7 +6,7 @@ import {
   getPostSlugsShowCase,
 } from "@/actions/post/get";
 import { notFound } from "next/navigation";
-import { auth } from "@/auth";
+// import { auth } from "@/auth";
 import { Metadata, ResolvingMetadata } from "next";
 import { MAIN_USERNAME } from "@/lib/db";
 
@@ -56,7 +56,7 @@ export async function generateMetadata(
 
 const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
   const { slug } = await params;
-  const session = await auth();
+  // const session = await auth();
 
   const post = await getPostBySlug(slug);
 
@@ -64,7 +64,7 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
     notFound();
   }
 
-  return <PortfolioDetail post={post} showEditButton={!!session?.user?.id} />;
+  return <PortfolioDetail post={post} />;
 };
 
 export default PortfolioDetailPage;
