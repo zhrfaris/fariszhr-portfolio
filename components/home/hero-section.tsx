@@ -1,17 +1,27 @@
-import { source_serif_pro } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
-import { Workplace } from "@/actions/workplace/get/types";
 import Link from "next/link";
-import TooltipWrapper from "../wrappers/tooltip-wrapper";
-import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
+import Image from "next/image";
 import HomeCtaButton from "./home-cta-button";
-import { getWorkplacesBySlug } from "@/actions/workplace/get";
+import TooltipWrapper from "../wrappers/tooltip-wrapper";
+
+import { cn } from "@/lib/utils";
 import { MAIN_USERNAME } from "@/lib/db";
+import { unstable_cache } from "next/cache";
 import { User } from "@/actions/user/get/type";
+import { source_serif_pro } from "@/lib/fonts";
+import { Workplace } from "@/actions/workplace/get/types";
+import { getWorkplacesBySlug } from "@/actions/workplace/get";
+import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
+
+const getWorkplaces = unstable_cache(
+  async () => {
+    return await getWorkplacesBySlug(MAIN_USERNAME);
+  },
+  ["workplaces"],
+  { revalidate: 60 * 10, tags: ["workplaces"] }
+);
 
 const HeroSection = async ({ user }: { user?: User }) => {
-  const workplaces = await getWorkplacesBySlug(MAIN_USERNAME);
+  const workplaces = await getWorkplaces();
 
   const WorkplaceCard = ({
     workplace,

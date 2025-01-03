@@ -4,9 +4,18 @@ import { MAIN_USERNAME } from "@/lib/db";
 import { getPostsShowCase } from "@/actions/post/get";
 import { User } from "@/actions/user/get/type";
 import ShowcaseSectionWrapper from "./showcase-section-wrapper";
+import { unstable_cache } from "next/cache";
+
+const getPosts = unstable_cache(
+  async () => {
+    return await getPostsShowCase(MAIN_USERNAME);
+  },
+  ["posts"],
+  { revalidate: 60 * 10, tags: ["posts"] }
+);
 
 const ShowcaseSection = async ({ user }: { user: User }) => {
-  const posts = await getPostsShowCase(MAIN_USERNAME);
+  const posts = await getPosts();
 
   return (
     <ShowcaseSectionWrapper>
