@@ -20,7 +20,7 @@ const MainButton = forwardRef<
     >
       <span
         className={cn(
-          "bg-gradient-to-b from-[#f4f4f4] to-[#fefefe] hover:from-[#353535] hover:to-[#666666] text-black hover:text-white flex items-center justify-center gap-2 transition-all duration-500 ease-in-out",
+          "bg-gradient-to-b from-[#f4f4f4] to-[#fefefe] hover:from-[#353535] hover:to-[#666666] text-black hover:text-white flex items-center justify-center gap-2",
           size === "icon" ? "size-10 p-1" : "w-full h-10 py-2 px-4",
           rounded ? "rounded-full" : "rounded-[10.12px]",
           styles.innerButton

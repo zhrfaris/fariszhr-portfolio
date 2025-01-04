@@ -5,7 +5,7 @@ import {
   getPostForMetadata,
   getPostSlugsShowCase,
 } from "@/actions/post/get";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 // import { auth } from "@/auth";
 import { Metadata, ResolvingMetadata } from "next";
 import { MAIN_USERNAME } from "@/lib/db";
@@ -62,6 +62,10 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
 
   if (!post || post.status === "INACTIVE") {
     notFound();
+  }
+
+  if (post.post_sections.length === 0) {
+    redirect("/coming-soon");
   }
 
   return <PortfolioDetail post={post} />;

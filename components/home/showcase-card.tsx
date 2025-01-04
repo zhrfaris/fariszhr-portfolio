@@ -113,7 +113,8 @@ const ShowcaseCard = ({
                 type === "wide"
                   ? "object-left-top md:object-center"
                   : "object-bottom",
-                type === "small" && "object-contain"
+                type === "small" && "object-contain",
+                type === "default" && "object-top md:object-bottom"
               )}
             />
           </div>

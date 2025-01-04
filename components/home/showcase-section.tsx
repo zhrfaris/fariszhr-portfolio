@@ -40,7 +40,11 @@ const ShowcaseSection = async ({ user }: { user: User }) => {
             key={post.id}
             title={post.title}
             description={post.excerpt}
-            link={`/portfolios/${post.slug}`}
+            link={
+              post.post_sections?.length > 0
+                ? `/portfolios/${post.slug}`
+                : `/coming-soon`
+            }
             image_url={post.thumbnail_image.img_url}
             type={index % 3 === 0 ? "wide" : "small"}
           />

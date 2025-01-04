@@ -141,10 +141,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
       return;
     }
 
-    if (sections.length <= 0) {
-      toast.error("Add at least one section");
-      return;
-    }
+    // if (sections.length <= 0) {
+    //   toast.error("Add at least one section");
+    //   return;
+    // }
 
     if (showFormSection || editSectionData) {
       toast.warning("You have unsaved changes in Section form");

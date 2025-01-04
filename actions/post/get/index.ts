@@ -28,6 +28,7 @@ export const getPostsShowCase = async (username: string) => {
       thumbnail_image: true,
       thumbnail_gif: true,
       order: true,
+      post_sections: { select: { id: true } },
     },
     take: 4,
     orderBy: [{ order: "asc" }, { title: "asc" }],
