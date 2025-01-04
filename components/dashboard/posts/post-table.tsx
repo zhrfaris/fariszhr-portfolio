@@ -14,10 +14,21 @@ import { Checkbox } from "@/components/shadcn/checkbox";
 import { Workplace } from "@/actions/workplace/get/types";
 import { DataTable } from "@/components/table/data-table";
 import { deleteManyPosts } from "@/actions/post/delete-many";
-import { ArrowUpDown, Pen, SquareArrowOutUpRight, Trash } from "lucide-react";
+import {
+  ArrowUpDown,
+  MoveDown,
+  MoveUp,
+  Pen,
+  SquareArrowOutUpRight,
+  Trash,
+} from "lucide-react";
 
 import Link from "next/link";
 import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
+import { usePostList } from "@/hooks/use-post-list";
+import { useCallback, useEffect } from "react";
+import { reorderPost } from "@/actions/post/reorder";
+import { ReorderPost } from "@/actions/post/reorder/schema";
 
 export const postColumns: ColumnDef<NonNullable<Post>>[] = [
   {
@@ -155,7 +166,7 @@ export const postColumns: ColumnDef<NonNullable<Post>>[] = [
         <div className="max-w-[450px]">
           <p
             className={cn(
-              "text-center rounded py-1 px-2",
+              "text-center rounded py-1 px-2 w-fit",
               status === Status.Values.ACTIVE
                 ? "text-green-900 bg-green-200"
                 : "text-sky-900 bg-sky-300"
@@ -187,6 +198,15 @@ export const postColumns: ColumnDef<NonNullable<Post>>[] = [
 ];
 
 export const PostTable = ({ data }: { data: NonNullable<Post>[] }) => {
+  const {
+    posts,
+    isReordering,
+    postsToReorderAfterDelete,
+    setPosts,
+    setIsReordering,
+    setPostsToReorderAfterDelete,
+  } = usePostList((state) => state);
+
   const { execute: executeDeleteMany } = useAction(deleteManyPosts, {
     onProceed: () => {
       toast.loading("Deleting selected posts...", {
@@ -201,6 +221,23 @@ export const PostTable = ({ data }: { data: NonNullable<Post>[] }) => {
     },
     onComplete() {
       toast.dismiss("loading-delete-posts");
+    },
+  });
+
+  const { execute: executeReorder } = useAction(reorderPost, {
+    onProceed: () => {
+      toast.loading("Saving current order of posts...", {
+        id: "loading-reorder-posts",
+      });
+    },
+    onSuccess: () => {
+      toast.success(`current order of posts saved!`);
+    },
+    onError: (error) => {
+      toast.error(error);
+    },
+    onComplete() {
+      toast.dismiss("loading-reorder-posts");
     },
   });
 
@@ -221,22 +258,103 @@ export const PostTable = ({ data }: { data: NonNullable<Post>[] }) => {
       toast.error("Failed to delete some selected posts");
     }
 
+    // console.log({ deleted_ids });
+
+    const updatedPosts = [...posts];
+
+    for (const id of deleted_ids) {
+      const index = updatedPosts.findIndex((p) => p.id === id);
+      if (index === -1) continue;
+
+      updatedPosts.splice(index, 1);
+    }
+
+    // Update order of the remaining items
+    updatedPosts.forEach((c, index) => (c.order = index));
+
+    setPosts(updatedPosts);
+    setPostsToReorderAfterDelete(updatedPosts);
+
     executeDeleteMany({ ids: deleted_ids });
   };
+
+  const getChangedOrderPosts = useCallback(
+    (postToReorder: NonNullable<Post>[]) => {
+      const changedOrderPosts: NonNullable<Post>[] = [];
+
+      for (const post of postToReorder) {
+        const initialPost = data.find((d) => d.id === post.id);
+
+        if (!initialPost) continue;
+
+        if (initialPost.order === null) continue;
+
+        if (initialPost.order !== post.order) {
+          changedOrderPosts.push(post);
+        }
+      }
+
+      return changedOrderPosts.map((p) => ({ id: p.id, order: p.order }));
+    },
+    [data]
+  );
+
+  const confirmReorder = useCallback(
+    (postToReorder: NonNullable<Post>[]) => {
+      const changedOrderPosts: z.infer<typeof ReorderPost> =
+        getChangedOrderPosts(postToReorder);
+
+      if (changedOrderPosts.length > 0) {
+        executeReorder(changedOrderPosts);
+        // console.log({ changedOrderPosts });
+      }
+    },
+    [executeReorder, getChangedOrderPosts]
+  );
+
+  const toggleReorder = () => {
+    if (isReordering) {
+      confirmReorder(posts);
+    }
+
+    setIsReordering(!isReordering);
+  };
+
+  // set initial data post list to posts state
+  useEffect(() => {
+    // console.log({
+    //   data: data.map((p) => ({ id: p.id, order: p.order, title: p.title })),
+    // });
+    setPosts(JSON.parse(JSON.stringify(data)));
+  }, [data, setPosts]);
+
+  // Reorder posts after deleting some posts
+  useEffect(() => {
+    if (postsToReorderAfterDelete.length === 0) return;
+
+    // console.log(postsToReorderAfterDelete);
+    confirmReorder(postsToReorderAfterDelete);
+    setPostsToReorderAfterDelete([]);
+  }, [confirmReorder, postsToReorderAfterDelete, setPostsToReorderAfterDelete]);
 
   return (
     <DataTable
       title="post"
       columns={postColumns}
-      data={data}
+      data={posts.length <= 0 ? data : posts}
       filterPlaceholder="Filter post..."
       filterKey="title"
       onDeleteManyData={onDeleteManyData}
+      isReordering={isReordering}
+      onReorderData={toggleReorder}
     />
   );
 };
 
 const ActionButtons = ({ initialData }: { initialData: NonNullable<Post> }) => {
+  const { posts, isReordering, setPosts, setPostsToReorderAfterDelete } =
+    usePostList((state) => state);
+
   const { execute: executeDelete } = useAction(deletePost, {
     onProceed: () => {
       toast.loading("Deleting post...", {
@@ -260,8 +378,79 @@ const ActionButtons = ({ initialData }: { initialData: NonNullable<Post> }) => {
       return;
     }
 
+    const updatedPosts = posts.filter((c) => c.id !== data.id);
+
+    // Update order of the remaining items
+    updatedPosts.forEach((c, index) => (c.order = index));
+
+    setPosts(updatedPosts);
+    setPostsToReorderAfterDelete(updatedPosts);
+
     executeDelete({ id: data?.id });
   };
+
+  const moveItemUp = (order: number) => {
+    if (order === 0) return; // Cannot move first item up
+
+    const updatedPosts = [...posts];
+
+    // Update order of the items being swapped
+    updatedPosts[order - 1].order = order;
+    updatedPosts[order].order = order - 1;
+
+    // Swap the items in the array
+    [updatedPosts[order - 1], updatedPosts[order]] = [
+      updatedPosts[order],
+      updatedPosts[order - 1],
+    ];
+
+    setPosts([...updatedPosts]);
+  };
+
+  const moveItemDown = (order: number) => {
+    if (order === posts.length - 1) return; // Cannot move last item down
+
+    const udpatedPosts = [...posts];
+
+    // Update order of the items being swapped
+    udpatedPosts[order].order = order + 1;
+    udpatedPosts[order + 1].order = order;
+
+    // Swap the items in the array
+    [udpatedPosts[order], udpatedPosts[order + 1]] = [
+      udpatedPosts[order + 1],
+      udpatedPosts[order],
+    ];
+
+    setPosts([...udpatedPosts]);
+  };
+
+  if (isReordering) {
+    return (
+      <div className="flex gap-4 items-center">
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={() =>
+            moveItemUp(posts.findIndex((p) => p.id === initialData.id))
+          }
+          disabled={posts.indexOf(initialData) === 0}
+        >
+          <MoveUp className="h-4 w-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={() =>
+            moveItemDown(posts.findIndex((p) => p.id === initialData.id))
+          }
+          disabled={posts.indexOf(initialData) === posts.length - 1}
+        >
+          <MoveDown className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-4 items-center">

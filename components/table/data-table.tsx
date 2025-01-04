@@ -40,7 +40,7 @@ import {
   PaginationPrevious,
 } from "../shadcn/pagination";
 import { cn } from "@/lib/utils";
-import { Pen, Trash, XIcon } from "lucide-react";
+import { ArrowUpDown, Check, Pen, Trash, XIcon } from "lucide-react";
 import {
   Popover,
   PopoverClose,
@@ -56,6 +56,8 @@ interface DataTableProps<TData, TValue> {
   filterKey?: string;
   pageSize?: number;
   filterPlaceholder?: string;
+  isReordering?: boolean;
+  onReorderData?: () => void;
   onDeleteData?: (data: TData) => void;
   onDeleteManyData?: (data: TData[]) => void;
   onEditData?: (
@@ -74,6 +76,8 @@ export function DataTable<TData, TValue>({
   filterKey,
   pageSize = 9,
   title,
+  isReordering,
+  onReorderData,
   onEditData,
   onDeleteData,
   onDeleteManyData,
@@ -250,6 +254,16 @@ export function DataTable<TData, TValue>({
                 Delete Selected
               </Button>
             </AlertDialogWrapper>
+          )}
+          {table.getSelectedRowModel().rows.length === 0 && onReorderData && (
+            <Button variant="outline" onClick={onReorderData}>
+              {isReordering ? (
+                <Check className="mr-2 h-4 w-4" />
+              ) : (
+                <ArrowUpDown className="mr-2 h-4 w-4" />
+              )}
+              {isReordering ? "Save Order" : "Reorder List"}
+            </Button>
           )}
         </div>
       </div>

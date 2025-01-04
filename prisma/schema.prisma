@@ -39,6 +39,8 @@ model Post {
   title   String
   excerpt String
 
+  order Int?
+
   header_image    Image
   thumbnail_image Image
   thumbnail_gif   Image?

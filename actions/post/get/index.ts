@@ -13,6 +13,7 @@ export const getPosts = async (
       author: options?.selectAllRelations,
       workplace: options?.selectAllRelations,
     },
+    orderBy: [{ order: "asc" }, { title: "asc" }],
   });
 };
 
@@ -28,6 +29,7 @@ export const getPostsShowCase = async (username: string) => {
       thumbnail_gif: true,
     },
     take: 4,
+    orderBy: [{ order: "asc" }, { title: "asc" }],
   });
 };
 
