@@ -52,7 +52,7 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
         </div>
       </div>
 
-      <div className="p-4 py-2 md:py-4">
+      <div className="px-6 py-2 md:py-4">
         <div className="max-w-screen-md mx-auto space-y-8 py-4 md:py-12">
           {/* Portfolio Title Header */}
           <div className="portfolio-title-header flex items-center gap-4">

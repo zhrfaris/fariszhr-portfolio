@@ -1,7 +1,16 @@
+import { cn } from "@/lib/utils";
 import React from "react";
 
-const NavWrapper = ({ children }: { children: React.ReactNode }) => (
-  <nav className="z-50 hidden md:flex items-center gap-4">{children}</nav>
+const NavWrapper = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <nav className={cn("z-50 hidden md:flex items-center gap-4", className)}>
+    {children}
+  </nav>
 );
 
 export default NavWrapper;

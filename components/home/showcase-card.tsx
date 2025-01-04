@@ -60,8 +60,6 @@ const ShowcaseCard = ({
       className={cn(
         "text text-center",
         type === "wide" && "max-w-[150px] text-left",
-        // type === "small" &&
-        //   "max-w-[150px] md:max-w-[200px] text-left md:text-center"
         type === "small" && "max-w-[200px] text-center"
       )}
     >
@@ -96,7 +94,6 @@ const ShowcaseCard = ({
         className={cn(
           "size-full px-8 py-px flex justify-between items-center relative",
           type === "wide" ? "pl-4 md:pl-6 pr-0" : "flex-col gap-4 pt-4 px-0"
-          // type === "small" && "flex-row gap-2 md:flex-col pl-4 md:pl-0"
         )}
       >
         <TitleNDesc />

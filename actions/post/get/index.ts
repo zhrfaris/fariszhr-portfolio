@@ -27,6 +27,7 @@ export const getPostsShowCase = async (username: string) => {
       excerpt: true,
       thumbnail_image: true,
       thumbnail_gif: true,
+      order: true,
     },
     take: 4,
     orderBy: [{ order: "asc" }, { title: "asc" }],

@@ -7,12 +7,12 @@ import Link from "next/link";
 import { Button, buttonVariants } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
 
-const NavButtons = () => {
+const NavButtons = ({ className }: { className?: string }) => {
   const pathname = usePathname();
   const { scrollToSectionId, scrollToTop } = useLenisScroll();
 
   return (
-    <NavWrapper>
+    <NavWrapper className={className}>
       {pathname !== "/" ? (
         <>
           <Link

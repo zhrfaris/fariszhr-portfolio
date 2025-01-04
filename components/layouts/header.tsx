@@ -10,8 +10,7 @@ import LinkedInIcon from "../icons/linkedin-icon";
 import { cn } from "@/lib/utils";
 import { FileText, Mail } from "lucide-react";
 import { getUser } from "@/app/(public)/page";
-// import { Suspense } from "react";
-// import LogedinWidget from "./logedin-widget";
+import { Suspense } from "react";
 
 const Header = async () => {
   const user = await getUser();
@@ -50,9 +49,6 @@ const Header = async () => {
             </MainButton>
           </Link>
         )}
-        {/* <Suspense fallback={null}>
-          <LogedinWidget />
-        </Suspense> */}
       </NavWrapper>
     );
   };
@@ -67,7 +63,9 @@ const Header = async () => {
       <SocialButtons />
 
       {/* mobile menu */}
-      <NavMobile />
+      <Suspense fallback={<NavMobile />}>
+        <NavMobile user={user} />
+      </Suspense>
 
       {/* gradient blur background */}
       <div className={cn(styles.gradientBlur)}>
