@@ -63,7 +63,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             throw new Error("Invalid credentials.");
           }
 
-          return user;
+          return {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            image: user.photo?.img_url || "",
+          };
         } catch (error) {
           if (error instanceof ZodError) {
             // return `null` to indicate that the credential are invalid
@@ -80,6 +85,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user) {
         token.id = user.id;
         token.username = user.username;
+        token.picture = user.image;
       }
       return token;
     },
@@ -87,6 +93,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
+        session.user.image = token.picture as string;
       }
       return session;
     },

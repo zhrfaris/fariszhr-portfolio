@@ -44,7 +44,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
     return (
       <WorkplaceWrapper>
         <TooltipWrapper tooltip_text={workplace.name} side="bottom">
-          <div className="h-6 max-w-24 md:max-w-none md:h-12 rounded-lg ">
+          <div className="h-6 max-w-24 md:max-w-36 md:h-10 rounded-lg ">
             <Image
               alt=""
               src={workplace.image.img_url}
@@ -76,7 +76,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
         <h2
           className={cn(
             source_serif_pro.className,
-            "text-3xl md:text-6xl font-semibold max-w-screen-md"
+            "text-3xl md:text-6xl font-semibold max-w-screen-md !leading-[4.25rem]"
           )}
         >
           {user?.tagline ?? "Humanizing technology through design"}
