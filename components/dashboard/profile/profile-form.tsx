@@ -81,6 +81,7 @@ const ProfileForm = ({ user }: { user: User }) => {
             <ImagePlaceholder
               img_url={profileImage?.img_url}
               img_url_placeholder={profileImage?.img_url_placeholder}
+              classNameButtons="top-10 right-10"
               onEdit={() => {
                 open();
               }}

@@ -116,7 +116,7 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
               classNameWidgetWrapper
             )}
             classNameButtons={cn(
-              "size-8 rounded-sm bottom-auto left-auto top-4 right-4",
+              "h-8 w-fit rounded-sm bottom-auto left-auto top-4 right-4",
               classNameButtons
             )}
             img_url={currentImage?.img_url}
@@ -158,7 +158,7 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
                 classNameWidgetWrapper
               )}
               classNameButtons={cn(
-                "size-8 rounded-sm bottom-auto left-auto top-4 right-4",
+                "h-8 w-fit rounded-sm bottom-auto left-auto top-4 right-4",
                 classNameButtons
               )}
               img_url={currentImage?.img_url}

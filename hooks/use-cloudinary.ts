@@ -20,6 +20,8 @@ interface UseCloudinaryProps {
 const useCloudinary = (props?: UseCloudinaryProps) => {
   const { initialImage } = props || {};
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [currentImage, setCurrentImage] = useState<ImageType | undefined>(
     initialImage
   );
@@ -28,6 +30,8 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
   >();
 
   const onUploadCloudinaryImage = async (base64: string) => {
+    setIsLoading(true);
+
     try {
       const response = await fetch(`/api/image/upload`, {
         method: "POST",
@@ -52,6 +56,7 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
       console.log(error);
       toast.error(`Error uploading item: ${error}`);
     } finally {
+      setIsLoading(false);
       toast.success("Image uploaded!");
     }
   };
@@ -61,6 +66,7 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
     option?: { onError?: (error: any) => void; onSuccess?: () => void }
   ) => {
     const { onError = () => {}, onSuccess = () => {} } = option || {};
+    setIsLoading(true);
 
     try {
       const response = await fetch(`/api/image/delete`, {
@@ -80,6 +86,7 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
       console.log(error);
       onError(error);
     } finally {
+      setIsLoading(false);
       onSuccess();
     }
   };
@@ -143,6 +150,7 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
   };
 
   return {
+    isLoading,
     currentImage,
     onSuccessUploadImageHandler,
     onUploadCloudinaryImage,

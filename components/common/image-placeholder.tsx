@@ -61,7 +61,7 @@ const ImagePlaceholder = ({
               onEdit();
             }}
             className={cn(
-              "bg-white text-black rounded-md mix-blend-difference"
+              "bg-white text-black rounded-md mix-blend-difference hover:bg-white hover:text-black"
             )}
           >
             <Pen className="h-4 w-4" />
@@ -74,7 +74,9 @@ const ImagePlaceholder = ({
               e.preventDefault();
               await onDelete();
             }}
-            className={cn("bg-red-500 text-white rounded-md")}
+            className={cn(
+              "bg-red-500 text-white rounded-md hover:bg-bg-red-500 hover:text-white"
+            )}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
