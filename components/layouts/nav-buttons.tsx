@@ -11,6 +11,9 @@ const NavButtons = ({ className }: { className?: string }) => {
   const pathname = usePathname();
   const { scrollToSectionId, scrollToTop } = useLenisScroll();
 
+  const classNameStyle =
+    "font-semibold hover:bg-transparent hover:text-black !text-base";
+
   return (
     <NavWrapper className={className}>
       {pathname !== "/" ? (
@@ -18,8 +21,7 @@ const NavButtons = ({ className }: { className?: string }) => {
           <Link
             href={"/"}
             className={buttonVariants({
-              className:
-                "font-semibold hover:bg-transparent hover:text-black text-base",
+              className: classNameStyle,
               variant: "ghost",
             })}
           >
@@ -28,8 +30,7 @@ const NavButtons = ({ className }: { className?: string }) => {
           <Link
             href={"/#showcase"}
             className={buttonVariants({
-              className:
-                "font-semibold hover:bg-transparent hover:text-black text-base",
+              className: classNameStyle,
               variant: "ghost",
             })}
           >
@@ -41,14 +42,14 @@ const NavButtons = ({ className }: { className?: string }) => {
           <Button
             onClick={scrollToTop}
             variant={"ghost"}
-            className="font-semibold hover:bg-transparent hover:text-black text-base"
+            className={classNameStyle}
           >
             Home
           </Button>
           <Button
             onClick={() => scrollToSectionId("showcase")}
             variant={"ghost"}
-            className="font-semibold hover:bg-transparent hover:text-black text-base"
+            className={classNameStyle}
           >
             Works & Experiences
           </Button>
