@@ -73,7 +73,9 @@ const ShowcaseCard = ({
           {title}
         </h3>
       )}
-      {description && <p className="text-xs">{description}</p>}
+      {description && (
+        <p className="text-[11px] text-[#545A5F]">{description}</p>
+      )}
     </div>
   );
 
@@ -93,7 +95,8 @@ const ShowcaseCard = ({
       <div
         className={cn(
           "size-full px-8 py-px flex justify-between items-center relative",
-          type === "wide" ? "pl-4 md:pl-6 pr-0" : "flex-col gap-4 pt-4 px-0"
+          type === "wide" ? "pl-4 md:pl-6 pr-0" : "flex-col gap-4 pt-6 px-0",
+          type === "small" && "gap-2"
         )}
       >
         <TitleNDesc />

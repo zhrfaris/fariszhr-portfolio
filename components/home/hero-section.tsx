@@ -44,7 +44,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
     return (
       <WorkplaceWrapper>
         <TooltipWrapper tooltip_text={workplace.name} side="bottom">
-          <div className="h-6 max-w-24 md:max-w-36 md:h-10 rounded-lg ">
+          <div className="h-6 max-w-32 md:max-w-36 md:h-10 max-h-10 rounded-lg">
             <Image
               alt=""
               src={workplace.image.img_url}
@@ -76,7 +76,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
         <h2
           className={cn(
             source_serif_pro.className,
-            "text-3xl md:text-6xl font-semibold max-w-screen-md !leading-[4.25rem]"
+            "text-3xl md:text-6xl font-semibold max-w-screen-md md:!leading-[4.25rem]"
           )}
         >
           {user?.tagline ?? "Humanizing technology through design"}
@@ -89,7 +89,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
         <h4 className="text-sm md:text-base">
           The Company I&apos;ve been collaborated with
         </h4>
-        <div className="flex items-center gap-8 flex-wrap justify-center">
+        <div className="flex items-center gap-6 gap-y-4 flex-wrap justify-center">
           {workplaces.map((workplace, i) => (
             <WorkplaceCard key={i} workplace={workplace} />
           ))}

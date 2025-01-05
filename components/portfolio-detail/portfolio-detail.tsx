@@ -95,7 +95,11 @@ const PortfolioDetail = ({
           </div>
 
           {/* Portfolio Title */}
-          <h2 className={cn("text-3xl md:text-5xl font-bold pb-6")}>
+          <h2
+            className={cn(
+              "text-3xl md:text-5xl font-bold pb-6 !leading-[3.75rem]"
+            )}
+          >
             {post.title}
           </h2>
 
