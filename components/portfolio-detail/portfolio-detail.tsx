@@ -15,6 +15,7 @@ import Link from "next/link";
 import { fetcher } from "@/lib/fetcher";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";
+import PortfolioSectionLoading from "./portfolio-section-loading";
 
 interface PortfolioDetailProps {
   post: NonNullable<Portfolio>;
@@ -108,7 +109,10 @@ const PortfolioDetail = ({
               />
             ))}
 
-          {isLoading && <div>Loading...</div>}
+          {isLoading &&
+            Array.from({ length: 3 }).map((_, index) => (
+              <PortfolioSectionLoading key={index} />
+            ))}
         </div>
       </div>
     </div>
