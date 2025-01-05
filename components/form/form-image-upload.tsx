@@ -147,7 +147,7 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
           options={{
             sources: ["local", "url"],
             clientAllowedFormats: ["png", "jpg", "jpeg", "gif", "svg"],
-            maxFileSize: 3_000_000,
+            maxFileSize: 11_000_000,
             multiple: false,
           }}
         >
