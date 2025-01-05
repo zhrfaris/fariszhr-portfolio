@@ -49,6 +49,37 @@ export const getPostBySlug = async (slug: string) => {
   });
 };
 
+export const getPortfolioBySlug = async (slug: string) => {
+  return await db.post.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      categories: true,
+      workplace: true,
+      header_image: true,
+      title: true,
+      status: true,
+      slug: true,
+      post_sections: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+};
+
+export const getPostSectionsBySlug = async (slug: string) => {
+  const post = await db.post.findUnique({
+    where: { slug },
+    select: {
+      post_sections: true,
+    },
+  });
+
+  return post?.post_sections ?? [];
+};
+
 export const getPostForMetadata = async (slug: string) => {
   return await db.post.findUnique({
     where: { slug },

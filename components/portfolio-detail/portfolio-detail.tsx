@@ -6,17 +6,40 @@ import { Button, buttonVariants } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
 import { ArrowUp, Pen } from "lucide-react";
 import PortfolioSection from "./portfolio-section";
-import { Post } from "@/actions/post/get/types";
+import { Portfolio, PostSections } from "@/actions/post/get/types";
+
+import useSWR from "swr";
+
 import Image from "next/image";
 import Link from "next/link";
+import { fetcher } from "@/lib/fetcher";
+import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
 interface PortfolioDetailProps {
-  post: NonNullable<Post>;
+  post: NonNullable<Portfolio>;
   showEditButton?: boolean;
+  slug: string;
 }
 
-const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
+const PortfolioDetail = ({
+  post,
+  showEditButton,
+  slug,
+}: PortfolioDetailProps) => {
   const { scrollToTop } = useLenisScroll();
+
+  const {
+    data: post_sections = [],
+    error,
+    isLoading,
+  } = useSWR<PostSections>(`/api/post/${slug}/post_section`, fetcher);
+
+  if (error) {
+    console.log(error);
+    toast.error("Sorry something went wrong, please try again later.");
+    redirect("/");
+  }
 
   return (
     <div className="min-h-screen relative">
@@ -76,13 +99,16 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
           </h2>
 
           {/* Portfolio Sections */}
-          {post.post_sections.map((section) => (
-            <PortfolioSection
-              key={section.id}
-              section={section}
-              showFull={true}
-            />
-          ))}
+          {!isLoading &&
+            post_sections.map((section) => (
+              <PortfolioSection
+                key={section.id}
+                section={section}
+                showFull={true}
+              />
+            ))}
+
+          {isLoading && <div>Loading...</div>}
         </div>
       </div>
     </div>

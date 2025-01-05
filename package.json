@@ -46,6 +46,7 @@
     "react-slugify": "^4.0.1",
     "sass": "^1.81.0",
     "sonner": "^1.7.1",
+    "swr": "^2.3.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "tinymce": "^7.6.0",

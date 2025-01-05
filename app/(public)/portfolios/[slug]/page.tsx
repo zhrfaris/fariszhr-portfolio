@@ -1,12 +1,11 @@
 import React from "react";
 import PortfolioDetail from "@/components/portfolio-detail/portfolio-detail";
 import {
-  getPostBySlug,
+  getPortfolioBySlug,
   getPostForMetadata,
   getPostSlugsShowCase,
 } from "@/actions/post/get";
 import { notFound, redirect } from "next/navigation";
-// import { auth } from "@/auth";
 import { Metadata, ResolvingMetadata } from "next";
 import { MAIN_USERNAME } from "@/lib/db";
 
@@ -58,7 +57,7 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
   const { slug } = await params;
   // const session = await auth();
 
-  const post = await getPostBySlug(slug);
+  const post = await getPortfolioBySlug(slug);
 
   if (!post || post.status === "INACTIVE") {
     notFound();
@@ -68,7 +67,7 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
     redirect("/coming-soon");
   }
 
-  return <PortfolioDetail post={post} />;
+  return <PortfolioDetail post={post} slug={slug} />;
 };
 
 export default PortfolioDetailPage;
