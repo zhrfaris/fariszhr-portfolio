@@ -136,7 +136,7 @@ const PostSectionForm = ({
             Save content
           </Button>
         )}
-        {editContentData && (
+        {/* {editContentData && (
           <>
             <Button form="post-content-form" type="submit">
               Save changes
@@ -149,7 +149,7 @@ const PostSectionForm = ({
               Cancel Edit Content
             </Button>
           </>
-        )}
+        )} */}
         {!!showFormSection && !!showFormContent && (
           <Button
             type="button"

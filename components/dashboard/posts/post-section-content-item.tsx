@@ -11,7 +11,8 @@ import { EllipsisVertical, MoveDown, MoveUp, Pen, Trash2 } from "lucide-react";
 import PostSectionContentForm from "./post-section-content-form";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, getKeyByValue } from "@/lib/utils";
+import { contentRadiusNum } from "@/actions/post/create/schema";
 
 interface PostSectionContentItemProps {
   content: PostSectionContent;
@@ -155,8 +156,12 @@ const PostSectionContentItem = ({ content }: PostSectionContentItemProps) => {
                 width={content.image?.img_width}
                 height={content.image?.img_width}
               />
-              <div className="absolute top-4 left-4 bg-white text-black mix-blend-difference rounded-lg p-2 text-sm capitalize">
-                {content.content_image_type}
+              <div className="absolute top-4 left-4 bg-black text-white rounded-lg p-2 text-sm">
+                radius:{" "}
+                {getKeyByValue(
+                  contentRadiusNum,
+                  content.content_image_radius ?? "XXL"
+                )}
               </div>
             </div>
           )}

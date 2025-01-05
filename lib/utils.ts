@@ -64,3 +64,12 @@ export const convertFileToBase64 = (file: File): Promise<string> => {
 
 export const replaceHTMLTagFromString = (str: string, slice?: number) =>
   str.replace(/(<([^>]+)>)/gi, "").slice(0, slice);
+
+export function getKeyByValue<T>(object: Record<string, T>, value: T) {
+  for (const key in object) {
+    if (object[key] === value) {
+      return key;
+    }
+  }
+  return null; // If the value is not found
+}

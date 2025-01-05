@@ -2,8 +2,11 @@
 
 import {
   contentImageEnum,
-  contentImages,
-  ContentImageType,
+  contentImageRadiusEnum,
+  ContentImageRadiusNum,
+  contentImageRadiusNum,
+  ContentImageRadiusType,
+  contentRadiusNum,
 } from "@/actions/post/create/schema";
 import { PostSectionContent } from "@/actions/post/create/types";
 import FormImageUpload, {
@@ -12,7 +15,9 @@ import FormImageUpload, {
 import FormTextEditor from "@/components/form/form-rich-text-editor";
 import FormSelect from "@/components/form/form-select";
 import { BasicFormProps } from "@/components/form/popover-form";
+import { Button } from "@/components/shadcn/button";
 import { usePostForm } from "@/hooks/use-post-form";
+import { getKeyByValue } from "@/lib/utils";
 import React, { useRef } from "react";
 import { toast } from "sonner";
 
@@ -26,14 +31,16 @@ const PostSectionContentForm = ({
 }: BasicFormProps<PostSectionContent, PostSectionContentFormProps>) => {
   const contentImageRef = useRef<FormImageUploadHandle>(null);
 
-  const { contents } = usePostForm((state) => state);
+  const { contents, editContentData, setEditContentData } = usePostForm(
+    (state) => state
+  );
 
   const formAction = async (formData: FormData) => {
     const content = formData.get("content") as string;
-    const content_image_type = formData.get(
-      "content_image_type"
-    ) as ContentImageType;
+    const radius = formData.get("radius") as ContentImageRadiusNum;
 
+    const content_image_radius: ContentImageRadiusType =
+      contentRadiusNum[radius];
     const image = contentImageRef?.current?.image;
 
     if (!content) {
@@ -46,7 +53,8 @@ const PostSectionContentForm = ({
       order: initialData?.order ?? contents.length,
       content,
       image,
-      content_image_type,
+      content_image_type: contentImageEnum.Values.DEFAULT,
+      content_image_radius,
     };
 
     changeContent(payload);
@@ -79,13 +87,31 @@ const PostSectionContentForm = ({
       />
 
       <FormSelect
-        id="content_image_type"
-        label="Image type"
-        values={contentImages}
+        id="radius"
+        label="Image Radius"
+        values={contentImageRadiusNum}
         defaultValue={
-          initialData?.content_image_type ?? contentImageEnum.Values.DEFAULT
+          getKeyByValue(
+            contentRadiusNum,
+            initialData?.content_image_radius ??
+              contentImageRadiusEnum.Values.XXL
+          ) ?? "16px"
         }
       />
+      {editContentData && (
+        <div className="flex items-center gap-4 pb-6 border-b border-[#d9d9d9]">
+          <Button form="post-content-form" type="submit">
+            Save changes
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setEditContentData(null)}
+          >
+            Cancel Edit Content
+          </Button>
+        </div>
+      )}
     </form>
   );
 };

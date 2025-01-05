@@ -11,6 +11,7 @@ import Image from "next/image";
 import { Button, buttonVariants } from "../shadcn/button";
 import Link from "next/link";
 import { Maximize } from "lucide-react";
+import { ContentImageRadiusType } from "@/actions/post/create/schema";
 
 interface PortfolioSectionProps {
   section: PostSection;
@@ -21,6 +22,37 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
   const [isShowMore, setIsShowMore] = useState(true);
   const [showShowMoreButton, setShowShowMoreButton] = useState(false);
   const sectionItemRef = useRef<HTMLDivElement>(null);
+
+  const getRadiusStyle = (radius: ContentImageRadiusType) => {
+    let className = "";
+
+    switch (radius) {
+      case "SM":
+        className = "rounded-[4px]";
+        break;
+      case "MD":
+        className = "rounded-[6px]";
+        break;
+      case "LG":
+        className = "rounded-[8px]";
+        break;
+      case "XL":
+        className = "rounded-[12px]";
+        break;
+      case "XXL":
+        className = "rounded-[16px]";
+        break;
+      case "XXL":
+        className = "rounded-[24px]";
+        break;
+
+      default:
+        className = "rounded-[16px]";
+        break;
+    }
+
+    return className;
+  };
 
   useEffect(() => {
     if (!sectionItemRef.current) return;
@@ -60,7 +92,12 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
               <SanitizedHtml innerHTML={content.content} />
               {/* add image here */}
               {content.image && (
-                <div className="w-full min-h-12 rounded-2xl overflow-hidden relative">
+                <div
+                  className={cn(
+                    "w-full min-h-12 border border-[#d9d9dd9] overflow-hidden relative",
+                    getRadiusStyle(content.content_image_radius ?? "XXL")
+                  )}
+                >
                   <Image
                     src={content.image.img_url}
                     placeholder="blur"

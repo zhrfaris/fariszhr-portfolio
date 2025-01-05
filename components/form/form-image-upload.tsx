@@ -80,8 +80,9 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
       const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-          if (file.size > 3_000_000) {
-            toast.error("File size must be less than 3MB");
+          console.log({ sizeFile: file.size });
+          if (file.size > 6_000_000) {
+            toast.error("File size must be less than 6MB");
             return;
           }
 

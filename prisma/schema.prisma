@@ -74,7 +74,8 @@ type PostSectionContent {
   content String
   image   Image?
 
-  content_image_type ContentImageType @default(DEFAULT)
+  content_image_type   ContentImageType    @default(DEFAULT)
+  content_image_radius ContentImageRadius? @default(XXL)
 }
 
 model Workplace {
@@ -105,6 +106,15 @@ model Category {
 enum ContentImageType {
   FULL
   DEFAULT
+}
+
+enum ContentImageRadius {
+  SM //4
+  MD //6
+  LG //8
+  XL //12
+  XXL //16
+  XXXL //24
 }
 
 enum Status {

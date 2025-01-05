@@ -1,6 +1,41 @@
 import { Image, Status } from "@/actions/types";
 import { z } from "zod";
 
+export const contentRadiusNum: Record<
+  ContentImageRadiusNum,
+  ContentImageRadiusType
+> = {
+  "4px": "SM",
+  "6px": "MD",
+  "8px": "LG",
+  "12px": "XL",
+  "16px": "XXL",
+  "24px": "XXXL",
+};
+
+export const contentImageRadiusNumEnum = z.enum([
+  "4px",
+  "6px",
+  "8px",
+  "12px",
+  "16px",
+  "24px",
+]);
+export const contentImageRadiusEnum = z.enum([
+  "SM",
+  "MD",
+  "LG",
+  "XL",
+  "XXL",
+  "XXXL",
+]);
+export const contentImageRadius = Object.values(contentImageRadiusEnum.Values);
+export const contentImageRadiusNum = Object.values(
+  contentImageRadiusNumEnum.Values
+);
+export type ContentImageRadiusNum = z.infer<typeof contentImageRadiusNumEnum>;
+export type ContentImageRadiusType = z.infer<typeof contentImageRadiusEnum>;
+
 export const contentImageEnum = z.enum(["FULL", "DEFAULT"]);
 export const contentImages = Object.values(contentImageEnum.Values);
 export type ContentImageType = z.infer<typeof contentImageEnum>;
@@ -14,6 +49,7 @@ export const PostSectionContent = z.object({
   }),
   image: Image.optional().or(z.null()),
   content_image_type: contentImageEnum,
+  content_image_radius: contentImageRadiusEnum.or(z.null()),
 });
 
 export const PostSection = z.object({
