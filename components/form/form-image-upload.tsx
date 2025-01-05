@@ -12,7 +12,7 @@ import React, {
 import { Image as ImageType } from "@prisma/client";
 import ImagePlaceholder from "../common/image-placeholder";
 import { Label } from "../shadcn/label";
-import { cn, convertFileToBase64 } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface FormImageUploadProps {
@@ -39,7 +39,7 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
       className,
       classNameButtons,
       classNameWidgetWrapper,
-      uploadWIthAPI = true,
+      uploadWIthAPI = false,
     },
     ref
   ) => {
@@ -81,20 +81,20 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
         const file = e.target.files?.[0];
         if (file) {
           console.log({ sizeFile: file.size });
-          if (file.size > 6_000_000) {
-            toast.error("File size must be less than 6MB");
+          if (file.size > 10_000_000) {
+            toast.error("File size must be less than 10MB");
             return;
           }
 
-          const base64 = await convertFileToBase64(file);
+          // const base64 = await convertFileToBase64(file);
 
-          if (base64.length === 0) {
-            return;
-          }
+          // if (base64.length === 0) {
+          //   return;
+          // }
 
-          toast.loading("Uploading image...", { id: "loading-upload-image" });
+          // toast.loading("Uploading image...", { id: "loading-upload-image" });
 
-          onUploadCloudinaryImage(`data:${file.type};base64,` + base64)
+          onUploadCloudinaryImage(file)
             .then(() => {
               toast.success("Image uploaded successfully");
             })

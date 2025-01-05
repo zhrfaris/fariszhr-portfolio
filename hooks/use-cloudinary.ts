@@ -29,16 +29,16 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
     ImageType | undefined
   >();
 
-  const onUploadCloudinaryImage = async (base64: string) => {
+  const onUploadCloudinaryImage = async (imageFile: File) => {
     setIsLoading(true);
+
+    const formData = new FormData();
+    formData.append("image", imageFile);
 
     try {
       const response = await fetch(`/api/image/upload`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ base64 }),
+        body: formData,
       });
 
       if (!response.ok) {

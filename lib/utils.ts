@@ -49,7 +49,11 @@ export async function imageUrlToBase64(imageUrl: string): Promise<string> {
   }
 }
 
-export const convertFileToBase64 = (file: File): Promise<string> => {
+export const convertFileToBase64 = (
+  file: FormDataEntryValue
+): Promise<string> => {
+  if (!(file instanceof File)) return Promise.resolve("");
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
