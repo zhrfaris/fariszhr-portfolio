@@ -1,4 +1,4 @@
-import { getPostBySlug } from "@/actions/post/get";
+import { getPortfolioBySlug } from "@/actions/post/get";
 import { auth } from "@/auth";
 import PortfolioDetail from "@/components/portfolio-detail/portfolio-detail";
 import { redirect } from "next/navigation";
@@ -16,13 +16,19 @@ const PostDetailPage = async ({
     redirect("/login");
   }
 
-  const post = await getPostBySlug(slug);
+  const post = await getPortfolioBySlug(slug);
 
   if (!post) {
     redirect("/dashboard/posts");
   }
 
-  return <PortfolioDetail post={post} showEditButton={!!session?.user?.id} />;
+  return (
+    <PortfolioDetail
+      post={post}
+      showEditButton={!!session?.user?.id}
+      slug={slug}
+    />
+  );
 };
 
 export default PostDetailPage;

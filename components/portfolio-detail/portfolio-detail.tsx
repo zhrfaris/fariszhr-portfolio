@@ -18,14 +18,14 @@ import { redirect } from "next/navigation";
 
 interface PortfolioDetailProps {
   post: NonNullable<Portfolio>;
-  showEditButton?: boolean;
   slug: string;
+  showEditButton?: boolean;
 }
 
 const PortfolioDetail = ({
   post,
-  showEditButton,
   slug,
+  showEditButton,
 }: PortfolioDetailProps) => {
   const { scrollToTop } = useLenisScroll();
 
