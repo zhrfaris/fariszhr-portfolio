@@ -1,14 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "../shadcn/button";
 import { AlignJustify, FileText, Mail } from "lucide-react";
 import {
   Sheet,
-  // SheetClose,
   SheetContent,
-  // SheetDescription,
-  // SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -18,48 +15,45 @@ import { User } from "@/actions/user/get/type";
 import NavWrapper from "./nav-wrapper";
 import Link from "next/link";
 import MainButton from "../common/main-button";
-import LinkedInIcon from "../icons/linkedin-icon";
+import { LinkedInLogoIcon } from "@radix-ui/react-icons";
 
 const NavMobile = ({ user }: { user?: User }) => {
+  const [open, setOpen] = useState(false);
+
+  const clickNavButtonHandler = () => {
+    setOpen(false);
+  };
+
   return (
     <div className="md:hidden z-[60]">
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={() => console.log("open mobile menu")}
-          >
+          <Button size="icon" variant="outline">
             <AlignJustify />
           </Button>
         </SheetTrigger>
-        <SheetContent>
+        <SheetContent className="p-4 w-full">
           <SheetHeader>
             <SheetTitle></SheetTitle>
           </SheetHeader>
-          <div className="py-4 px-2 flex flex-col justify-between h-full">
-            <NavButtons className="flex flex-col gap-4 items-end" />
+          <div className="py-4 px-0 flex flex-col justify-between h-full">
+            <NavButtons
+              classNameWrapper="flex flex-col gap-4 items-end"
+              classNameItem="w-full"
+              afterClick={() => setOpen(false)}
+            />
 
             {user && (
               <NavWrapper className="flex flex-col gap-4 items-end">
-                {user?.linkedin_url && (
-                  <Link
-                    href={user?.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <MainButton rounded={true} size="icon">
-                      <LinkedInIcon className="!size-6" />
-                    </MainButton>
-                  </Link>
-                )}
                 {user?.cv_url && (
                   <Link
                     href={user?.cv_url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="w-full"
+                    onClick={clickNavButtonHandler}
                   >
-                    <MainButton rounded={true}>
+                    <MainButton className="w-full" rounded={true}>
                       <FileText />
                       Download CV
                     </MainButton>
@@ -70,10 +64,24 @@ const NavMobile = ({ user }: { user?: User }) => {
                     href={`mailto:${user?.email}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="w-full"
                   >
-                    <MainButton rounded={true}>
+                    <MainButton className="w-full" rounded={true}>
                       <Mail />
                       Contact Me
+                    </MainButton>
+                  </Link>
+                )}
+                {user?.linkedin_url && (
+                  <Link
+                    href={user?.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full"
+                  >
+                    <MainButton className="w-full" rounded={true}>
+                      <LinkedInLogoIcon />
+                      Linkedin
                     </MainButton>
                   </Link>
                 )}

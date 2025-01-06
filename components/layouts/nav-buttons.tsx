@@ -6,16 +6,33 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button, buttonVariants } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
+import { cn } from "@/lib/utils";
 
-const NavButtons = ({ className }: { className?: string }) => {
+const NavButtons = ({
+  classNameItem,
+  classNameWrapper,
+  afterClick,
+}: {
+  classNameItem?: string;
+  classNameWrapper?: string;
+  afterClick?: () => void;
+}) => {
   const pathname = usePathname();
   const { scrollToSectionId, scrollToTop } = useLenisScroll();
 
-  const classNameStyle =
-    "font-semibold hover:bg-transparent hover:text-black !text-base";
+  const classNameStyle = cn(
+    "font-semibold hover:bg-transparent hover:text-black !text-base",
+    classNameItem
+  );
+
+  const afterClickHandler = () => {
+    if (afterClick) {
+      afterClick();
+    }
+  };
 
   return (
-    <NavWrapper className={className}>
+    <NavWrapper className={classNameWrapper}>
       {pathname !== "/" ? (
         <>
           <Link
@@ -24,6 +41,7 @@ const NavButtons = ({ className }: { className?: string }) => {
               className: classNameStyle,
               variant: "ghost",
             })}
+            onClick={afterClickHandler}
           >
             Home
           </Link>
@@ -33,6 +51,7 @@ const NavButtons = ({ className }: { className?: string }) => {
               className: classNameStyle,
               variant: "ghost",
             })}
+            onClick={afterClickHandler}
           >
             Works & Experiences
           </Link>
@@ -40,14 +59,20 @@ const NavButtons = ({ className }: { className?: string }) => {
       ) : (
         <>
           <Button
-            onClick={scrollToTop}
+            onClick={() => {
+              scrollToTop();
+              afterClickHandler();
+            }}
             variant={"ghost"}
             className={classNameStyle}
           >
             Home
           </Button>
           <Button
-            onClick={() => scrollToSectionId("showcase")}
+            onClick={() => {
+              scrollToSectionId("showcase");
+              afterClickHandler();
+            }}
             variant={"ghost"}
             className={classNameStyle}
           >

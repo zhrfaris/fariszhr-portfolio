@@ -60,7 +60,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
 
   return (
     <div className="p-4 space-y-2 md:space-y-4 text-center flex flex-col items-center justify-center min-h-[95vh] md:min-h-screen mt-12 md:mt-0">
-      <div className="flex flex-col items-center justify-center flex-1 gap-4 md:gap-8">
+      <div className="flex flex-col items-center justify-center flex-1 gap-4 md:gap-8 pb-[30vh] md:pb-0">
         <Avatar className="size-[120px]">
           <AvatarImage
             src={user?.photo?.img_url ?? "/faris-profile-pict-grayscale.png"}
@@ -85,7 +85,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
           <HomeCtaButton />
         </div>
       </div>
-      <div className="min-h-[120px] w-full flex flex-col items-center justify-center gap-6 py-4 md:py-12">
+      <div className="hidden md:flex min-h-[120px] w-full flex-col items-center justify-center gap-6 py-4 md:py-12">
         <h4 className="text-sm md:text-base">
           The Company I&apos;ve been collaborated with
         </h4>

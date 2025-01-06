@@ -58,7 +58,7 @@ const PortfolioDetail = ({
       )}
       <Button
         size="icon"
-        className="fixed bottom-4 right-4 rounded-full bg-white text-foreground hover:bg-zinc-300 shadow-md"
+        className="fixed bottom-4 right-4 rounded-full bg-white text-foreground hover:bg-zinc-300 shadow-md z-40"
         onClick={() => scrollToTop()}
       >
         <ArrowUp />
@@ -97,7 +97,7 @@ const PortfolioDetail = ({
           {/* Portfolio Title */}
           <h2
             className={cn(
-              "text-3xl md:text-5xl font-bold pb-6 !leading-[3.75rem]"
+              "text-3xl md:text-5xl font-bold pb-6 md:!leading-[3.75rem]"
             )}
           >
             {post.title}
