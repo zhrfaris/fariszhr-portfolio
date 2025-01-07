@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@plaiceholder/next": "^3.0.0",
     "@prisma/client": "^6.0.1",
     "@radix-ui/react-alert-dialog": "^1.1.4",
     "@radix-ui/react-avatar": "^1.1.1",
@@ -41,10 +42,12 @@
     "next-auth": "^5.0.0-beta.25",
     "next-cloudinary": "^6.16.0",
     "next-themes": "^0.4.4",
+    "plaiceholder": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-slugify": "^4.0.1",
     "sass": "^1.81.0",
+    "sharp": "^0.33.5",
     "sonner": "^1.7.1",
     "swr": "^2.3.0",
     "tailwind-merge": "^2.5.5",

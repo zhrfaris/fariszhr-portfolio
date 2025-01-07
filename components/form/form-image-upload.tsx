@@ -151,25 +151,30 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
             multiple: false,
           }}
         >
-          {({ open: openWidget }) => (
-            <ImagePlaceholder
-              classNameWrapper={cn(
-                "rounded-sm",
-                currentImage?.img_url && "h-fit",
-                classNameWidgetWrapper
-              )}
-              classNameButtons={cn(
-                "h-8 w-fit rounded-sm bottom-auto left-auto top-4 right-4",
-                classNameButtons
-              )}
-              img_url={currentImage?.img_url}
-              img_url_placeholder={currentImage?.img_url_placeholder}
-              onEdit={() => openWidget()}
-              onDelete={showDeleteButton ? deleteCurrentImage : undefined}
-              width={currentImage?.img_width}
-              height={currentImage?.img_height}
-            />
-          )}
+          {({ open: openWidget }) => {
+            // console.log({ openWidget, error, widget, cloudinary, label });
+            // if (!widget || !cloudinary) return <></>;
+
+            return (
+              <ImagePlaceholder
+                classNameWrapper={cn(
+                  "rounded-sm",
+                  currentImage?.img_url && "h-fit",
+                  classNameWidgetWrapper
+                )}
+                classNameButtons={cn(
+                  "h-8 w-fit rounded-sm bottom-auto left-auto top-4 right-4",
+                  classNameButtons
+                )}
+                img_url={currentImage?.img_url}
+                img_url_placeholder={currentImage?.img_url_placeholder}
+                onEdit={() => openWidget()}
+                onDelete={showDeleteButton ? deleteCurrentImage : undefined}
+                width={currentImage?.img_width}
+                height={currentImage?.img_height}
+              />
+            );
+          }}
         </CldUploadWidget>
       );
     };

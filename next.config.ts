@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import withPlaiceholder from "@plaiceholder/next";
 
 const nextConfig: NextConfig = {
   sassOptions: {
@@ -18,9 +19,9 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb",
+      bodySizeLimit: "4500kb",
     },
   },
 };
 
-export default nextConfig;
+export default withPlaiceholder(nextConfig);

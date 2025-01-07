@@ -47,9 +47,11 @@ const ListPostSection = () => {
             </Button>
           </p>
         )}
-        {sections.map((section) => (
-          <PostSectionItem key={section.id} section={section} />
-        ))}
+        {sections
+          .sort((a, b) => a.order - b.order)
+          .map((section) => (
+            <PostSectionItem key={section.id} section={section} />
+          ))}
         {showFormSection && (
           <PostSectionForm sectionChange={onChangeSectionHandler} />
         )}

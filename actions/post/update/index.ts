@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { ReturnType, InputType } from "./types";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { auth } from "@/auth";
+import slugify from "react-slugify";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const session = await auth();
@@ -24,11 +25,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     status,
     thumbnail_image,
     title,
-    slug,
+    slug: newSlug,
     categoryIds,
     thumbnail_gif,
     workplaceId,
   } = data;
+
+  const slug = slugify(newSlug);
 
   const postExist = await db.post.findUnique({
     where: {

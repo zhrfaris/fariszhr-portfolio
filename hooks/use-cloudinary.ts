@@ -6,7 +6,7 @@ import {
   CloudinaryUploadWidgetResults,
 } from "next-cloudinary";
 import { Image as ImageType } from "@prisma/client";
-import { imageUrlToBase64 } from "@/lib/utils";
+// import { imageUrlToBase64 } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -136,8 +136,24 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
     };
 
     try {
-      const base64 = await imageUrlToBase64(newImage.img_url_thumbnail);
-      newImage.img_url_placeholder = base64;
+      const res = await fetch(`/api/image/placeholder`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ image_url: newImage.img_url }),
+      });
+
+      console.log(res);
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch image");
+      }
+      const data = await res.json();
+
+      console.log(data);
+      // const base64 = await imageUrlToBase64(newImage.img_url_thumbnail);
+      newImage.img_url_placeholder = data.base64;
     } catch (error) {
       console.error("Error fetching or encoding image:", error);
     }
