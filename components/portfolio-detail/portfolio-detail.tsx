@@ -6,41 +6,42 @@ import { Button, buttonVariants } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
 import { ArrowUp, Pen } from "lucide-react";
 import PortfolioSection from "./portfolio-section";
-import { Portfolio, PostSections } from "@/actions/post/get/types";
+import { Portfolio } from "@/actions/post/get/types";
+// import { Portfolio, PostSections } from "@/actions/post/get/types";
 
-import useSWR from "swr";
+// import useSWR from "swr";
 
 import Image from "next/image";
 import Link from "next/link";
-import { fetcher } from "@/lib/fetcher";
-import { toast } from "sonner";
-import { redirect } from "next/navigation";
-import PortfolioSectionLoading from "./portfolio-section-loading";
+// import { fetcher } from "@/lib/fetcher";
+// import { toast } from "sonner";
+// import { redirect } from "next/navigation";
+// import PortfolioSectionLoading from "./portfolio-section-loading";
 
 interface PortfolioDetailProps {
   post: NonNullable<Portfolio>;
-  slug: string;
+  // slug: string;
   showEditButton?: boolean;
 }
 
 const PortfolioDetail = ({
   post,
-  slug,
+  // slug,
   showEditButton,
 }: PortfolioDetailProps) => {
   const { scrollToTop } = useLenisScroll();
 
-  const {
-    data: post_sections = [],
-    error,
-    isLoading,
-  } = useSWR<PostSections>(`/api/post/${slug}/post_section`, fetcher);
+  // const {
+  //   data: post_sections = [],
+  //   error,
+  //   isLoading,
+  // } = useSWR<PostSections>(`/api/post/${slug}/post_section`, fetcher);
 
-  if (error) {
-    console.log(error);
-    toast.error("Sorry something went wrong, please try again later.");
-    redirect("/");
-  }
+  // if (error) {
+  //   console.log(error);
+  //   toast.error("Sorry something went wrong, please try again later.");
+  //   redirect("/");
+  // }
 
   return (
     <div className="min-h-screen relative">
@@ -104,19 +105,18 @@ const PortfolioDetail = ({
           </h2>
 
           {/* Portfolio Sections */}
-          {!isLoading &&
-            post_sections.map((section) => (
-              <PortfolioSection
-                key={section.id}
-                section={section}
-                showFull={true}
-              />
-            ))}
+          {post?.post_sections.map((section) => (
+            <PortfolioSection
+              key={section.id}
+              section={section}
+              showFull={true}
+            />
+          ))}
 
-          {isLoading &&
+          {/* {isLoading &&
             Array.from({ length: 3 }).map((_, index) => (
               <PortfolioSectionLoading key={index} />
-            ))}
+            ))} */}
         </div>
       </div>
     </div>

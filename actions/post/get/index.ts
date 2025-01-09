@@ -52,19 +52,23 @@ export const getPostBySlug = async (slug: string) => {
 export const getPortfolioBySlug = async (slug: string) => {
   return await db.post.findUnique({
     where: { slug },
-    select: {
-      id: true,
-      categories: true,
+    // select: {
+    //   id: true,
+    //   categories: true,
+    //   workplace: true,
+    //   header_image: true,
+    //   title: true,
+    //   status: true,
+    //   slug: true,
+    //   post_sections: {
+    //     select: {
+    //       id: true,
+    //     },
+    //   },
+    // },
+    include: {
       workplace: true,
-      header_image: true,
-      title: true,
-      status: true,
-      slug: true,
-      post_sections: {
-        select: {
-          id: true,
-        },
-      },
+      categories: true,
     },
   });
 };

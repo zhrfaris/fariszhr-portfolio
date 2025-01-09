@@ -144,15 +144,10 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
         body: JSON.stringify({ image_url: newImage.img_url }),
       });
 
-      console.log(res);
-
       if (!res.ok) {
         throw new Error("Failed to fetch image");
       }
       const data = await res.json();
-
-      console.log(data);
-      // const base64 = await imageUrlToBase64(newImage.img_url_thumbnail);
       newImage.img_url_placeholder = data.base64;
     } catch (error) {
       console.error("Error fetching or encoding image:", error);

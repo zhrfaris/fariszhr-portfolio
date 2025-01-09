@@ -67,7 +67,8 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
     redirect("/coming-soon");
   }
 
-  return <PortfolioDetail post={post} slug={slug} />;
+  // return <PortfolioDetail post={post} slug={slug} />;
+  return <PortfolioDetail post={post} />;
 };
 
 export default PortfolioDetailPage;
