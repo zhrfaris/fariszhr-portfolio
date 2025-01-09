@@ -52,7 +52,7 @@ const PostSectionContentForm = ({
       id: initialData?.id || crypto.randomUUID(),
       order: initialData?.order ?? contents.length,
       content,
-      image,
+      image: image || null,
       content_image_type: contentImageEnum.Values.DEFAULT,
       content_image_radius,
     };
@@ -84,6 +84,7 @@ const PostSectionContentForm = ({
               }
             : undefined
         }
+        showDeleteButton={true}
       />
 
       <FormSelect

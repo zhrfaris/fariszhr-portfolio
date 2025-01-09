@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ImageIcon, Pen, Trash2 } from "lucide-react";
 import Image, { StaticImageData } from "next/image";
 import React, { useEffect, useState } from "react";
+import AlertDialogWrapper from "../wrappers/alert-dialog-wrapper";
 
 interface ImagePlaceholderProps {
   img_url?: string | StaticImageData;
@@ -33,6 +34,7 @@ const ImagePlaceholder = ({
   onEdit,
   onDelete,
 }: ImagePlaceholderProps) => {
+  const deleteImageButtonRef = React.useRef<HTMLButtonElement>(null);
   const [isMounted, setisMounted] = useState(false);
 
   useEffect(() => {
@@ -61,25 +63,42 @@ const ImagePlaceholder = ({
               onEdit();
             }}
             className={cn(
-              "bg-white text-black rounded-md mix-blend-difference hover:bg-white hover:text-black"
+              "bg-black text-white border border-white rounded-md hover:bg-black hover:text-white"
             )}
           >
             <Pen className="h-4 w-4" />
           </Button>
         )}
         {onDelete && img_url && (
-          <Button
-            size="icon"
-            onClick={async (e) => {
-              e.preventDefault();
-              await onDelete();
-            }}
-            className={cn(
-              "bg-red-500 text-white rounded-md hover:bg-bg-red-500 hover:text-white"
-            )}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <>
+            <AlertDialogWrapper
+              header={`Delete Image?`}
+              description={`You will permanently delete the image, this action can not be undone!`}
+              proceedHandler={() => {
+                deleteImageButtonRef?.current?.click();
+              }}
+            >
+              <Button
+                size="icon"
+                className={cn(
+                  "bg-red-500 text-white rounded-md hover:bg-bg-red-500 hover:text-white"
+                )}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogWrapper>
+            <Button
+              ref={deleteImageButtonRef}
+              size="icon"
+              className="hidden"
+              onClick={async (e) => {
+                e.preventDefault();
+                await onDelete();
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
         )}
       </div>
     );

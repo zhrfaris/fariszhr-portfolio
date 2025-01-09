@@ -72,7 +72,7 @@ export default function RootLayout({
       <body className={cn(inter.className, "antialiased")}>
         <SessionProvider>
           <>{children}</>
-          <Toaster richColors />
+          <Toaster position="bottom-center" richColors />
         </SessionProvider>
       </body>
     </html>

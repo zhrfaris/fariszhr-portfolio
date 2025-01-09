@@ -170,7 +170,7 @@ const PostForm = ({ initialData }: PostFormProps) => {
       },
       thumbnail_gif: thumbnailGif
         ? { ...thumbnailGif, img_type: thumbnailGif.img_type }
-        : undefined,
+        : null,
       post_sections: sections,
       categoryIds: categories,
       workplaceId: workplaces[0],

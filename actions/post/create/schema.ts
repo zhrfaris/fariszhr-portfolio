@@ -78,7 +78,7 @@ export const CreatePost = z.object({
   status: Status,
   header_image: Image,
   thumbnail_image: Image,
-  thumbnail_gif: Image.optional(),
+  thumbnail_gif: Image.optional().or(z.null()),
 
   post_sections: z.array(PostSection),
 

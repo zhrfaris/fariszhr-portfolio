@@ -42,8 +42,6 @@ const PostSectionForm = ({
       return;
     }
 
-    console.log(initialData?.order);
-
     const payload: PostSection = {
       id: initialData?.id || crypto.randomUUID(),
       order: initialData?.order ?? sections.length,

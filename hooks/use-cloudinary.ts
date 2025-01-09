@@ -115,6 +115,7 @@ const useCloudinary = (props?: UseCloudinaryProps) => {
       },
       onSuccess: () => {
         toast.success("image deleted!");
+        setCurrentImage(undefined);
       },
     });
   };
