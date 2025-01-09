@@ -22,13 +22,7 @@ const PostDetailPage = async ({
     redirect("/dashboard/posts");
   }
 
-  return (
-    <PortfolioDetail
-      post={post}
-      showEditButton={!!session?.user?.id}
-      slug={slug}
-    />
-  );
+  return <PortfolioDetail post={post} showEditButton={!!session?.user?.id} />;
 };
 
 export default PostDetailPage;
