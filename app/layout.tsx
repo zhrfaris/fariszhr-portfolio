@@ -9,7 +9,7 @@ const metaTitle = "Muhammad Faris Azhar";
 const metaDescription =
   "Humanizing technology through design | Embark on transformative journeys with companies I've collaborated with. Uncover challenges and strategic approaches to elevate the product";
 const profilePictUrl =
-  "https://res.cloudinary.com/dvafoy3bz/image/upload/v1703692108/Portfolio/izgbzg165oqkrbiaydbw.png";
+  "https://res.cloudinary.com/dvafoy3bz/image/upload/v1737010262/portfolio-2/ogl1u28yvjcuazduz1at.jpg";
 
 export const metadata: Metadata = {
   title: {
