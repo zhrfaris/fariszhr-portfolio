@@ -7,8 +7,8 @@ import { SessionProvider } from "next-auth/react";
 
 const metaTitle = "Muhammad Faris Azhar";
 const metaDescription =
-  "Humanizing technology through design | Embark on transformative journeys with companies I've collaborated with. Uncover challenges and strategic approaches to elevate the product";
-const profilePictUrl =
+  "Humanizing technology through design | Embark on transformative journeys with companies I've collaborated with. Uncover challenges and strategic approaches to elevate the product | Portfolio website of Muhammad Faris Azhar, a Product Designer showcasing UX/UI design work and projects.";
+const metaImage =
   "https://res.cloudinary.com/dvafoy3bz/image/upload/v1737010262/portfolio-2/ogl1u28yvjcuazduz1at.jpg";
 
 export const metadata: Metadata = {
@@ -17,7 +17,8 @@ export const metadata: Metadata = {
     template: `%s | ${metaTitle}`,
   },
   description: metaDescription,
-  keywords: "UI/UX, Product Designer, Portfolio, Portfolio Website",
+  keywords:
+    "Muhammad Faris Azhar, M Faris Azhar, Faris Azhar, UI Designer, UX Designer, UI/UX, Product Designer, Portfolio, Portfolio Website",
   robots: {
     index: false,
     follow: true,
@@ -34,11 +35,15 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://fariszhr-portfolio.vercel.app"),
   openGraph: {
     type: "website",
-    images: profilePictUrl,
+    images: metaImage,
+    title: metaTitle,
+    description: metaDescription,
   },
   twitter: {
     card: "summary_large_image",
-    images: profilePictUrl,
+    images: metaImage,
+    title: metaTitle,
+    description: metaDescription,
   },
 };
 

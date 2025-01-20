@@ -17,6 +17,19 @@ export const getPosts = async (
   });
 };
 
+export const getPostCount = async () => {
+  return await db.post.count();
+};
+
+export const getPostsForSitemap = async (username: string, skip?: number) => {
+  return await db.post.findMany({
+    where: { author: { username }, status: "ACTIVE" },
+    select: { slug: true, thumbnail_image: true },
+    skip,
+    take: 50_000,
+  });
+};
+
 export const getPostsShowCase = async (username: string) => {
   return await db.post.findMany({
     where: { author: { username }, status: "ACTIVE" },
