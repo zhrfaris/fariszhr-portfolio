@@ -17,7 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getPostsForSitemap(MAIN_USERNAME);
   const sitemapPosts: MetadataRoute.Sitemap = [...posts].map((post) => ({
     url: `${process.env.BASE_URL}/portfolios/${post.slug}`,
-    changeFrequency: "always",
+    changeFrequency: "monthly",
     images: [
       "https://res.cloudinary.com/dvafoy3bz/image/upload/v1737010262/portfolio-2/ogl1u28yvjcuazduz1at.jpg",
       post.thumbnail_image.img_url,
