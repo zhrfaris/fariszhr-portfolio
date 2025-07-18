@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   description: metaDescription,
   keywords:
     "Muhammad Faris Azhar, M Faris Azhar, Faris Azhar, UI Designer, UX Designer, UI/UX, Product Designer, Portfolio, Portfolio Website, Muhammad Faris Azhar Portfolio website",
+  alternates: {
+    canonical: metaURL,
+  },
   robots: {
     index: true,
     follow: true,
