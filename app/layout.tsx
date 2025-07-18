@@ -10,6 +10,7 @@ const metaDescription =
   "Humanizing technology through design | Embark on transformative journeys with companies I've collaborated with. Uncover challenges and strategic approaches to elevate the product | Portfolio website of Muhammad Faris Azhar, a Product Designer showcasing UX/UI design work and projects.";
 const metaImage =
   "https://res.cloudinary.com/dvafoy3bz/image/upload/v1737010262/portfolio-2/ogl1u28yvjcuazduz1at.jpg";
+const metaURL = "https://www.fariszhr.studio/";
 
 export const metadata: Metadata = {
   title: {
@@ -18,33 +19,40 @@ export const metadata: Metadata = {
   },
   description: metaDescription,
   keywords:
-    "Muhammad Faris Azhar, M Faris Azhar, Faris Azhar, UI Designer, UX Designer, UI/UX, Product Designer, Portfolio, Portfolio Website",
+    "Muhammad Faris Azhar, M Faris Azhar, Faris Azhar, UI Designer, UX Designer, UI/UX, Product Designer, Portfolio, Portfolio Website, Muhammad Faris Azhar Portfolio website",
   robots: {
-    index: false,
+    index: true,
     follow: true,
-    nocache: true,
+    nocache: false,
     googleBot: {
       index: true,
-      follow: false,
-      noimageindex: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      follow: true,
     },
   },
-  metadataBase: new URL("https://fariszhr-portfolio.vercel.app"),
+  metadataBase: new URL(metaURL),
   openGraph: {
-    type: "website",
-    images: metaImage,
     title: metaTitle,
     description: metaDescription,
+    images: metaImage,
+    url: metaURL,
+    type: "website",
+    siteName: "Muhammad Faris Azhar Portfolio Website",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    images: metaImage,
     title: metaTitle,
     description: metaDescription,
+    images: metaImage,
+    site: "@Fariszhr",
+    creator: "@Fariszhr",
   },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

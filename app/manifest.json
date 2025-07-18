@@ -1,0 +1,14 @@
+{
+  "name": "Muhammad Faris Azhar's Portfolio",
+  "short_name": "Muhammad Faris Azhar",
+  "icons": [
+    {
+      "src": "/android-chrome-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
