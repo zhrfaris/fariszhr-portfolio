@@ -3,33 +3,29 @@ import Image from "next/image";
 import HomeCtaButton from "./home-cta-button";
 import TooltipWrapper from "../wrappers/tooltip-wrapper";
 
-import { cn } from "@/lib/utils";
-import { MAIN_USERNAME } from "@/lib/db";
-import { unstable_cache } from "next/cache";
-import { User } from "@/actions/user/get/type";
-import { source_serif_pro } from "@/lib/fonts";
-import { Workplace } from "@/actions/workplace/get/types";
-import { getWorkplacesBySlug } from "@/actions/workplace/get";
-import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
-import { countRequestDuration } from "@/actions/utils";
+import {cn} from "@/lib/utils";
+import {User} from "@/actions/user/get/type";
+import {source_serif_pro} from "@/lib/fonts";
+import {Workplace} from "@/actions/workplace/get/types";
+import {Avatar, AvatarFallback, AvatarImage} from "../shadcn/avatar";
+// import {MAIN_USERNAME} from "@/lib/db";
+// import { unstable_cache } from "next/cache";
+// import { getWorkplacesBySlug } from "@/actions/workplace/get";
+// import { countRequestDuration } from "@/actions/utils";
 
-const getWorkplaces = unstable_cache(
-  async () => {
-    return await countRequestDuration(getWorkplacesBySlug, MAIN_USERNAME);
-  },
-  ["workplaces"],
-  { revalidate: 60 * 10, tags: ["workplaces"] }
-);
+// const getWorkplaces = unstable_cache(
+//   async () => {
+//     return await countRequestDuration(getWorkplacesBySlug, MAIN_USERNAME);
+//   },
+//   ["workplaces"],
+//   { revalidate: 60 * 10, tags: ["workplaces"] }
+// );
 
-const HeroSection = async ({ user }: { user?: User }) => {
-  const workplaces = await getWorkplaces();
+const HeroSection = async ({user}: {user?: User}) => {
+  // const workplaces = await getWorkplaces();
 
-  const WorkplaceCard = ({
-    workplace,
-  }: {
-    workplace: NonNullable<Workplace>;
-  }) => {
-    const WorkplaceWrapper = ({ children }: { children: React.ReactNode }) => {
+  const WorkplaceCard = ({workplace}: {workplace: NonNullable<Workplace>}) => {
+    const WorkplaceWrapper = ({children}: {children: React.ReactNode}) => {
       if (!workplace.url) {
         return <>{children}</>;
       }
@@ -85,7 +81,28 @@ const HeroSection = async ({ user }: { user?: User }) => {
           <HomeCtaButton />
         </div>
       </div>
-      <div className="hidden md:flex min-h-[120px] w-full flex-col items-center justify-center gap-6 py-4 md:py-12">
+      <div className="flex min-h-[100px] w-full items-center justify-center gap-4 py-4 md:py-12">
+        <h4 className="text-sm md:text-base">Currently Working at</h4>
+        <WorkplaceCard
+          workplace={{
+            id: "1",
+            image: {
+              img_height: 49,
+              img_width: 169,
+              img_type: "",
+              img_url: "/gojek-logo.png",
+              img_url_placeholder: "",
+              img_url_thumbnail: "",
+              public_id: "1",
+            },
+            name: "Gojek",
+            slug: "",
+            userId: "1",
+            url: null,
+          }}
+        />
+      </div>
+      {/* <div className="hidden md:flex min-h-[120px] w-full flex-col items-center justify-center gap-6 py-4 md:py-12">
         <h4 className="text-sm md:text-base">
           The Company I&apos;ve been collaborated with
         </h4>
@@ -94,7 +111,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
             <WorkplaceCard key={i} workplace={workplace} />
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
