@@ -81,7 +81,7 @@ const HeroSection = async ({user}: {user?: User}) => {
           <HomeCtaButton />
         </div>
       </div>
-      <div className="flex min-h-[100px] w-full items-center justify-center gap-4 py-4 md:py-12">
+      <div className="flex min-h-[100px] w-full items-center justify-center gap-2 py-4 md:py-12">
         <h4 className="text-sm md:text-base">Currently Working at</h4>
         <WorkplaceCard
           workplace={{
