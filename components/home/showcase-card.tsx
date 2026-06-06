@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { source_serif_pro } from "@/lib/fonts";
 import Link from "next/link";
 import Image from "next/image";
+import { Category } from "./hero-section";
 
 interface ShowcaseCardProps {
   title?: string;
@@ -13,8 +14,8 @@ interface ShowcaseCardProps {
   link?: string;
   target?: "_blank";
   className?: string;
-  type?: "default" | "wide" | "small";
   prefetch?: boolean;
+  categories?: Category[];
 }
 
 const ShowcaseCard = ({
@@ -23,9 +24,9 @@ const ShowcaseCard = ({
   target,
   className,
   description,
-  type = "default",
   image_url,
   prefetch,
+  categories,
 }: ShowcaseCardProps) => {
   const Wrapper = ({
     children,
@@ -56,18 +57,12 @@ const ShowcaseCard = ({
   };
 
   const TitleNDesc = () => (
-    <div
-      className={cn(
-        "text text-center",
-        type === "wide" && "max-w-[150px] text-left",
-        type === "small" && "max-w-[200px] text-center"
-      )}
-    >
+    <div className="text flex-1 text-left pl-2 pr-4">
       {title && (
         <h3
           className={cn(
             source_serif_pro.className,
-            "text-sm font-semibold mb-1"
+            "text-sm font-semibold mb-1",
           )}
         >
           {title}
@@ -84,27 +79,16 @@ const ShowcaseCard = ({
       link={link}
       target={target}
       className={cn(
-        "rounded-xl md:h-[215px] aspect-[2/1] md:aspect-auto overflow-hidden col-span-12",
-        type === "default" && "md:col-span-6",
-        type === "wide" && "md:col-span-7",
-        type === "small" && "md:col-span-5",
+        "rounded-xl overflow-hidden col-span-12 md:col-span-6",
         styles.card,
-        className
+        className,
       )}
     >
-      <div
-        className={cn(
-          "size-full px-8 py-px flex justify-between items-center relative",
-          type === "wide" ? "pl-4 md:pl-6 pr-0" : "flex-col gap-4 pt-6 px-0",
-          type === "small" && "gap-2"
-        )}
-      >
-        <TitleNDesc />
+      <div className={cn("p-1 flex justify-between items-center")}>
         {image_url && (
           <div
             className={cn(
-              "img flex-1 w-full h-full relative",
-              type !== "wide" && "rounded-xl rounded-b-none"
+              "img size-[200px] relative rounded-[8px] overflow-hidden",
             )}
           >
             <Image
@@ -112,17 +96,23 @@ const ShowcaseCard = ({
               src={image_url}
               fill
               className={cn(
-                "object-cover size-full md:object-contain",
-                type === "wide"
-                  ? "object-left-top md:object-center"
-                  : "object-bottom",
-                type === "small" && "object-contain",
-                type === "default" && "object-top md:object-bottom"
+                "object-cover size-full md:object-contain object-left-top md:object-center",
               )}
             />
+            <div className="img_overlay absolute inset-x-0 bottom-0 w-full h-[40px] bg-gradient-to-t from-[#f5f5f5] to-transparent z-10" />
           </div>
         )}
-        <div className="img_overlay absolute inset-x-0 bottom-0 w-full h-24 bg-gradient-to-t from-white/50 to-transparent" />
+        <TitleNDesc />
+      </div>
+      <div className="flex items-center gap-1 py-2 px-3">
+        {categories?.map((category) => (
+          <div
+            key={category.id}
+            className="bg-white border border-[#eeeeee] rounded-full py-1 px-2"
+          >
+            <p className="text-muted-foreground text-xs">{category.name}</p>
+          </div>
+        ))}
       </div>
     </Wrapper>
   );

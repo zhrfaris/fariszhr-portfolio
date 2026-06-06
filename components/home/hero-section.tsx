@@ -1,117 +1,129 @@
-import Link from "next/link";
 import Image from "next/image";
-import HomeCtaButton from "./home-cta-button";
-import TooltipWrapper from "../wrappers/tooltip-wrapper";
 
-import {cn} from "@/lib/utils";
-import {User} from "@/actions/user/get/type";
-import {source_serif_pro} from "@/lib/fonts";
-import {Workplace} from "@/actions/workplace/get/types";
-import {Avatar, AvatarFallback, AvatarImage} from "../shadcn/avatar";
-// import {MAIN_USERNAME} from "@/lib/db";
-// import { unstable_cache } from "next/cache";
-// import { getWorkplacesBySlug } from "@/actions/workplace/get";
-// import { countRequestDuration } from "@/actions/utils";
+import { cn } from "@/lib/utils";
+import { User } from "@/actions/user/get/type";
+import { source_serif_pro } from "@/lib/fonts";
+import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
+import ShowcaseSection from "./showcase-section";
+import { unstable_cache } from "next/cache";
+import { countRequestDuration } from "@/actions/utils";
+import { getPostsShowCase } from "@/actions/post/get";
+import { MAIN_USERNAME } from "@/lib/db";
+import { IconMailFilled } from "@tabler/icons-react";
+import LinkedInIcon from "../icons/linkedin-icon";
+import PaperIcon from "../icons/paper-icon";
+import Link from "next/link";
 
-// const getWorkplaces = unstable_cache(
-//   async () => {
-//     return await countRequestDuration(getWorkplacesBySlug, MAIN_USERNAME);
-//   },
-//   ["workplaces"],
-//   { revalidate: 60 * 10, tags: ["workplaces"] }
-// );
+const getPosts = unstable_cache(
+  async () => {
+    return await countRequestDuration(getPostsShowCase, MAIN_USERNAME);
+  },
+  ["posts"],
+  { revalidate: 60 * 10, tags: ["posts"] },
+);
 
-const HeroSection = async ({user}: {user?: User}) => {
-  // const workplaces = await getWorkplaces();
+export type Post = Awaited<ReturnType<typeof getPosts>>[number];
+export type Category = Post["categories"][number];
 
-  const WorkplaceCard = ({workplace}: {workplace: NonNullable<Workplace>}) => {
-    const WorkplaceWrapper = ({children}: {children: React.ReactNode}) => {
-      if (!workplace.url) {
-        return <>{children}</>;
-      }
-
-      return (
-        <Link href={workplace.url} target="_blank" rel="noopener noreferrer">
-          {children}
-        </Link>
-      );
-    };
-
-    return (
-      <WorkplaceWrapper>
-        <TooltipWrapper tooltip_text={workplace.name} side="bottom">
-          <div className="h-6 max-w-32 md:max-w-36 md:h-10 max-h-10 rounded-lg">
-            <Image
-              alt=""
-              src={workplace.image.img_url}
-              width={workplace.image.img_width}
-              height={workplace.image.img_height}
-              className="size-full object-contain max-w-40 grayscale"
-            />
-          </div>
-        </TooltipWrapper>
-      </WorkplaceWrapper>
-    );
-  };
+const HeroSection = async ({ user }: { user?: User }) => {
+  const posts: Post[] = await getPosts();
 
   return (
-    <div className="p-4 space-y-2 md:space-y-4 text-center flex flex-col items-center justify-start md:justify-center min-h-[95vh] md:min-h-screen mt-12 md:mt-0 gap-8 md:gap-0">
-      <div className="flex flex-col items-center justify-start md:justify-center md:flex-1 gap-4 md:gap-8 pb-0 pt-8 md:pt-0">
-        <Avatar className="size-[120px]">
-          <AvatarImage
-            src={user?.photo?.img_url ?? "/faris-profile-pict-grayscale.png"}
-          />
-          <AvatarFallback>ZHR</AvatarFallback>
-        </Avatar>
-        <div className="space-y-1">
-          <h1 className="text-xl md:text-2xl font-semibold">
-            {user?.name ?? "Muhammad Faris Azhar"}
-          </h1>
-          <p>{user?.occupation ?? "Product Designer"}</p>
+    <div className="w-full min-h-screen flex items-center">
+      <div className="md:max-w-[840px] mx-auto flex flex-col gap-12 py-[120px] px-4">
+        {/* profile */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-16 ">
+          <div className="flex items-center gap-4 flex-1">
+            <Avatar className="size-[86px] rounded-[24px] border-[6px] border-white shadow-[0px_4px_20px_0px_#0000001A]">
+              <AvatarImage
+                src={
+                  user?.photo?.img_url ?? "/faris-profile-pict-grayscale.png"
+                }
+              />
+              <AvatarFallback>ZHR</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col flex-1">
+              <h1
+                className={cn(
+                  source_serif_pro.className,
+                  "text-xl md:text-2xl font-semibold whitespace-nowrap",
+                )}
+              >
+                {user?.name ?? "Muhammad Faris Azhar"}
+              </h1>
+              <div className="flex items-center gap-2">
+                <p className="text-muted-foreground">
+                  {user?.occupation ?? "Product Designer"} at
+                </p>
+                <Image
+                  src="/gojek-logo.png"
+                  alt="gojek logo"
+                  width={63}
+                  height={18}
+                  className="brightness-50 contrast-100 grayscale hover:grayscale-0 hover:brightness-100 hover:contrast-100"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-[350px] flex flex-col gap-2">
+            <h2 className="text-sm font-semibold">
+              {user?.tagline ?? "Humanizing technology through design"}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Currently building the spatial layer across Southeast Asia&apos;s
+              largest on-demand platform, covering ride-hailing, food delivery,
+              and logistics.
+            </p>
+          </div>
         </div>
-        <h2
-          className={cn(
-            source_serif_pro.className,
-            "text-3xl md:text-6xl font-semibold max-w-screen-md md:!leading-[4.25rem]"
-          )}
-        >
-          {user?.tagline ?? "Humanizing technology through design"}
-        </h2>
-        <div className="pt-8">
-          <HomeCtaButton />
+
+        <div className="w-full flex flex-col gap-2">
+          {/* posts */}
+          <ShowcaseSection posts={posts} />
+
+          {/* links */}
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            {user?.email && (
+              <Link
+                href={`mailto:${user?.email}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <div className="flex items-center gap-1 group">
+                  <IconMailFilled />
+                  <p className="group-hover:underline">{user?.email}</p>
+                </div>
+              </Link>
+            )}
+            {user?.linkedin_url && (
+              <Link
+                href={user?.linkedin_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <div className="flex items-center gap-1 group">
+                  <LinkedInIcon />
+                  <p className="group-hover:underline">linkedin.com/fariszhr</p>
+                </div>
+              </Link>
+            )}
+
+            {user?.cv_url && (
+              <Link
+                href={user?.cv_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <div className="flex items-center gap-1 group">
+                  <PaperIcon />
+                  <p className="group-hover:underline">Download CV</p>
+                </div>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
-      <div className="flex min-h-[100px] w-full items-center justify-center gap-2 py-4 md:py-12">
-        <h4 className="text-sm md:text-base">Currently Working at</h4>
-        <WorkplaceCard
-          workplace={{
-            id: "1",
-            image: {
-              img_height: 49,
-              img_width: 169,
-              img_type: "",
-              img_url: "/gojek-logo.png",
-              img_url_placeholder: "",
-              img_url_thumbnail: "",
-              public_id: "1",
-            },
-            name: "Gojek",
-            slug: "",
-            userId: "1",
-            url: null,
-          }}
-        />
-      </div>
-      {/* <div className="hidden md:flex min-h-[120px] w-full flex-col items-center justify-center gap-6 py-4 md:py-12">
-        <h4 className="text-sm md:text-base">
-          The Company I&apos;ve been collaborated with
-        </h4>
-        <div className="flex items-center gap-6 gap-y-4 flex-wrap justify-center">
-          {workplaces.map((workplace, i) => (
-            <WorkplaceCard key={i} workplace={workplace} />
-          ))}
-        </div>
-      </div> */}
     </div>
   );
 };

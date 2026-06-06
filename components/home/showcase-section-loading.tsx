@@ -9,7 +9,7 @@ const ShowcaseSectionLoading = async () => {
         <ShowcaseCard />
         <ShowcaseCard />
         {Array.from({ length: 4 }).map((_, index) => (
-          <ShowcaseCard key={index} type={index % 3 === 0 ? "wide" : "small"} />
+          <ShowcaseCard key={index} />
         ))}
       </>
     </ShowcaseSectionWrapper>

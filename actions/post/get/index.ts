@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 
 export const getPosts = async (
   userId: string,
-  options?: { selectAllRelations?: boolean }
+  options?: { selectAllRelations?: boolean },
 ) => {
   return await db.post.findMany({
     where: { author: { id: userId } },
@@ -42,6 +42,7 @@ export const getPostsShowCase = async (username: string) => {
       thumbnail_gif: true,
       order: true,
       post_sections: { select: { id: true } },
+      categories: true,
     },
     take: 4,
     orderBy: [{ order: "asc" }, { title: "asc" }],

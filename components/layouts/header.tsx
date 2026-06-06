@@ -9,8 +9,8 @@ import LinkedInIcon from "../icons/linkedin-icon";
 
 import { cn } from "@/lib/utils";
 import { FileText, Mail } from "lucide-react";
-import { getUser } from "@/app/(public)/page";
 import { Suspense } from "react";
+import { getUser } from "@/actions/user/get";
 
 const Header = async () => {
   const user = await getUser();
@@ -56,7 +56,7 @@ const Header = async () => {
   return (
     <div
       className={cn(
-        "fixed w-screen top-0 z-50 p-4 md:px-12 flex items-center justify-end md:justify-between"
+        "fixed w-screen top-0 z-50 p-4 md:px-12 flex items-center justify-end md:justify-between",
       )}
     >
       <NavButtons />
