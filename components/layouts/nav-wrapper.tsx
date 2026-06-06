@@ -8,7 +8,7 @@ const NavWrapper = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <nav className={cn("z-50 hidden md:flex items-center gap-4", className)}>
+  <nav className={cn("z-50 flex items-center gap-4", className)}>
     {children}
   </nav>
 );

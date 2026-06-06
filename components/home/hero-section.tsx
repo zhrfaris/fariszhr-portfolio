@@ -30,7 +30,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
 
   return (
     <div className="w-full min-h-screen flex items-center">
-      <div className="md:max-w-[840px] mx-auto flex flex-col gap-12 py-[120px] px-4">
+      <div className="md:max-w-[840px] mx-auto flex flex-col gap-12 py-[80px] md:py-[120px] px-4">
         {/* profile */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-16 ">
           <div className="flex items-center gap-4 flex-1">

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button, buttonVariants } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
 import { cn } from "@/lib/utils";
+import { ArrowLeft } from "lucide-react";
 
 const NavButtons = ({
   classNameItem,
@@ -22,7 +23,7 @@ const NavButtons = ({
 
   const classNameStyle = cn(
     "font-semibold hover:bg-transparent hover:text-black !text-base",
-    classNameItem
+    classNameItem,
   );
 
   const afterClickHandler = () => {
@@ -38,14 +39,18 @@ const NavButtons = ({
           <Link
             href={"/"}
             className={buttonVariants({
-              className: classNameStyle,
+              className: cn(
+                "flex items-center gap-4 !px-2 md:px-4",
+                classNameStyle,
+              ),
               variant: "ghost",
             })}
             onClick={afterClickHandler}
           >
-            Home
+            <ArrowLeft size={48} />
+            <span className="text-sm">Back to home</span>
           </Link>
-          <Link
+          {/* <Link
             href={"/#showcase"}
             className={buttonVariants({
               className: classNameStyle,
@@ -54,7 +59,7 @@ const NavButtons = ({
             onClick={afterClickHandler}
           >
             Works & Experiences
-          </Link>
+          </Link> */}
         </>
       ) : (
         <>
