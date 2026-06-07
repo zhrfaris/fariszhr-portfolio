@@ -1,29 +1,49 @@
 .card {
   position: relative;
   background: #f5f5f5;
-  box-shadow: inset 0 2px 4px 1px rgba(0, 0, 0, 0.1),
-    0px 0px 0px 0 rgba(0, 0, 0, 0);
-  transition: box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+  $border: 3px;
+  background-clip: padding-box;
+  border: $border solid transparent;
+  border-radius: 12px;
+  padding: $border;
+  // box-shadow:
+  //   inset 0 2px 4px 1px rgba(0, 0, 0, 0.1),
+  //   0px 0px 0px 0 rgba(0, 0, 0, 0);
   // transition: shadow 0.3s ease;
 
   &:hover {
     @media (min-width: 768px) {
-      box-shadow: inset 0 2px 4px 1px rgba(0, 0, 0, 0.1),
-        -5px 5px 15px 0 rgba(0, 0, 0, 0.1);
+      // box-shadow:
+      //   inset 0 2px 4px 1px rgba(0, 0, 0, 0.1),
+      //   -5px 5px 15px 0 rgba(0, 0, 0, 0.1);
     }
   }
 
   &::before {
+    // content: "";
+    // position: absolute;
+    // inset: 0;
+    // width: 100%;
+    // height: 100%;
+    // border: 3px solid transparent;
+    // border-radius: 12px;
+    // // border-image: linear-gradient(to right, red, blue) 10;
+    // background: linear-gradient(to bottom, #f5f5f5, #ededed) border-box;
+    // mask: /*4*/
+    //   linear-gradient(#000 0 0) padding-box,
+    //   linear-gradient(#000 0 0);
+    // mask-composite: exclude; /*5*/
+
     content: "";
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 3px solid transparent;
-    border-radius: 12px;
-    // border-image: linear-gradient(to right, red, blue) 10;
-    background: linear-gradient(to bottom, #f5f5f5, #ededed) border-box;
-    mask: /*4*/ linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
-    mask-composite: exclude; /*5*/
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    margin: -$border; /* !importanté */
+    border-radius: inherit; /* !importanté */
+    background: inear-gradient(to bottom, #f5f5f5, #ededed) border-box;
   }
 }

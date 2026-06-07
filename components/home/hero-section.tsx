@@ -55,13 +55,15 @@ const HeroSection = async ({ user }: { user?: User }) => {
                 <p className="text-muted-foreground">
                   {user?.occupation ?? "Product Designer"} at
                 </p>
-                <Image
-                  src="/gojek-logo.png"
-                  alt="gojek logo"
-                  width={63}
-                  height={18}
-                  className="brightness-50 contrast-100 grayscale hover:grayscale-0 hover:brightness-100 hover:contrast-100"
-                />
+                <div className="w-[63px] h-[18px] relative">
+                  <Image
+                    src="/gojek-logo.png"
+                    alt="gojek logo"
+                    width={252}
+                    height={72}
+                    className="size-full brightness-50 contrast-100 grayscale hover:grayscale-0 hover:brightness-100 hover:contrast-100"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -92,7 +94,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
               >
                 <div className="flex items-center gap-1 group">
                   <IconMailFilled />
-                  <p className="group-hover:underline">{user?.email}</p>
+                  <p className="group-hover:underline text-sm">{user?.email}</p>
                 </div>
               </Link>
             )}
@@ -104,7 +106,9 @@ const HeroSection = async ({ user }: { user?: User }) => {
               >
                 <div className="flex items-center gap-1 group">
                   <LinkedInIcon />
-                  <p className="group-hover:underline">linkedin.com/fariszhr</p>
+                  <p className="group-hover:underline text-sm">
+                    linkedin.com/fariszhr
+                  </p>
                 </div>
               </Link>
             )}
@@ -117,7 +121,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
               >
                 <div className="flex items-center gap-1 group">
                   <PaperIcon />
-                  <p className="group-hover:underline">Download CV</p>
+                  <p className="group-hover:underline text-sm">Download CV</p>
                 </div>
               </Link>
             )}
