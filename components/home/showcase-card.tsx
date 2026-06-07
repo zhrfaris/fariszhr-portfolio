@@ -84,7 +84,7 @@ const ShowcaseCard = ({
         className,
       )}
     >
-      <div className="group-hover:bg-[#353535] rounded-lg shadow-inner transition-colors ">
+      <div className="group-hover:bg-[#353535] rounded-lg shadow-inner">
         <div className={cn("flex justify-between items-center ")}>
           {image_url && (
             <div
@@ -108,14 +108,14 @@ const ShowcaseCard = ({
               <h3
                 className={cn(
                   source_serif_pro.className,
-                  "text-sm font-semibold mb-1 group-hover:text-[#ffffff] transition-colors",
+                  "text-sm font-semibold mb-1 group-hover:text-[#ffffff]",
                 )}
               >
                 {title}
               </h3>
             )}
             {description && (
-              <p className="text-[11px] text-[#545A5F] group-hover:text-[#ffffff] transition-colors">
+              <p className="text-[11px] text-[#545A5F] group-hover:text-[#ffffff]">
                 {description}
               </p>
             )}

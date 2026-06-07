@@ -8,6 +8,9 @@ import {
 import { notFound, redirect } from "next/navigation";
 import { Metadata, ResolvingMetadata } from "next";
 import { MAIN_USERNAME } from "@/lib/db";
+import { cookies } from "next/headers";
+import { getUser } from "@/actions/user/get";
+import PasscodeForm from "@/components/portfolio-detail/passcode-form";
 
 interface PortfolioDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -27,7 +30,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata(
   { params }: PortfolioDetailPageProps,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
   const { slug } = await params;
 
@@ -65,6 +68,38 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
 
   if (post.post_sections.length === 0) {
     redirect("/coming-soon");
+  }
+
+  // --- SECURE GUARD WITH PREVIEW ---
+  if (post.isRestricted) {
+    const user = await getUser();
+    const cookieStore = await cookies();
+    const isUnlocked = cookieStore.get(`unlocked_${slug}`)?.value === "true";
+
+    if (!isUnlocked) {
+      // 1. Create a safe preview version of the post.
+      // For example, only take the first 2 sections of the article:
+      const previewPost = {
+        ...post,
+        post_sections: post.post_sections.slice(
+          0,
+          post.previewSectionAmount || 3,
+        ),
+      };
+
+      // 2. Render the partial detail view AND the passcode form below it
+      return (
+        <div className="relative">
+          {/* Renders only the first 2 sections safely */}
+          <PortfolioDetail post={previewPost} />
+
+          {/* Overlay or bottom banner with the passcode form */}
+          <div className="h-[80vh] absolute bottom-0 inset-x-0 w-full flex items-center justify-center bg-gradient-to-t from-white via-[#ffffff90] to-transparent mb-[4rem]">
+            <PasscodeForm slug={slug} user={user} />
+          </div>
+        </div>
+      );
+    }
   }
 
   // return <PortfolioDetail post={post} slug={slug} />;

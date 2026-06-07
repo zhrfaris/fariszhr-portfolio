@@ -14,6 +14,9 @@ type State = {
   title: string;
   slug: string;
   excerpt: string;
+  isRestricted: boolean | null;
+  password: string | null;
+  previewSectionAmount: number | null;
 };
 
 type Action = {
@@ -27,6 +30,9 @@ type Action = {
   setSections: (sections: PostSection[]) => void;
   setEditContentData: (data: PostSectionContent | null) => void;
   setEditSectionData: (data: PostSection | null) => void;
+  setIsRestricted: (data: boolean | null) => void;
+  setPassword: (data: string | null) => void;
+  setPreviewSectionAmount: (data: number | null) => void;
 };
 
 export const usePostForm = create<State & Action>((set) => ({
@@ -40,6 +46,9 @@ export const usePostForm = create<State & Action>((set) => ({
   sections: [],
   editContentData: null,
   editSectionData: null,
+  isRestricted: null,
+  password: null,
+  previewSectionAmount: null,
   setSlug: (slug) => set(() => ({ slug })),
   setTitle: (title) => set(() => ({ title })),
   setExcerpt: (excerpt) => set(() => ({ excerpt })),
@@ -50,4 +59,21 @@ export const usePostForm = create<State & Action>((set) => ({
   setSaveAsDraft: (bool) => set(() => ({ saveAsDraft: bool })),
   setShowFormSection: (bool) => set(() => ({ showFormSection: bool })),
   setShowFormContent: (bool) => set(() => ({ showFormContent: bool })),
+  setIsRestricted: (data) =>
+    set(() => {
+      if (!data) {
+        return {
+          isRestricted: data,
+          password: null,
+          previewSectionAmount: null,
+        };
+      }
+
+      return {
+        isRestricted: data,
+      };
+    }),
+  setPassword: (data) => set(() => ({ password: data })),
+  setPreviewSectionAmount: (data) =>
+    set(() => ({ previewSectionAmount: data })),
 }));

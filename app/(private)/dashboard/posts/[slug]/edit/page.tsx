@@ -1,4 +1,5 @@
 import { getPostBySlug } from "@/actions/post/get";
+import { decrypt } from "@/app/(private)/api/utils";
 import { auth } from "@/auth";
 import DbPageWrapper from "@/components/dashboard/page-wrapper";
 import PostForm from "@/components/dashboard/posts/post-form";
@@ -18,10 +19,13 @@ const editPostPage = async ({
   }
 
   const post = await getPostBySlug(slug);
+  const plainTextPasscode = post?.passwordHashed
+    ? decrypt(post?.passwordHashed)
+    : "";
 
   return (
     <DbPageWrapper title="Edit Post">
-      <PostForm initialData={post} />
+      <PostForm initialData={post} initialPasscode={plainTextPasscode} />
     </DbPageWrapper>
   );
 };

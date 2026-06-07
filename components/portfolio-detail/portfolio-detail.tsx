@@ -7,41 +7,17 @@ import useLenisScroll from "@/hooks/use-lenis-scroll";
 import { ArrowUp, Pen } from "lucide-react";
 import PortfolioSection from "./portfolio-section";
 import { Portfolio } from "@/actions/post/get/types";
-// import { Portfolio, PostSections } from "@/actions/post/get/types";
-
-// import useSWR from "swr";
 
 import Image from "next/image";
 import Link from "next/link";
-// import { fetcher } from "@/lib/fetcher";
-// import { toast } from "sonner";
-// import { redirect } from "next/navigation";
-// import PortfolioSectionLoading from "./portfolio-section-loading";
 
 interface PortfolioDetailProps {
   post: NonNullable<Portfolio>;
-  // slug: string;
   showEditButton?: boolean;
 }
 
-const PortfolioDetail = ({
-  post,
-  // slug,
-  showEditButton,
-}: PortfolioDetailProps) => {
+const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
   const { scrollToTop } = useLenisScroll();
-
-  // const {
-  //   data: post_sections = [],
-  //   error,
-  //   isLoading,
-  // } = useSWR<PostSections>(`/api/post/${slug}/post_section`, fetcher);
-
-  // if (error) {
-  //   console.log(error);
-  //   toast.error("Sorry something went wrong, please try again later.");
-  //   redirect("/");
-  // }
 
   return (
     <div className="min-h-screen relative">
@@ -98,7 +74,7 @@ const PortfolioDetail = ({
           {/* Portfolio Title */}
           <h2
             className={cn(
-              "text-3xl md:text-5xl font-bold pb-6 md:!leading-[3.75rem]"
+              "text-3xl md:text-5xl font-bold pb-6 md:!leading-[3.75rem]",
             )}
           >
             {post.title}
@@ -112,11 +88,6 @@ const PortfolioDetail = ({
               showFull={true}
             />
           ))}
-
-          {/* {isLoading &&
-            Array.from({ length: 3 }).map((_, index) => (
-              <PortfolioSectionLoading key={index} />
-            ))} */}
         </div>
       </div>
     </div>

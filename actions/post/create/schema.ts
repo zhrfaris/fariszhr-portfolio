@@ -31,7 +31,7 @@ export const contentImageRadiusEnum = z.enum([
 ]);
 export const contentImageRadius = Object.values(contentImageRadiusEnum.Values);
 export const contentImageRadiusNum = Object.values(
-  contentImageRadiusNumEnum.Values
+  contentImageRadiusNumEnum.Values,
 );
 export type ContentImageRadiusNum = z.infer<typeof contentImageRadiusNumEnum>;
 export type ContentImageRadiusType = z.infer<typeof contentImageRadiusEnum>;
@@ -79,6 +79,10 @@ export const CreatePost = z.object({
   header_image: Image,
   thumbnail_image: Image,
   thumbnail_gif: Image.optional().or(z.null()),
+
+  isRestricted: z.boolean().optional(),
+  password: z.string().optional().nullable(),
+  previewSectionAmount: z.number().optional().nullable(),
 
   post_sections: z.array(PostSection),
 

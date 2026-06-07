@@ -47,6 +47,10 @@ model Post {
 
   status Status @default(ACTIVE)
 
+  isRestricted         Boolean?
+  passwordHashed       String?
+  previewSectionAmount Int?
+
   post_sections PostSection[]
 
   categoryIds String[]   @db.ObjectId

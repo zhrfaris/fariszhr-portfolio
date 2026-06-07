@@ -26,12 +26,14 @@ import { getWorkplacesComboboxAction } from "@/actions/workplace/get-list";
 import WorkplaceForm from "../workplaces/workplace-form";
 import { unassignPostFromWorkplace } from "@/actions/workplace/unassign-post";
 import { useRouter } from "next/navigation";
+import FormSwitch from "@/components/form/form-switch";
 
 interface PostFormProps {
   initialData?: Post;
+  initialPasscode?: string;
 }
 
-const PostForm = ({ initialData }: PostFormProps) => {
+const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
   const router = useRouter();
 
   const headerImageRef = useRef<FormImageUploadHandle>(null);
@@ -39,10 +41,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
   const thumbnailGifRef = useRef<FormImageUploadHandle>(null);
 
   const [categories, setCategories] = useState<string[]>(
-    initialData?.categoryIds ?? []
+    initialData?.categoryIds ?? [],
   );
   const [workplaces, setWorkplaces] = useState<string[]>(
-    initialData?.workplaceId ? [initialData?.workplaceId] : []
+    initialData?.workplaceId ? [initialData?.workplaceId] : [],
   );
   const {
     saveAsDraft,
@@ -51,9 +53,12 @@ const PostForm = ({ initialData }: PostFormProps) => {
     editContentData,
     showFormSection,
     showFormContent,
-    title,
-    excerpt,
-    slug,
+    isRestricted,
+    // title,
+    // excerpt,
+    // slug,
+    // password,
+    // previewSectionAmount,
     setSlug,
     setTitle,
     setExcerpt,
@@ -63,21 +68,35 @@ const PostForm = ({ initialData }: PostFormProps) => {
     setShowFormSection,
     setEditContentData,
     setEditSectionData,
+    setIsRestricted,
+    setPassword,
+    setPreviewSectionAmount,
   } = usePostForm((state) => state);
 
   useEffect(() => {
     if (initialData) {
+      setIsRestricted(initialData?.isRestricted);
       setTitle(initialData?.title);
       setSlug(initialData?.slug);
       setExcerpt(initialData?.excerpt);
       setSections(initialData?.post_sections);
     }
-  }, [initialData, setExcerpt, setSections, setTitle, setSlug]);
+  }, [
+    initialData,
+    setExcerpt,
+    setSections,
+    setTitle,
+    setSlug,
+    setIsRestricted,
+  ]);
 
   const resetForm = () => {
     setTitle("");
     setExcerpt("");
     setSections([]);
+    setIsRestricted(null);
+    setPassword(null);
+    setPreviewSectionAmount(null);
     setShowFormContent(false);
     setShowFormSection(false);
     setEditContentData(null);
@@ -126,7 +145,7 @@ const PostForm = ({ initialData }: PostFormProps) => {
     },
   });
 
-  const formAction = () => {
+  const formAction = (formData: FormData) => {
     const headerImage = headerImageRef.current?.image;
     const thumbnailImage = thumbnailImageRef.current?.image;
     const thumbnailGif = thumbnailGifRef.current?.image;
@@ -156,6 +175,13 @@ const PostForm = ({ initialData }: PostFormProps) => {
       return;
     }
 
+    const slug = formData.get("slug") as string;
+    const title = formData.get("title") as string;
+    const excerpt = formData.get("excerpt") as string;
+    const isRestricted = formData.get("isRestricted") as string;
+    const password = formData.get("password") as string;
+    const previewSectionAmount = formData.get("previewSectionAmount") as string;
+
     const payload: z.infer<typeof CreatePost> = {
       title,
       excerpt,
@@ -174,6 +200,10 @@ const PostForm = ({ initialData }: PostFormProps) => {
       post_sections: sections,
       categoryIds: categories,
       workplaceId: workplaces[0],
+      isRestricted: isRestricted === "on",
+      password: isRestricted === "on" ? password : null,
+      previewSectionAmount:
+        isRestricted === "on" ? parseInt(previewSectionAmount || "0") : null,
     };
 
     if (initialData?.id) {
@@ -195,13 +225,16 @@ const PostForm = ({ initialData }: PostFormProps) => {
         action={formAction}
         className="flex-1 space-y-6 @container"
       >
+        {/* 
+        value={slug}
+        onChange={(e) => setSlug(e.target.value)}
+        */}
         {initialData?.id && (
           <FormInput
             label="Post ID"
             id="slug"
+            defaultValue={initialData?.slug}
             required={true}
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
             errors={updateFieldErrors}
           />
         )}
@@ -225,19 +258,25 @@ const PostForm = ({ initialData }: PostFormProps) => {
         </FormWrapper>
 
         <FormWrapper>
+          {/*
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        */}
           <FormInput
             label="Title"
             id="title"
+            defaultValue={initialData?.title}
             required={true}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
             errors={initialData?.id ? updateFieldErrors : createFieldErrors}
           />
+          {/* 
+          value={excerpt}
+          onChange={(e) => setExcerpt(e.target.value)}
+          */}
           <FormTextarea
             label="Short Description"
             id="excerpt"
-            value={excerpt}
-            onChange={(e) => setExcerpt(e.target.value)}
+            defaultValue={initialData?.excerpt}
             required={true}
             errors={initialData?.id ? updateFieldErrors : createFieldErrors}
           />
@@ -275,6 +314,44 @@ const PostForm = ({ initialData }: PostFormProps) => {
             />
           </div>
         </FormWrapper>
+
+        <FormWrapper>
+          <FormSwitch
+            label="Restrict Post?"
+            id="isRestricted"
+            value={isRestricted === null ? false : isRestricted}
+            onCheckedChange={(bool) => setIsRestricted(bool)}
+            errors={initialData?.id ? updateFieldErrors : createFieldErrors}
+          />
+        </FormWrapper>
+
+        {isRestricted && (
+          <FormWrapper>
+            <FormInput
+              label="Password"
+              id="password"
+              required={!!isRestricted}
+              defaultValue={initialPasscode || ""}
+              placeholder="Insert password to unlock post"
+              errors={initialData?.id ? updateFieldErrors : createFieldErrors}
+            />
+            {/* 
+            value={previewSectionAmount || ""}
+              onChange={(e) =>
+                setPreviewSectionAmount(parseInt(e.target.value))
+              }
+            */}
+            <FormInput
+              label="Preview section amount"
+              id="previewSectionAmount"
+              required={!!isRestricted}
+              defaultValue={String(initialData?.previewSectionAmount || 3)}
+              type="number"
+              placeholder="Insert the amount of section can be previewed when restricted"
+              errors={initialData?.id ? updateFieldErrors : createFieldErrors}
+            />
+          </FormWrapper>
+        )}
       </form>
 
       <ListPostSection />

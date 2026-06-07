@@ -7,6 +7,7 @@ import { ReturnType, InputType } from "./types";
 import { createSafeAction } from "@/lib/create-safe-action";
 import slugify from "react-slugify";
 import { auth } from "@/auth";
+import { encrypt } from "@/app/(private)/api/utils";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const session = await auth();
@@ -27,6 +28,9 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     categoryIds,
     thumbnail_gif,
     workplaceId,
+    isRestricted,
+    password,
+    previewSectionAmount,
   } = data;
 
   const slug = slugify(title);
@@ -41,6 +45,14 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     return {
       error: `Post with title of ${title} already exist`,
     };
+  }
+
+  if (isRestricted) {
+    if (!password || password.trim().length === 0) {
+      return {
+        error: "Password required when post restricted",
+      };
+    }
   }
 
   const postsLength = await db.post.count();
@@ -64,6 +76,9 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         },
         author: { connect: { id: session.user.id } },
         workplace: { connect: { id: workplaceId } },
+        isRestricted,
+        passwordHashed: password ? encrypt(password.trim()) : undefined,
+        previewSectionAmount,
       },
     });
   } catch (error) {
