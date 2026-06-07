@@ -7,7 +7,7 @@ const ShowcaseSection = async ({ posts }: { posts: Post[] }) => {
   return (
     <ShowcaseSectionWrapper>
       <>
-        {posts.map((post, index) => (
+        {posts.map((post) => (
           <ShowcaseCard
             key={post.id}
             title={post.title}
@@ -18,15 +18,7 @@ const ShowcaseSection = async ({ posts }: { posts: Post[] }) => {
                 ? `/portfolios/${post.slug}`
                 : `/coming-soon`
             }
-            image_url={
-              index === 0
-                ? "/turning-raw-data.png"
-                : index === 1
-                  ? "/extend-booking-mid-service.png"
-                  : index === 2
-                    ? "/crypto-staking.png"
-                    : "/making-movement-visible.png"
-            }
+            image_url={post.thumbnail_image.img_url}
           />
         ))}
       </>

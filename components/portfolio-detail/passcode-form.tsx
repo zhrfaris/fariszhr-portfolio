@@ -30,7 +30,7 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
   };
 
   return (
-    <div className="rounded-3xl bg-white shadow-2xl max-w-[420px]">
+    <div className="rounded-3xl bg-white shadow-2xl w-full max-w-[420px]">
       <div className="p-8 space-y-4">
         <div className="space-y-2">
           <h2
@@ -59,7 +59,7 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
             name="passcode"
             placeholder="Enter password"
             disabled={isPending}
-            className="h-[44px] rounded-full py-2 px-4 border border-input text-sm min-w-[280px]"
+            className="h-[44px] rounded-full py-2 px-4 border border-input text-sm md:min-w-[280px]"
           />
           <MainButton rounded={true} disabled={isPending} type="submit">
             {isPending ? (

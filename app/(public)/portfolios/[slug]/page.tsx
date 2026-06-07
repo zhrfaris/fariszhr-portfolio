@@ -94,7 +94,7 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
           <PortfolioDetail post={previewPost} />
 
           {/* Overlay or bottom banner with the passcode form */}
-          <div className="h-[80vh] absolute bottom-0 inset-x-0 w-full flex items-center justify-center bg-gradient-to-t from-white via-[#ffffff90] to-transparent mb-[4rem]">
+          <div className="h-[90vh] md:h-[80vh] px-4 absolute bottom-0 inset-x-0 w-full flex items-center justify-center bg-gradient-to-t from-white via-[#ffffff90] to-transparent mb-[4rem]">
             <PasscodeForm slug={slug} user={user} />
           </div>
         </div>
