@@ -55,15 +55,21 @@ const HeroSection = async ({ user }: { user?: User }) => {
                 <p className="text-muted-foreground">
                   {user?.occupation ?? "Product Designer"} at
                 </p>
-                <div className="w-[63px] h-[18px] relative">
-                  <Image
-                    src="/gojek-logo.png"
-                    alt="gojek logo"
-                    width={252}
-                    height={72}
-                    className="size-full brightness-50 contrast-100 grayscale hover:grayscale-0 hover:brightness-100 hover:contrast-100"
-                  />
-                </div>
+                <Link
+                  href="https://gojek.design/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="w-[63px] h-[18px] relative">
+                    <Image
+                      src="/gojek-logo.png"
+                      alt="gojek logo"
+                      width={252}
+                      height={72}
+                      className="size-full brightness-50 contrast-100 grayscale hover:grayscale-0 hover:brightness-100 hover:contrast-100"
+                    />
+                  </div>
+                </Link>
               </div>
             </div>
           </div>

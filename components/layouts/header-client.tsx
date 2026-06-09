@@ -17,15 +17,15 @@ import { User } from "@/actions/user/get/type";
 import { useLenis } from "lenis/react";
 
 const HeaderClient = ({ user }: { user?: User }) => {
-  const [isScrolledPast500, setIsScrolledPast500] = useState(false);
-  const wasPast500 = useRef(false);
+  const [isScrolledPast50, setIsScrolledPast50] = useState(false);
+  const wasPast50 = useRef(false);
 
   useLenis(({ scroll }) => {
-    const past500 = scroll > 500;
+    const past50 = scroll > 50;
     // Only re-render when crossing the threshold (avoids re-rendering every frame)
-    if (past500 !== wasPast500.current) {
-      wasPast500.current = past500;
-      setIsScrolledPast500(past500);
+    if (past50 !== wasPast50.current) {
+      wasPast50.current = past50;
+      setIsScrolledPast50(past50);
     }
   });
 
@@ -49,7 +49,7 @@ const HeaderClient = ({ user }: { user?: User }) => {
               <p
                 className={cn(
                   "hidden md:block min-w-0 whitespace-nowrap group-hover:underline text-sm transition-all duration-300 ease-in-out overflow-hidden max-w-[200px]",
-                  isScrolledPast500 && "max-w-0 opacity-0",
+                  isScrolledPast50 && "max-w-0 opacity-0",
                 )}
               >
                 {user?.email}
@@ -68,7 +68,7 @@ const HeaderClient = ({ user }: { user?: User }) => {
               <p
                 className={cn(
                   "hidden md:block min-w-0 whitespace-nowrap group-hover:underline text-sm transition-all duration-300 ease-in-out overflow-hidden max-w-[200px]",
-                  isScrolledPast500 && "max-w-0 opacity-0",
+                  isScrolledPast50 && "max-w-0 opacity-0",
                 )}
               >
                 linkedin.com/fariszhr
@@ -84,7 +84,7 @@ const HeaderClient = ({ user }: { user?: User }) => {
               <p
                 className={cn(
                   "hidden md:block min-w-0 whitespace-nowrap group-hover:underline text-sm transition-all duration-300 ease-in-out overflow-hidden max-w-[200px]",
-                  isScrolledPast500 && "max-w-0 opacity-0",
+                  isScrolledPast50 && "max-w-0 opacity-0",
                 )}
               >
                 Download CV

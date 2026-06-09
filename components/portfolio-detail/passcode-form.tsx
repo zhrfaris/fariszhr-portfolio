@@ -11,6 +11,7 @@ import { verifyPostPasscode } from "@/actions/post/get";
 
 const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
   const email = user?.email || "fariszhr.studio@gmail.com";
+  const [passcode, setPasscode] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -53,14 +54,31 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
           </p>
         </div>
         <form action={handleSubmit} className="flex items-center gap-2">
-          <input
-            type="password"
-            id="passcode"
-            name="passcode"
-            placeholder="Enter password"
-            disabled={isPending}
-            className="h-[44px] rounded-full py-2 px-4 border border-input text-sm md:min-w-[280px]"
-          />
+          <div
+            className={cn(
+              "h-[44px] md:min-w-[280px] overflow-hidden rounded-full border border-input",
+              error && "border-red-500",
+            )}
+          >
+            <input
+              type="password"
+              id="passcode"
+              name="passcode"
+              placeholder="Enter password"
+              disabled={isPending}
+              value={passcode}
+              onChange={(e) => {
+                if (error) {
+                  setError(null);
+                }
+                setPasscode(e.target.value);
+              }}
+              className={cn(
+                "size-full py-2 px-4 text-sm focus:outline-none",
+                error && "animate-shake",
+              )}
+            />
+          </div>
           <MainButton rounded={true} disabled={isPending} type="submit">
             {isPending ? (
               <Loader className="!size-6 animate-spin" />
@@ -69,7 +87,7 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
             )}
           </MainButton>
         </form>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {/* {error && <p className="text-red-500 text-sm">{error}</p>} */}
       </div>
     </div>
   );
