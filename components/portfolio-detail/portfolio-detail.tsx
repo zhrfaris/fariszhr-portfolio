@@ -5,13 +5,11 @@ import React, { useEffect, useRef, useState } from "react";
 import { buttonVariants } from "../shadcn/button";
 import useLenisScroll from "@/hooks/use-lenis-scroll";
 import { ArrowUp, Pen } from "lucide-react";
-import MainButton from "../common/main-button";
 import PortfolioSection from "./portfolio-section";
 import { Portfolio } from "@/actions/post/get/types";
 
 import Image from "next/image";
 import Link from "next/link";
-import { source_serif_pro } from "@/lib/fonts";
 
 interface PortfolioDetailProps {
   post: NonNullable<Portfolio>;

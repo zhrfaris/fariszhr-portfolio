@@ -10,7 +10,7 @@ import LinkedInIcon from "../icons/linkedin-icon";
 
 import { cn } from "@/lib/utils";
 // import { Suspense, useRef, useState } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconMailFilled } from "@tabler/icons-react";
 import PaperIcon from "../icons/paper-icon";
 import { User } from "@/actions/user/get/type";
