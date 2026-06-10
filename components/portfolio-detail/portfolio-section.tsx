@@ -72,7 +72,7 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
       <div
         ref={sectionItemRef}
         className={cn(
-          "section space-y-4 pb-6 border-b",
+          "section space-y-6 pb-6 border-b",
           isShowMore ? "max-h-none" : "max-h-[400px] overflow-hidden"
         )}
       >
@@ -88,13 +88,13 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
         </div>
         <div className="space-y-6">
           {section.contents.map((content) => (
-            <div key={content.id} className="space-y-6">
+            <div key={content.id} className="space-y-4">
               <SanitizedHtml innerHTML={content.content} />
               {/* add image here */}
               {content.image && (
                 <div
                   className={cn(
-                    "w-full min-h-12 border border-[#d9d9dd9] overflow-hidden relative",
+                    "w-full min-h-12 border border-[#d9d9d9] overflow-hidden relative",
                     getRadiusStyle(content.content_image_radius ?? "XXL")
                   )}
                 >

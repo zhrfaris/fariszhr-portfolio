@@ -10,27 +10,36 @@ import LinkedInIcon from "../icons/linkedin-icon";
 
 import { cn } from "@/lib/utils";
 // import { Suspense, useRef, useState } from "react";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { IconMailFilled } from "@tabler/icons-react";
 import PaperIcon from "../icons/paper-icon";
 import { User } from "@/actions/user/get/type";
 import { useLenis } from "lenis/react";
 
 const HeaderClient = ({ user }: { user?: User }) => {
-  const [isScrolledPast50, setIsScrolledPast50] = useState(false);
-  const wasPast50 = useRef(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const wasScrolled = useRef(false);
+  const navRef = useRef<HTMLDivElement>(null);
+  const navHeight = useRef(0);
+
+  useEffect(() => {
+    if (navRef.current) {
+      navHeight.current = navRef.current.offsetHeight;
+    }
+  }, []);
 
   useLenis(({ scroll }) => {
-    const past50 = scroll > 50;
+    const scrolled = scroll > navHeight.current;
     // Only re-render when crossing the threshold (avoids re-rendering every frame)
-    if (past50 !== wasPast50.current) {
-      wasPast50.current = past50;
-      setIsScrolledPast50(past50);
+    if (scrolled !== wasScrolled.current) {
+      wasScrolled.current = scrolled;
+      setIsScrolled(scrolled);
     }
   });
 
   return (
     <div
+      ref={navRef}
       className={cn(
         "fixed w-screen top-0 z-50 p-4 md:px-12 flex items-center justify-between bg-[#f5f5f5] md:bg-transparent",
       )}
@@ -49,7 +58,7 @@ const HeaderClient = ({ user }: { user?: User }) => {
               <p
                 className={cn(
                   "hidden md:block min-w-0 whitespace-nowrap group-hover:underline text-sm transition-all duration-300 ease-in-out overflow-hidden max-w-[200px]",
-                  isScrolledPast50 && "max-w-0 opacity-0",
+                  isScrolled && "max-w-0 opacity-0",
                 )}
               >
                 {user?.email}
@@ -68,7 +77,7 @@ const HeaderClient = ({ user }: { user?: User }) => {
               <p
                 className={cn(
                   "hidden md:block min-w-0 whitespace-nowrap group-hover:underline text-sm transition-all duration-300 ease-in-out overflow-hidden max-w-[200px]",
-                  isScrolledPast50 && "max-w-0 opacity-0",
+                  isScrolled && "max-w-0 opacity-0",
                 )}
               >
                 linkedin.com/fariszhr
@@ -84,7 +93,7 @@ const HeaderClient = ({ user }: { user?: User }) => {
               <p
                 className={cn(
                   "hidden md:block min-w-0 whitespace-nowrap group-hover:underline text-sm transition-all duration-300 ease-in-out overflow-hidden max-w-[200px]",
-                  isScrolledPast50 && "max-w-0 opacity-0",
+                  isScrolled && "max-w-0 opacity-0",
                 )}
               >
                 Download CV

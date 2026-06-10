@@ -11,23 +11,28 @@ import { verifyPostPasscode } from "@/actions/post/get";
 
 const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
   const email = user?.email || "fariszhr.studio@gmail.com";
-  const [passcode, setPasscode] = useState("");
 
-  const [error, setError] = useState<string | null>(null);
+  const [passcode, setPasscode] = useState("");
+  const [isShaking, setIsShaking] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSubmit = async (formData: FormData) => {
-    setError(null);
-
     startTransition(async () => {
       const result = await verifyPostPasscode(slug, formData);
       if (!result.success) {
-        setError(result.error || "Something went wrong");
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 400);
       } else {
-        // Refresh the current server component route to recognize the newly set cookie
         window.location.reload();
       }
     });
+  };
+
+  const handleClear = () => {
+    setPasscode("");
+    setIsShaking(false);
+    inputRef.current?.focus();
   };
 
   return (
@@ -56,30 +61,37 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
         <form action={handleSubmit} className="flex items-center gap-2">
           <div
             className={cn(
-              "h-[44px] md:min-w-[280px] overflow-hidden rounded-full border border-input",
-              error && "border-red-500",
+              "relative flex items-center flex-1 md:min-w-[280px]",
             )}
           >
             <input
+              ref={inputRef}
               type="password"
               id="passcode"
               name="passcode"
               placeholder="Enter password"
-              disabled={isPending}
               value={passcode}
-              onChange={(e) => {
-                if (error) {
-                  setError(null);
-                }
-                setPasscode(e.target.value);
-              }}
+              onChange={(e) => setPasscode(e.target.value)}
+              disabled={isPending}
               className={cn(
-                "size-full py-2 px-4 text-sm focus:outline-none",
-                error && "animate-shake",
+                "h-[44px] w-full rounded-full py-2 pl-4 pr-4 border text-sm outline-none transition-colors focus:border-foreground",
+                passcode.length > 0
+                  ? "border-foreground pr-14"
+                  : "border-input",
+                isShaking && "animate-wiggle border-red-500 text-red-500 focus:border-red-500",
               )}
             />
+            {passcode.length > 0 && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="absolute right-5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Clear
+              </button>
+            )}
           </div>
-          <MainButton rounded={true} disabled={isPending} type="submit">
+          <MainButton rounded={true} type="submit">
             {isPending ? (
               <Loader className="!size-6 animate-spin" />
             ) : (
@@ -87,7 +99,6 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
             )}
           </MainButton>
         </form>
-        {/* {error && <p className="text-red-500 text-sm">{error}</p>} */}
       </div>
     </div>
   );

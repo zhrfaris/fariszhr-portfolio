@@ -8,7 +8,7 @@ export default async function Home() {
 
   return (
     <>
-      <Suspense fallback={<HeroSection />}>
+      <Suspense fallback={<HeroSection user={user} />}>
         <HeroSection user={user} />
       </Suspense>
     </>
