@@ -106,13 +106,13 @@ const ShowcaseCard = ({
           <div className="text flex-1 text-left pl-2 pr-4">
             {title && (
               <h3
-                className="text-sm font-semibold mb-1 group-hover:md:text-[#ffffff]"
+                className="text-sm font-semibold mb-1 leading-snug group-hover:md:text-[#ffffff]"
               >
                 {title}
               </h3>
             )}
             {description && (
-              <p className="text-[11px] text-[#545A5F] group-hover:md:text-[#ffffff]">
+              <p className="text-[11px] leading-relaxed text-[#545A5F] group-hover:md:text-[#ffffff]">
                 {description}
               </p>
             )}
