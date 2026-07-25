@@ -75,7 +75,7 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
         )}
       >
         <div>
-          <h3 className="text-sm font-medium text-foreground/80 mb-3">
+          <h3 className="text-[15px] font-normal text-foreground/80 mb-3">
             {section.title}
           </h3>
           <hr className="border-[#e5e5e5]" />
