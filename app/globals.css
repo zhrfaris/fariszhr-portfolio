@@ -116,7 +116,9 @@ body {
 #innerHTML:not(.no-style) h4,
 #innerHTML:not(.no-style) h5,
 #innerHTML:not(.no-style) h6 {
-  @apply text-[15px] font-normal leading-[185%];
+  font-size: 15px !important;
+  font-weight: 400 !important;
+  line-height: 185% !important;
 }
 
 #innerHTML:not(.no-style) ul li {
