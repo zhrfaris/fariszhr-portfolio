@@ -77,7 +77,7 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
         <h3 className="text-xl font-bold">
           {section.title}
         </h3>
-        <div className="space-y-6">
+        <div className="space-y-6 leading-[180%]">
           {section.contents.map((content) => (
             <div key={content.id} className="space-y-4">
               <SanitizedHtml innerHTML={content.content} />
