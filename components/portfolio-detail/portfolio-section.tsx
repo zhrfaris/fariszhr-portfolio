@@ -5,8 +5,6 @@ import { source_serif_pro } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { PostSection } from "@/actions/post/create/types";
 import SanitizedHtml from "../common/sanitized-html";
-import { SectionIcon } from "../form/form-select-icon";
-import { iconTypeChecker } from "@/lib/icons";
 import Image from "next/image";
 import { Button, buttonVariants } from "../shadcn/button";
 import Link from "next/link";
@@ -76,16 +74,9 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
           isShowMore ? "max-h-none" : "max-h-[400px] overflow-hidden"
         )}
       >
-        <div className="section-title flex items-center gap-4">
-          <SectionIcon
-            size={38}
-            iconId={iconTypeChecker(section.icon_type)}
-            alt={`icon of ${section.icon_type}`}
-          />
-          <h3 className={cn(source_serif_pro.className, "text-xl font-bold")}>
-            {section.title}
-          </h3>
-        </div>
+        <h3 className={cn(source_serif_pro.className, "text-xl font-bold")}>
+          {section.title}
+        </h3>
         <div className="space-y-6">
           {section.contents.map((content) => (
             <div key={content.id} className="space-y-4">

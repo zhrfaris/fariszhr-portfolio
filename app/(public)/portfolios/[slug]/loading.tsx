@@ -23,10 +23,7 @@ export default function Loading() {
 
           {/* Section skeleton */}
           <div className="space-y-6 pb-6 border-b">
-            <div className="flex items-center gap-4">
-              <Skeleton className="size-[16px] md:size-[20px] rounded-[4px] bg-[#e5e5e5]" />
-              <Skeleton className="h-[18px] w-[160px] md:h-[22px] md:w-[200px] rounded-[4px] bg-[#e5e5e5]" />
-            </div>
+            <Skeleton className="h-[18px] w-[160px] md:h-[22px] md:w-[200px] rounded-[4px] bg-[#e5e5e5]" />
             <Skeleton className="h-[16px] w-[90%] md:h-[18px] rounded-[4px] bg-[#e5e5e5]" />
             <Skeleton className="h-[16px] w-[78%] md:h-[18px] rounded-[4px] bg-[#e5e5e5]" />
           </div>
