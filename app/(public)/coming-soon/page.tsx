@@ -2,8 +2,7 @@ import MainButton from "@/components/common/main-button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { source_serif_pro } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
+
 import Image from "next/image";
 
 const ComingSoonPage = () => {
@@ -11,10 +10,7 @@ const ComingSoonPage = () => {
     <div className="flex flex-col justify-center items-center h-[75vh] gap-8 max-w-screen-sm mx-auto p-8">
       <Image src="/hammer-wrench.png" alt="" width={100} height={100} />
       <h1
-        className={cn(
-          "text-5xl font-bold text-center",
-          source_serif_pro.className
-        )}
+        className="text-5xl font-bold text-center"
       >
         Work in progress
       </h1>

@@ -1,5 +1,3 @@
-import { source_serif_pro } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 import { Loader } from "lucide-react";
 
 export default function Loading() {
@@ -8,7 +6,7 @@ export default function Loading() {
       <div>
         <Loader className="size-10 animate-spin" />
       </div>
-      <div className={cn("text-2xl font-bold", source_serif_pro.className)}>
+      <div className="text-2xl font-bold">
         Loading...
       </div>
     </div>

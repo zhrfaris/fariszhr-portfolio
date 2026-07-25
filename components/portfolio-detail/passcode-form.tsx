@@ -1,7 +1,6 @@
 "use client";
 
 import { User } from "@/actions/user/get/type";
-import { source_serif_pro } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import React, { useState, useTransition } from "react";
@@ -40,7 +39,7 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
       <div className="p-8 space-y-4">
         <div className="space-y-2">
           <h2
-            className={cn(source_serif_pro.className, "font-semibold text-xl")}
+            className="font-semibold text-xl"
           >
             This one&apos;s behind a password
           </h2>

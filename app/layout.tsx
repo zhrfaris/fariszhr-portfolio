@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { inter } from "@/lib/fonts";
+import { plusJakartaSans } from "@/lib/fonts";
 import { Toaster } from "sonner";
 import { SessionProvider } from "next-auth/react";
 
@@ -85,7 +85,7 @@ export default function RootLayout({
         ></link>
         <link rel="manifest" href="/manifest.webmanifest"></link>
       </head>
-      <body className={cn(inter.className, "antialiased")}>
+      <body className={cn(plusJakartaSans.className, "antialiased")}>
         <SessionProvider>
           <>{children}</>
           <Toaster position="bottom-center" richColors />

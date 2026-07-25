@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { source_serif_pro } from "@/lib/fonts";
+
 import { cn } from "@/lib/utils";
 import { PostSection } from "@/actions/post/create/types";
 import SanitizedHtml from "../common/sanitized-html";
@@ -74,7 +74,7 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
           isShowMore ? "max-h-none" : "max-h-[400px] overflow-hidden"
         )}
       >
-        <h3 className={cn(source_serif_pro.className, "text-xl font-bold")}>
+        <h3 className="text-xl font-bold">
           {section.title}
         </h3>
         <div className="space-y-6">

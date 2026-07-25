@@ -1,8 +1,8 @@
 import Image from "next/image";
 
-import { cn } from "@/lib/utils";
+
 import { User } from "@/actions/user/get/type";
-import { source_serif_pro } from "@/lib/fonts";
+
 import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
 import ShowcaseSection from "./showcase-section";
 import { unstable_cache } from "next/cache";
@@ -44,10 +44,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
             </Avatar>
             <div className="flex flex-col flex-1">
               <h1
-                className={cn(
-                  source_serif_pro.className,
-                  "text-xl md:text-2xl font-semibold whitespace-nowrap",
-                )}
+                className="text-xl md:text-2xl font-semibold whitespace-nowrap"
               >
                 {user?.name ?? "Muhammad Faris Azhar"}
               </h1>

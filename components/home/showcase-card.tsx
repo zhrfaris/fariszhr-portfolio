@@ -2,7 +2,7 @@ import React from "react";
 
 import styles from "./showcase-card.module.scss";
 import { cn } from "@/lib/utils";
-import { source_serif_pro } from "@/lib/fonts";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Category } from "./hero-section";
@@ -106,10 +106,7 @@ const ShowcaseCard = ({
           <div className="text flex-1 text-left pl-2 pr-4">
             {title && (
               <h3
-                className={cn(
-                  source_serif_pro.className,
-                  "text-sm font-semibold mb-1 group-hover:md:text-[#ffffff]",
-                )}
+                className="text-sm font-semibold mb-1 group-hover:md:text-[#ffffff]"
               >
                 {title}
               </h3>

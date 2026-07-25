@@ -3,9 +3,8 @@ import Image from "next/image";
 import HomeCtaButton from "./home-cta-button";
 import TooltipWrapper from "../wrappers/tooltip-wrapper";
 
-import { cn } from "@/lib/utils";
+
 import { User } from "@/actions/user/get/type";
-import { source_serif_pro } from "@/lib/fonts";
 import { Workplace } from "@/actions/workplace/get/types";
 import { Avatar, AvatarFallback, AvatarImage } from "../shadcn/avatar";
 
@@ -60,10 +59,7 @@ const HeroSection = async ({ user }: { user?: User }) => {
           <p>{user?.occupation ?? "Product Designer"}</p>
         </div>
         <h2
-          className={cn(
-            source_serif_pro.className,
-            "text-3xl md:text-6xl font-semibold max-w-screen-md md:!leading-[4.25rem]",
-          )}
+          className="text-3xl md:text-6xl font-semibold max-w-screen-md md:!leading-[4.25rem]"
         >
           {user?.tagline ?? "Humanizing technology through design"}
         </h2>
