@@ -110,6 +110,15 @@ body {
   @apply font-normal;
 }
 
+#innerHTML:not(.no-style) h1,
+#innerHTML:not(.no-style) h2,
+#innerHTML:not(.no-style) h3,
+#innerHTML:not(.no-style) h4,
+#innerHTML:not(.no-style) h5,
+#innerHTML:not(.no-style) h6 {
+  @apply text-[15px] font-normal leading-[185%];
+}
+
 #innerHTML:not(.no-style) ul li {
   @apply list-disc ml-4;
 }
