@@ -105,17 +105,7 @@ body {
   @apply text-sm;
 }
 
-#innerHTML:not(.no-style) strong,
-#innerHTML:not(.no-style) b {
-  @apply font-normal;
-}
-
-#innerHTML:not(.no-style) h1,
-#innerHTML:not(.no-style) h2,
-#innerHTML:not(.no-style) h3,
-#innerHTML:not(.no-style) h4,
-#innerHTML:not(.no-style) h5,
-#innerHTML:not(.no-style) h6 {
+#innerHTML:not(.no-style) * {
   font-size: 15px !important;
   font-weight: 400 !important;
   line-height: 185% !important;
