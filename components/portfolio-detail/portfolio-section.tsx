@@ -70,14 +70,17 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
       <div
         ref={sectionItemRef}
         className={cn(
-          "section space-y-6 pb-6 border-b",
+          "section space-y-6 pb-6",
           isShowMore ? "max-h-none" : "max-h-[400px] overflow-hidden"
         )}
       >
-        <h3 className="text-xl font-bold">
-          {section.title}
-        </h3>
-        <div className="space-y-6 leading-[180%]">
+        <div>
+          <h3 className="text-sm font-medium text-foreground/80 mb-3">
+            {section.title}
+          </h3>
+          <hr className="border-[#e5e5e5]" />
+        </div>
+        <div className="space-y-6 text-[15px] leading-[185%]">
           {section.contents.map((content) => (
             <div key={content.id} className="space-y-4">
               <SanitizedHtml innerHTML={content.content} />
