@@ -88,7 +88,7 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
               {content.image && (
                 <div
                   className={cn(
-                    "w-full min-h-12 border border-[#d9d9d9] overflow-hidden relative",
+                    "max-w-[85%] mx-auto min-h-12 border border-[#d9d9d9] overflow-hidden relative",
                     getRadiusStyle(content.content_image_radius ?? "XXL")
                   )}
                 >
