@@ -105,6 +105,11 @@ body {
   @apply text-sm;
 }
 
+#innerHTML:not(.no-style) strong,
+#innerHTML:not(.no-style) b {
+  @apply font-normal;
+}
+
 #innerHTML:not(.no-style) ul li {
   @apply list-disc ml-4;
 }

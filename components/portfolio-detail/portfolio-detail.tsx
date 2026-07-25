@@ -61,7 +61,7 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
       </div>
 
       <div className="px-6 pb-24">
-        <div className="max-w-screen-md mx-auto space-y-8 py-6 md:py-12">
+        <div className="max-w-[640px] mx-auto space-y-8 py-6 md:py-12">
           {/* Portfolio Title Header */}
           <div className="portfolio-title-header flex items-center gap-4">
             {post?.workplace && (
