@@ -86,7 +86,7 @@ const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
           aria-label={zineContent.prevLabel}
           onClick={() => turn(-1)}
         >
-          &lsaquo;
+          <span className={`${styles.navIcon} ${styles.navIconPrev}`} aria-hidden />
         </MainButton>
         <MainButton
           rounded
@@ -96,15 +96,8 @@ const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
           aria-label={zineContent.nextLabel}
           onClick={() => turn(1)}
         >
-          &rsaquo;
+          <span className={`${styles.navIcon} ${styles.navIconNext}`} aria-hidden />
         </MainButton>
-
-        {/* Count comes from the renderer, so the dots can never drift from the turns. */}
-        <div className={styles.meter} aria-hidden>
-          {Array.from({ length: spreadCount }, (_, i) => (
-            <i key={i} className={i === spread ? styles.on : undefined} />
-          ))}
-        </div>
       </div>
     </div>
   );

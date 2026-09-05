@@ -28,6 +28,26 @@ import {
 /** Twelve page faces read as six spreads, so there are five turns. */
 export const SPREAD_COUNT = Math.ceil(ZINE_PAGES.length / 2);
 
+/**
+ * Idle hint. The corner lifts a little way and settles back, so the book says
+ * it can be grabbed without anyone having to guess. It reuses the real fold —
+ * begin() sets it up exactly as a drag would and the frame loop drives the
+ * grab point along a scripted curve instead of from a pointer — so the curl,
+ * the shading and the paper all behave as they do under the hand.
+ *
+ * Deliberately restrained: it waits for a real pause, reaches under a tenth of
+ * a full turn, and gives up after a few goes rather than nagging.
+ */
+const NUDGE_FIRST_MS = 6000;
+const NUDGE_EVERY_MS = 18000;
+const NUDGE_LIMIT = 3;
+const NUDGE_REACH = 0.08;
+const NUDGE_OUT = 420;
+const NUDGE_HOLD = 240;
+const NUDGE_BACK = 560;
+/** low on the page, so it reads as a corner being picked up */
+const NUDGE_GRAB_Y = -PH * 0.3;
+
 const SHADOW = 0.46;
 
 /* ---------- what happens after you let go ----------
@@ -179,6 +199,11 @@ export const useZineRenderer = ({
     let turn: Turn | null = null;
     let sim: Sim | null = null;
     let dragging = false;
+    let nudge: { t0: number } | null = null;
+    let nudgeCount = 0;
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    const wantsMotion = !window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches;
     let moved = false;
     let downPt: { x: number; y: number } | null = null;
     let vel = 0;
@@ -332,7 +357,30 @@ export const useZineRenderer = ({
       sim.t += h;
     }
 
+    function scheduleNudge(delay: number) {
+      clearTimeout(idleTimer);
+      if (!wantsMotion || nudgeCount >= NUDGE_LIMIT) return;
+      idleTimer = setTimeout(startNudge, delay);
+    }
+
+    function startNudge() {
+      // never over the top of a real interaction
+      if (sim || turn || dragging) return scheduleNudge(NUDGE_EVERY_MS);
+      if (!begin(1, NUDGE_GRAB_Y)) return scheduleNudge(NUDGE_EVERY_MS);
+      nudgeCount += 1;
+      nudge = { t0: performance.now() };
+    }
+
+    /** Drop the hint and put the page back down, so a real turn starts clean. */
+    function stopNudge() {
+      clearTimeout(idleTimer);
+      if (!nudge) return;
+      nudge = null;
+      if (turn) finishTurn(false);
+    }
+
     function auto(d: 1 | -1) {
+      stopNudge();
       if (sim || turn) return;
       if (!begin(d, 0)) return;
       letGo(FLICK);
@@ -372,6 +420,7 @@ export const useZineRenderer = ({
     };
 
     const onPointerDown = (ev: PointerEvent) => {
+      stopNudge();
       if (sim) return;
       const p = toBook(ev);
       if (!p) return;
@@ -461,6 +510,28 @@ export const useZineRenderer = ({
     const frame = (now: number) => {
       const dt = Math.min(now - last, 48);
       last = now;
+
+      if (nudge && turn && !dragging && !sim) {
+        const t = now - nudge.t0;
+        const span = NUDGE_OUT + NUDGE_HOLD + NUDGE_BACK;
+        let k: number;
+        if (t < NUDGE_OUT) {
+          k = 1 - Math.pow(1 - t / NUDGE_OUT, 3);
+        } else if (t < NUDGE_OUT + NUDGE_HOLD) {
+          k = 1;
+        } else {
+          const b = (t - NUDGE_OUT - NUDGE_HOLD) / NUDGE_BACK;
+          k = 1 - (b < 0.5 ? 4 * b * b * b : 1 - Math.pow(-2 * b + 2, 3) / 2);
+        }
+        turn.P.set(turn.C.x - PW * 2 * NUDGE_REACH * k, turn.C.y);
+        apply();
+        if (t >= span) {
+          nudge = null;
+          finishTurn(false);
+          scheduleNudge(NUDGE_EVERY_MS);
+        }
+      }
+
       if (sim && turn) {
         if (sim.instant || sim.p >= 1 || sim.p <= 0) {
           finishTurn(sim.p > 0.5);
@@ -486,9 +557,11 @@ export const useZineRenderer = ({
 
     resize();
     rest();
+    scheduleNudge(NUDGE_FIRST_MS);
     raf = requestAnimationFrame(frame);
 
     return () => {
+      clearTimeout(idleTimer);
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("resize", resize);

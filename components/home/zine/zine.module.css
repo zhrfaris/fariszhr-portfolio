@@ -79,41 +79,46 @@
 .nav {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  /* A uniform scale rather than re-declaring MainButton's sizes: the ring,
+     circle, border, shadow and icon all come down together, so the proportions
+     stay exactly as they were. MainButton's own default is untouched. */
+  transform: translateY(-50%) scale(0.75);
   z-index: 3;
+}
+
+/* The chevron artwork is public/icons, drawn as a mask rather than an <img> so
+   it takes currentColor — the button inverts to #353535 on hover and a baked
+   #353535 icon would vanish into it. A fixed 24px box inside MainButton's
+   centring flexbox is also what puts it dead centre, which the glyph never was:
+   type sits on a baseline, not in the middle of its line box. */
+.navIcon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+.navIconPrev {
+  --icon: url("/icons/Chevron%20left.svg");
+}
+
+.navIconNext {
+  --icon: url("/icons/chevron%20right.svg");
 }
 
 .prev {
   left: calc(-3.182% - var(--nav-size));
+  /* scale about the edge facing the paper, so the measured gap is unchanged */
+  transform-origin: right center;
 }
 
 .next {
   right: calc(-3.182% - var(--nav-size));
+  transform-origin: left center;
 }
 
-.meter {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 4%;
-  z-index: 3;
-  pointer-events: none;
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-}
-
-.meter i {
-  width: 16px;
-  height: 2px;
-  border-radius: 1px;
-  background: #d8d8d8;
-  transition: background 0.25s;
-}
-
-.meter i.on {
-  background: #9e9e9e;
-}
 
 /* coming-soon badge: pill with a live-status dot, inverts solid dark on hover */
 /* ---------- coming-soon badge: tilted pill on an upright sheet ----------
@@ -157,6 +162,8 @@
 
 .soonBadge {
   position: absolute;
+  /* not editable and not clickable — never an I-beam */
+  cursor: default;
   left: 50%;
   bottom: var(--pill-lift);
   display: inline-flex;
@@ -180,6 +187,10 @@
   transition:
     background-color 0.18s ease,
     color 0.18s ease;
+}
+
+.soonBadgeEmphasis {
+  font-weight: 600;
 }
 
 .soonBadge .pulse {

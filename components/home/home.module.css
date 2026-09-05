@@ -173,7 +173,7 @@
 
 .casesHead h2 {
   font-size: clamp(18px, 2.2vh, 22px);
-  margin: 0 0 8px;
+  margin: 0 0 5px;
   font-weight: 600;
   letter-spacing: -0.025em;
 }
@@ -223,6 +223,22 @@
        the card while its inner wrapper flipped instantly — the light-and-dark
        layered frame. Hover is two discrete states, so nothing here eases. */
     transition: none;
+  }
+
+  /* ShowcaseCard's inner wrapper carries Tailwind's shadow-inner, a second
+     inset at radius 8px sitting 5px inside the card's own inset at radius 12px
+     — two arcs on different radii, which is the doubled edge. The card's inset
+     is the one the spec asks for, so the wrapper's is dropped. It also leaves
+     the wrapper visually inert, which is what lets the reveal animate its rows
+     rather than hiding the whole wrapper. */
+  .caseStack [data-case-grid] > * > :first-child {
+    box-shadow: none;
+  }
+
+  /* The tag pills set their own 12px, a step larger than the 11px description
+     they sit under. Matched here rather than in the card component. */
+  .caseStack [data-case-grid] > * > :first-child > :last-child p {
+    font-size: 11px;
   }
 
   /* Hover. ShowcaseCard paints its dark hover on an inner wrapper, which sits
@@ -396,6 +412,18 @@
 
 /* ---------- footer ---------- */
 
+/* Drawn as a mask, not an <img>, so the artwork takes the label's colour
+   instead of its own baked #353535 — the same technique as the zine chevrons.
+   Sized in em, so it tracks the font-size rather than being pinned to 16px. */
+.footerIcon {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
 .siteFooter {
   position: relative;
   padding: 0;
@@ -420,7 +448,8 @@
 
 .links a,
 .top {
-  font-size: 12px;
+  /* matched to the case-study subtitle */
+  font-size: 14px;
   color: var(--muted);
   text-decoration: none;
   display: flex;
@@ -428,10 +457,8 @@
   align-items: center;
 }
 
-.links a:hover,
-.top:hover {
-  color: var(--ink);
-}
+/* Hover is the underline on the label — the same group-hover:underline the
+   hero's link list uses — so the colour deliberately does not change. */
 
 .top {
   background: none;

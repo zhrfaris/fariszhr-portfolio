@@ -18,8 +18,8 @@ attention than a single post ever gave them. Online Zine is the tool I built
 to fix that."
 
 ## Zine photos
-12 page images, final and ordered: public/zine/page-01.png through
-page-12.png. Each spread is one continuous panorama split across its two
+8 page images, final and ordered: public/zine/page-01.png through
+page-08.png. Each spread is one continuous panorama split across its two
 pages — page-01 is the left half of the opening spread, page-02 its right
 half, and so on — not composed multi-photo pages.
 Render in that numeric order, one per page-turn.

@@ -16,7 +16,13 @@ const SoonBadge = () => (
     <span className={styles.soonBadgeSheet} aria-hidden />
     <span className={styles.soonBadge}>
       <i className={styles.pulse} aria-hidden />
-      {zineContent.badgeLabel}
+      {/* one flex item, so the label and the bold half are separated by a real
+          word space rather than by the flex gap, which is there to sit the dot
+          off the text */}
+      <span>
+        {zineContent.badgeLabel}{" "}
+        <b className={styles.soonBadgeEmphasis}>{zineContent.badgeEmphasis}</b>
+      </span>
     </span>
   </span>
 );

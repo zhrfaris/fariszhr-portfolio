@@ -36,7 +36,9 @@ export const zineContent = {
   title: "Online Zine — a design engineering experiment",
   description:
     "As a photographer who happens to design for a living, I wanted to solve a problem I kept running into myself: photos that deserved more attention than a single post ever gave them. Online Zine is the tool I built to fix that.",
-  badgeLabel: "Make your own zine — coming soon",
+  badgeLabel: "Make your own zine —",
+  /** rendered bold alongside badgeLabel */
+  badgeEmphasis: "coming soon",
   prevLabel: "Previous spread",
   nextLabel: "Next spread",
 } as const;
@@ -44,14 +46,15 @@ export const zineContent = {
 /**
  * Final, pre-composed page artwork. One image per page face, in numeric order:
  * page-01 is the left half of the opening spread, page-02 its right half, and
- * so on — so twelve images read as six spreads and five turns.
+ * so on — so eight images read as four spreads. The book loops, so every
+ * spread has a turn out of it in both directions.
  *
  * Served as WebP (q82): the book is drawn in WebGL from the raw URL, so Next's
  * image optimizer never sees these files and the encoding has to be done ahead
  * of time. The source PNGs are kept alongside them at the same names.
  */
 export const ZINE_PAGES = Array.from(
-  { length: 12 },
+  { length: 8 },
   (_, i) => `/zine/page-${String(i + 1).padStart(2, "0")}.webp`,
 );
 
