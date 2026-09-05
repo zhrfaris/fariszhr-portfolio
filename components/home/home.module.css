@@ -167,6 +167,148 @@
   color: var(--muted);
 }
 
+/* ---------- stacked case-study deck ---------- */
+
+.caseStack {
+  position: relative;
+}
+
+/* Transparent blanket over the whole grid while the deck is in motion. It
+   holds the pointer off the cards themselves, which is what keeps the grid's
+   dark-invert hover from firing on a card that is still travelling — an idle
+   mouse already sitting over a landing spot would otherwise trigger it early. */
+.stackBlocker {
+  position: absolute;
+  z-index: 10;
+}
+
+.stackBlocker[hidden] {
+  display: none;
+}
+
+
+/* ---------- the stacked state the server already ships ----------
+
+   The deck's geometry is measured in JS, but hydration lands roughly half a
+   second after the HTML paints — long enough to see the plain grid first and
+   then a hard snap into the stack. So the s=0 stacked state is written here
+   too, and it is what the first painted frame shows; the hook stamps
+   data-stack-ready on the host the moment it takes over, and these rules back
+   off for good.
+
+   The numbers mirror the constants in use-case-stack.ts — STACK_DROP 14,
+   STEP_Y 13, STEP_SX 0.1, TIERS 3, TIER_TONES 245/217/192, STACK_W 0.79 —
+   resolved against the 820px grid, where they equal the measured values
+   exactly. dx is half a card
+   plus half the 16px gap; the second row is offset by its own height, which
+   holds because the grid's two rows are equal. Narrower grids drift by a
+   fraction of a percent on scaleX alone, and the hook corrects even that.
+
+   Depth caps at three tiers, so cards 3 and 4 share the back tier's offset and
+   tone; only their widths differ, which nests the fourth inside the third
+   rather than on top of it. :has() limits this to the four-card deck — a grid
+   of any other length gets nothing rather than the wrong stack. Both it and
+   `scripting: enabled` fail closed: where they are not understood the whole
+   block is dropped and JS is left to do the work on its own. */
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) and
+  (scripting: enabled) {
+  .caseStack:not([data-stack-ready])
+    [data-case-grid]:has(> :nth-child(4):last-child)
+    > * {
+    transform-origin: 50% 0;
+    will-change: transform;
+  }
+
+  /* The heading is hidden for exactly as long as the deck is stacked, so the
+     first fold is the deck alone. It is a sibling of the deck rather than a
+     child, hence :has() — same data-stack-ready hand-off as the rules below,
+     after which the hook owns the opacity and fades it up with the cards. */
+  .casesHead:has(~ .caseStack:not([data-stack-ready])) {
+    opacity: 0;
+  }
+
+  /* the contents ride out the card's stretch and stay hidden until it lands */
+  .caseStack:not([data-stack-ready])
+    [data-case-grid]:has(> :nth-child(4):last-child)
+    > *
+    > * {
+    transform: scaleX(var(--deck-isx, 1));
+    transform-origin: 50% 0;
+    opacity: 0;
+  }
+
+  /* front layer: widest, lightest, lowest */
+  .caseStack:not([data-stack-ready])
+    [data-case-grid]:has(> :nth-child(4):last-child)
+    > *:nth-child(1) {
+    --deck-isx: 0.6206;
+    transform: translate(calc(50% + 8px), 40px) scaleX(1.6114);
+    border-radius: 7.45px / 12px;
+    background-color: rgb(245, 245, 245);
+    z-index: 4;
+  }
+
+  .caseStack:not([data-stack-ready])
+    [data-case-grid]:has(> :nth-child(4):last-child)
+    > *:nth-child(2) {
+    --deck-isx: 0.6895;
+    transform: translate(calc(-50% - 8px), 27px) scaleX(1.4503);
+    border-radius: 8.27px / 12px;
+    background-color: rgb(217, 217, 217);
+    z-index: 3;
+  }
+
+  .caseStack:not([data-stack-ready])
+    [data-case-grid]:has(> :nth-child(4):last-child)
+    > *:nth-child(3) {
+    --deck-isx: 0.7757;
+    transform: translate(calc(50% + 8px), calc(-100% - 2px)) scaleX(1.2892);
+    border-radius: 9.31px / 12px;
+    background-color: rgb(192, 192, 192);
+    z-index: 2;
+  }
+
+  /* fourth card: the back tier's offset and tone, but its own narrower width,
+     so it nests inside the third rather than landing on top of it */
+  .caseStack:not([data-stack-ready])
+    [data-case-grid]:has(> :nth-child(4):last-child)
+    > *:nth-child(4) {
+    --deck-isx: 0.8865;
+    transform: translate(calc(-50% - 8px), calc(-100% - 2px)) scaleX(1.128);
+    border-radius: 10.64px / 12px;
+    background-color: rgb(192, 192, 192);
+    z-index: 1;
+  }
+}
+
+/* the deck's own footprint: one clickable target for all four layers */
+.stackDeck {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 12px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.stackDeck:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.stackDeckLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* ---------- footer ---------- */
 
 .siteFooter {
@@ -237,9 +379,11 @@
   }
 }
 
-/* Reduced motion drops the pin entirely: the hero is a normal block and the
-   surface simply follows it. */
-@media (prefers-reduced-motion: reduce) {
+/* The static page: reduced motion drops the pin, and so does mobile, which is
+   static by spec. Either way the hero is a normal block, the surface simply
+   follows it, and nothing stacks. Same 767px breakpoint the choreography and
+   the stacked deck gate themselves on, so all three switch together. */
+@media (prefers-reduced-motion: reduce), (max-width: 767px) {
   .hero {
     position: static;
     height: auto;
@@ -260,5 +404,12 @@
 
   .casesInner {
     transform: none !important;
+    padding-top: 26px !important;
+    padding-bottom: 26px !important;
+  }
+
+  /* nothing ever stacks, so the deck's hit target never exists */
+  .stackBlocker {
+    display: none;
   }
 }

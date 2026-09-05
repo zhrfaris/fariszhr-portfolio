@@ -20,6 +20,13 @@ const SNAP_TO = 0.995;
 const SNAP_IDLE_MS = 130;
 const SNAP_DURATION = 0.75;
 
+/**
+ * Below this the page is static by spec (docs/design/design.md): no pin, no
+ * rise, no snap. Reduced motion opts out the same way, and 767px is the same
+ * breakpoint the stacked deck uses, so hero, zine and cards switch together.
+ */
+const STATIC = "(max-width: 767px), (prefers-reduced-motion: reduce)";
+
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const easeInOutCubic = (t: number) =>
@@ -60,6 +67,8 @@ export const useHomeChoreography = ({
   const onProgressRef = useRef(onProgress);
   onProgressRef.current = onProgress;
 
+  /** true whenever the choreography must not run: mobile, or reduced motion */
+  const staticRef = useRef(false);
   const lastYRef = useRef(0);
   const dirRef = useRef(1);
   const snappingRef = useRef(false);
@@ -140,7 +149,7 @@ export const useHomeChoreography = ({
     const root = rootRef.current;
     const inner = innerRef.current;
     const cover = coverRef.current;
-    if (!root || !inner || !cover) return;
+    if (staticRef.current || !root || !inner || !cover) return;
 
     const y = window.scrollY;
     const p = clamp01(y / cover);
@@ -166,6 +175,35 @@ export const useHomeChoreography = ({
     layout();
     frame();
   }, [layout, frame]);
+
+  /**
+   * Undo every inline style layout() and frame() write, so the static layout is
+   * the stylesheet's own. Without this, resizing down from a desktop width
+   * would leave the pinned hero's track height and negative surface margin
+   * behind and strand the page mid-choreography.
+   */
+  const reset = useCallback(() => {
+    coverRef.current = 0;
+    const root = rootRef.current;
+    if (root) {
+      root.style.removeProperty("--zineH");
+      root.style.removeProperty("--p");
+      root.style.removeProperty("--bg");
+    }
+    if (trackRef.current) trackRef.current.style.height = "";
+    if (heroRef.current) heroRef.current.style.transform = "";
+    const cases = casesRef.current;
+    if (cases) {
+      cases.style.marginTop = "";
+      cases.style.height = "";
+    }
+    const inner = innerRef.current;
+    if (inner) {
+      inner.style.transform = "";
+      inner.style.paddingTop = "";
+      inner.style.paddingBottom = "";
+    }
+  }, [rootRef, trackRef, heroRef, casesRef, innerRef]);
 
   /**
    * Snap uses lenis.scrollTo, never window.scrollTo — the page is under Lenis's
@@ -195,7 +233,7 @@ export const useHomeChoreography = ({
   }, [snapTo]);
 
   const considerSnap = useCallback(() => {
-    if (snappingRef.current || !coverRef.current) return;
+    if (staticRef.current || snappingRef.current || !coverRef.current) return;
     if (isZineDragging()) return;
     const p = window.scrollY / coverRef.current;
     // downward only: scrolling back up out of the case list is never hijacked
@@ -216,31 +254,45 @@ export const useHomeChoreography = ({
   useLenis(onScroll);
 
   useEffect(() => {
-    if (
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
-      !rootRef.current
-    )
-      return;
+    if (!rootRef.current) return;
 
-    refresh();
+    const mq = window.matchMedia(STATIC);
 
-    window.addEventListener("resize", refresh);
+    /* Every trigger goes through here rather than straight to refresh(), so
+       crossing the breakpoint is caught by the plain resize that comes with it
+       instead of relying on a media-query change event. */
+    const sync = () => {
+      const off = mq.matches;
+      const wasOff = staticRef.current;
+      staticRef.current = off;
+      if (off) {
+        if (!wasOff) reset();
+        return;
+      }
+      refresh();
+    };
+
+    sync();
+
+    mq.addEventListener("change", sync);
+    window.addEventListener("resize", sync);
     // Lenis owns the wheel, but keyboard/anchor scrolling still fires natively
     window.addEventListener("scroll", onScroll, { passive: true });
-    document.fonts?.ready.then(refresh);
+    document.fonts?.ready.then(sync);
 
     // the copy rewrapping (webfont swap, zoom) changes the hero height
-    const ro = new ResizeObserver(refresh);
+    const ro = new ResizeObserver(sync);
     if (footRef.current) ro.observe(footRef.current);
     if (headerRef.current) ro.observe(headerRef.current);
 
     return () => {
-      window.removeEventListener("resize", refresh);
+      mq.removeEventListener("change", sync);
+      window.removeEventListener("resize", sync);
       window.removeEventListener("scroll", onScroll);
       ro.disconnect();
       clearTimeout(snapTimerRef.current);
     };
-  }, [refresh, onScroll, rootRef, footRef, headerRef]);
+  }, [refresh, reset, onScroll, rootRef, footRef, headerRef]);
 
   return { refresh, snapToGrid, scrollToTop: () => lenis?.scrollTo(0) };
 };

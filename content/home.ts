@@ -6,19 +6,36 @@
  * here rather than hardcoding strings in JSX.
  */
 
+/**
+ * The identity line. `name` and `role` are fallbacks: when the dashboard has a
+ * user record its own name/occupation win. Everything else — the connecting
+ * word, the employer link and its logo — is copy, so it lives here rather than
+ * in the component.
+ */
+export const identityContent = {
+  name: "Muhammad Faris Azhar",
+  role: "Product Designer",
+  /** the line reads "<role> <connector> <employer logo>" */
+  connector: "at",
+  employer: {
+    name: "Gojek",
+    href: "https://gojek.design/",
+    logo: { src: "/gojek-logo.png", width: 252, height: 72 },
+  },
+  portraitFallback: "/faris-profile-pict-grayscale.png",
+  initials: "ZHR",
+} as const;
+
 export const heroContent = {
   title: "Humanizing technology through design",
   description:
     "I design location and mapping experiences at Gojek, shoot on film, and I'm currently building my first product below.",
 } as const;
 
-/**
- * NOT FINAL — placeholder copy. `title` and `description` are waiting on the
- * real words; do not ship with "[TBD]" on the page.
- */
 export const zineContent = {
-  title: "[TBD]",
-  description: "[TBD]",
+  title: "Online Zine — a design engineering experiment",
+  description:
+    "As a photographer who happens to design for a living, I wanted to solve a problem I kept running into myself: photos that deserved more attention than a single post ever gave them. Online Zine is the tool I built to fix that.",
   badgeLabel: "Make your own zine — coming soon",
   prevLabel: "Previous spread",
   nextLabel: "Next spread",

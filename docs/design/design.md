@@ -10,13 +10,18 @@ Description: "I design location and mapping experiences at Gojek, shoot on
 film, and I'm currently building my first product below."
 
 ## Zine copy
-Status: NOT FINAL — placeholder, confirm before shipping.
-Title: [TBD]
-Description: [TBD]
+Status: FINAL.
+Title: "Online Zine — a design engineering experiment"
+Description: "As a photographer who happens to design for a living, I wanted
+to solve a problem I kept running into myself: photos that deserved more
+attention than a single post ever gave them. Online Zine is the tool I built
+to fix that."
 
 ## Zine photos
-12 pre-composed spread images (2 photos per page already laid out),
-final and ordered: public/zine/page-01.png through page-12.png.
+12 page images, final and ordered: public/zine/page-01.png through
+page-12.png. Each spread is one continuous panorama split across its two
+pages — page-01 is the left half of the opening spread, page-02 its right
+half, and so on — not composed multi-photo pages.
 Render in that numeric order, one per page-turn.
 
 ## Content architecture
@@ -35,4 +40,11 @@ content stays on the existing dashboard/DB flow untouched.
 
 ## Nav / badge hover states
 See: hero-default.png, hero-hovered.png, cases-default.png,
-cas
+cases-hovered.png, states-spec.png.
+
+## Mobile version
+Status: FINAL, already implemented separately from desktop sections.
+Static everything — no hover, no scroll choreography, no card lift.
+Only interactive element: zine page-turn.
+Reference: mobile-final.png
+Zine copy (see above) is now final and shared between mobile/desktop.

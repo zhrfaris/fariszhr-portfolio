@@ -88,9 +88,11 @@
   right: 0;
 }
 
+/* One dark-hover shade across the page: this is the same #353535 the
+   case-study cards invert to, so nav, badge and cards read as one system. */
 .nav:hover:not(:disabled) {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
+  background: #353535;
+  border-color: #353535;
   color: #fff;
 }
 
@@ -156,8 +158,8 @@
 }
 
 .soonBadge:hover {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
+  background: #353535;
+  border-color: #353535;
   color: #fff;
 }
 

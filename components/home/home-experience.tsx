@@ -5,6 +5,7 @@ import { useRef, type ReactNode } from "react";
 import styles from "./home.module.css";
 import { casesContent, heroContent, zineContent } from "@/content/home";
 import { useHomeChoreography } from "./use-home-choreography";
+import CaseStack, { type CaseStackHandle } from "./case-stack";
 import ZineBook from "./zine/zine-book";
 import SoonBadge from "./zine/soon-badge";
 import SiteFooter from "./site-footer";
@@ -33,8 +34,10 @@ const HomeExperience = ({
   const footRef = useRef<HTMLDivElement>(null);
   const casesRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
+  const stackRef = useRef<CaseStackHandle>(null);
+  const casesHeadRef = useRef<HTMLDivElement>(null);
 
-  const { scrollToTop } = useHomeChoreography({
+  const { scrollToTop, snapToGrid } = useHomeChoreography({
     rootRef,
     trackRef,
     heroRef,
@@ -43,6 +46,8 @@ const HomeExperience = ({
     footRef,
     casesRef,
     innerRef,
+    // the deck is dealt out by the same scroll frame that raises the surface
+    onProgress: (s) => stackRef.current?.paint(s),
   });
 
   return (
@@ -78,11 +83,19 @@ const HomeExperience = ({
       <section className={styles.cases} ref={casesRef}>
         <div className={styles.casesInner} ref={innerRef}>
           <div className={styles.wrap}>
-            <div className={styles.casesHead}>
+            {/* hidden while the deck is stacked; the deck fades it up on the
+                same ramp as the card contents */}
+            <div className={styles.casesHead} ref={casesHeadRef}>
               <h2>{casesContent.title}</h2>
               <p>{casesContent.description}</p>
             </div>
-            {cases}
+            <CaseStack
+              ref={stackRef}
+              onJumpToGrid={snapToGrid}
+              headingRef={casesHeadRef}
+            >
+              {cases}
+            </CaseStack>
           </div>
 
           <SiteFooter user={user} onBackToTop={scrollToTop} />
