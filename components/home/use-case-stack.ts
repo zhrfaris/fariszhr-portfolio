@@ -22,7 +22,8 @@ import {
  * The stacked state these constants describe is also written in CSS, in
  * home.module.css, so that the deck is already layered in the HTML's first
  * painted frame rather than appearing when hydration lands. The two have to
- * agree: change a number here and change it there.
+ * agree: change a number here — or the width of the content column those CSS
+ * values are resolved against — and change it there.
  */
 
 /**
@@ -127,6 +128,8 @@ export const useCaseStack = ({
   const cardsRef = useRef<HTMLElement[]>([]);
   const layersRef = useRef<Layer[]>([]);
 
+  /** the heading's own height + margin, which the deck offsets while hidden */
+  const headReserveRef = useRef(0);
   const lastSRef = useRef(0);
   const measuredRef = useRef(false);
   const liftedRef = useRef(false);
@@ -197,6 +200,7 @@ export const useCaseStack = ({
         clearTimeout(liftTimerRef.current);
         cards.forEach(restCard);
         if (headingRef.current) headingRef.current.style.opacity = "";
+        if (hostRef.current) hostRef.current.style.transform = "";
         return;
       }
 
@@ -208,7 +212,7 @@ export const useCaseStack = ({
         card.tabIndex = -1;
       });
     },
-    [restCard, headingRef],
+    [restCard, headingRef, hostRef],
   );
 
   const paint = useCallback(
@@ -226,10 +230,22 @@ export const useCaseStack = ({
       /* the lift fades out with inv on its own: by the time a card has settled
          there is nothing left to lift, so no separate settled-check is needed */
       const lift = liftedRef.current ? -STACK_LIFT * inv : 0;
-      const reveal = clamp01((s - CONTENT_FROM) / CONTENT_SPAN).toFixed(3);
+      const revealed = clamp01((s - CONTENT_FROM) / CONTENT_SPAN);
+      const reveal = revealed.toFixed(3);
 
       const heading = headingRef.current;
       if (heading) heading.style.opacity = reveal;
+
+      /* The heading is back in flow but still invisible, so the whole deck
+         region rides up by the height it reserves and gives it back exactly as
+         the heading fades in. Done as a transform rather than a layout change:
+         the cards' slots are measured from this layout, so collapsing it for
+         real would move their targets mid-flight. */
+      const host = hostRef.current;
+      if (host)
+        host.style.transform = `translateY(${(
+          -headReserveRef.current * (1 - revealed)
+        ).toFixed(2)}px)`;
 
       cards.forEach((card, i) => {
         const layer = layers[i];
@@ -258,7 +274,7 @@ export const useCaseStack = ({
       const deck = deckRef.current;
       if (deck) deck.style.transform = `translateY(${lift.toFixed(2)}px)`;
     },
-    [applySettled, deckRef, headingRef],
+    [applySettled, deckRef, headingRef, hostRef],
   );
 
   const measure = useCallback(() => {
@@ -313,13 +329,30 @@ export const useCaseStack = ({
     deck.style.top = `${STACK_DROP}px`;
     deck.style.height = `${(TIERS - 1) * STEP_Y + cards[0].offsetHeight}px`;
 
+    /* Read while the heading is at full height — sync() stamps data-stack-ready
+       before calling measure(), so the CSS that collapses it is already off. */
+    const heading = headingRef.current;
+    headReserveRef.current = heading
+      ? heading.offsetHeight +
+        (parseFloat(getComputedStyle(heading).marginBottom) || 0)
+      : 0;
+
     measuredRef.current = true;
     // applySettled owns the base styles the strip above cleared, so it is what
     // puts them back — including the transition the measurement suppressed
     if (settledRef.current) cards.forEach(restCard);
     else applySettled(false);
     paint(lastSRef.current);
-  }, [findGrid, blockerRef, deckRef, stripCard, restCard, applySettled, paint]);
+  }, [
+    findGrid,
+    blockerRef,
+    deckRef,
+    headingRef,
+    stripCard,
+    restCard,
+    applySettled,
+    paint,
+  ]);
 
   /**
    * The deck lifts as one on hover/focus — not per-card, since it reads as one
@@ -376,6 +409,7 @@ export const useCaseStack = ({
       if (wasOff) return; // already handed over; nothing left to undo
       cardsRef.current.forEach(restCard);
       if (headingRef.current) headingRef.current.style.opacity = "";
+      if (hostRef.current) hostRef.current.style.transform = "";
       measuredRef.current = false;
       settledRef.current = true;
       setSettled(true);

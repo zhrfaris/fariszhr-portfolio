@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { forwardRef, useRef, type KeyboardEvent } from "react";
 
+import MainButton from "@/components/common/main-button";
 import styles from "./zine.module.css";
 import { ZINE_PAGES, zineContent } from "@/content/home";
 import { sheetInset, stageInset } from "./page-metrics";
@@ -68,7 +69,13 @@ const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
           aria-label={`Zine — spread ${spread + 1} of ${spreadCount}. Drag a page, or use the arrow keys, to turn it.`}
         />
 
-        <button
+        {/* The ring-and-circle surface is MainButton — the same component the
+            site CTA uses — so the treatment has one definition, not two. The
+            button element is the ring and carries the handlers; the inner
+            circle it renders is presentational and holds the chevron. */}
+        <MainButton
+          rounded
+          size="icon"
           type="button"
           className={`${styles.nav} ${styles.prev}`}
           aria-label={zineContent.prevLabel}
@@ -76,8 +83,10 @@ const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
           onClick={() => turn(-1)}
         >
           &lsaquo;
-        </button>
-        <button
+        </MainButton>
+        <MainButton
+          rounded
+          size="icon"
           type="button"
           className={`${styles.nav} ${styles.next}`}
           aria-label={zineContent.nextLabel}
@@ -85,7 +94,7 @@ const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
           onClick={() => turn(1)}
         >
           &rsaquo;
-        </button>
+        </MainButton>
 
         {/* Count comes from the renderer, so the dots can never drift from the turns. */}
         <div className={styles.meter} aria-hidden>

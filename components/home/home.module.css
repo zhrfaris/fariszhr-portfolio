@@ -11,7 +11,12 @@
   --paper: #f7f7f5;
   --p: 0;
   --bg: rgb(239, 239, 239);
-  --maxw: 900px;
+  /* Content column, from the Figma frame: 1440 wide with a 360px inset on
+     each side, so 720px of content. Plus the 32px gutters either side.
+     (The avatar's box measures x=360 in hero-default.png, which confirms the
+     inset; the 713px this used to be came from a badge-right measurement on a
+     screenshot that carried a ~15px scrollbar.) */
+  --maxw: 784px;
   --headTop: clamp(34px, 8.6vh, 88px);
   --gapZine: clamp(24px, 5.7vh, 58px);
   --gapCopy: clamp(32px, 6.4vh, 68px);
@@ -99,7 +104,8 @@
 .blurb p {
   margin: 0;
   font-size: 13px;
-  line-height: 1.55;
+  /* 18px between line tops in the reference, at this 13px size */
+  line-height: 1.385;
   color: var(--muted);
 }
 
@@ -109,7 +115,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 40px;
+  /* Figma: 24px between the description block and the badge */
+  gap: 24px;
   margin-top: var(--gapCopy);
 }
 
@@ -122,7 +129,8 @@
 .heroFoot p {
   margin: 0;
   font-size: 13px;
-  line-height: 1.65;
+  /* 19px between line tops in the reference, at this 13px size */
+  line-height: 1.462;
   color: var(--muted);
   max-width: 520px;
 }
@@ -198,8 +206,8 @@
 
    The numbers mirror the constants in use-case-stack.ts — STACK_DROP 14,
    STEP_Y 13, STEP_SX 0.1, TIERS 3, TIER_TONES 245/217/192, STACK_W 0.79 —
-   resolved against the 820px grid, where they equal the measured values
-   exactly. dx is half a card
+   resolved against the 720px grid the 784px content column gives, where they
+   equal the measured values exactly. dx is half a card
    plus half the 16px gap; the second row is offset by its own height, which
    holds because the grid's two rows are equal. Narrower grids drift by a
    fraction of a percent on scaleX alone, and the hook corrects even that.
@@ -226,6 +234,12 @@
      after which the hook owns the opacity and fades it up with the cards. */
   .casesHead:has(~ .caseStack:not([data-stack-ready])) {
     opacity: 0;
+    /* and it reserves no height either, so the stacked deck sits directly
+       under the surface edge. Once the hook takes over it is back in flow and
+       the deck carries a matching offset instead — see headReserve. */
+    height: 0;
+    margin-bottom: 0;
+    overflow: hidden;
   }
 
   /* the contents ride out the card's stretch and stay hidden until it lands */
@@ -242,9 +256,9 @@
   .caseStack:not([data-stack-ready])
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(1) {
-    --deck-isx: 0.6206;
-    transform: translate(calc(50% + 8px), 40px) scaleX(1.6114);
-    border-radius: 7.45px / 12px;
+    --deck-isx: 0.6188;
+    transform: translate(calc(50% + 8px), 40px) scaleX(1.6159);
+    border-radius: 7.43px / 12px;
     background-color: rgb(245, 245, 245);
     z-index: 4;
   }
@@ -252,9 +266,9 @@
   .caseStack:not([data-stack-ready])
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(2) {
-    --deck-isx: 0.6895;
-    transform: translate(calc(-50% - 8px), 27px) scaleX(1.4503);
-    border-radius: 8.27px / 12px;
+    --deck-isx: 0.6876;
+    transform: translate(calc(-50% - 8px), 27px) scaleX(1.4543);
+    border-radius: 8.25px / 12px;
     background-color: rgb(217, 217, 217);
     z-index: 3;
   }
@@ -262,9 +276,9 @@
   .caseStack:not([data-stack-ready])
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(3) {
-    --deck-isx: 0.7757;
-    transform: translate(calc(50% + 8px), calc(-100% - 2px)) scaleX(1.2892);
-    border-radius: 9.31px / 12px;
+    --deck-isx: 0.7736;
+    transform: translate(calc(50% + 8px), calc(-100% - 2px)) scaleX(1.2927);
+    border-radius: 9.28px / 12px;
     background-color: rgb(192, 192, 192);
     z-index: 2;
   }
@@ -274,9 +288,9 @@
   .caseStack:not([data-stack-ready])
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(4) {
-    --deck-isx: 0.8865;
-    transform: translate(calc(-50% - 8px), calc(-100% - 2px)) scaleX(1.128);
-    border-radius: 10.64px / 12px;
+    --deck-isx: 0.8841;
+    transform: translate(calc(-50% - 8px), calc(-100% - 2px)) scaleX(1.1311);
+    border-radius: 10.61px / 12px;
     background-color: rgb(192, 192, 192);
     z-index: 1;
   }

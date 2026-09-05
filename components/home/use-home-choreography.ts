@@ -14,6 +14,14 @@ import { isZineDragging } from "./zine/drag-state";
 const REST_PAD = 26;
 const MIN_PAD = 56;
 
+/**
+ * The settled block's own bottom reserve, fixed at 32px by the Figma frame's
+ * `padding: 32px 0`. It used to be `min(58, vh * 0.06)` — a formula fitted to
+ * one viewport height, which is what left the zine ~19px short of the
+ * reference at 1440x820.
+ */
+const BREATHE = 32;
+
 /** Only the last stretch of the rise commits; below it the scroll is left alone. */
 const SNAP_FROM = 0.8;
 const SNAP_TO = 0.995;
@@ -93,9 +101,13 @@ export const useHomeChoreography = ({
       return;
 
     const vh = window.innerHeight;
-    const peek = Math.min(Math.max(vh * 0.26, 205), 330);
-    const breathe =
-      window.innerWidth < 640 ? 34 : Math.min(58, vh * 0.06);
+    /* Space held at the bottom of the hero for the deck to show through.
+       Measured off docs/design/hero-default.png: the hero/surface boundary sits
+       at y=719 in an 820px viewport, so the reference reserves 101px — 0.123 of
+       the height, not the 0.26 this started with. The clamps are scaled by the
+       same factor, so short and tall viewports keep their old proportions. */
+    const peek = Math.min(Math.max(vh * 0.123, 97), 156);
+    const breathe = BREATHE;
     hero.style.transform = "none";
 
     /* Read RESOLVED lengths off the elements. Custom properties come back as
