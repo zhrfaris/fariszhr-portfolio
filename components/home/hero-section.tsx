@@ -14,7 +14,7 @@ import LinkedInIcon from "../icons/linkedin-icon";
 import PaperIcon from "../icons/paper-icon";
 import Link from "next/link";
 
-const getPosts = unstable_cache(
+export const getPosts = unstable_cache(
   async () => {
     return await countRequestDuration(getPostsShowCase, MAIN_USERNAME);
   },
