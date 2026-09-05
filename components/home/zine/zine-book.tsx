@@ -17,16 +17,21 @@ import { useZineRenderer } from "./use-zine-renderer";
 const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
 
-  const { spread, spreadCount, supported, canTurnBack, canTurnForward, turn } =
-    useZineRenderer({ stageRef, canvasRef });
+  const { spread, spreadCount, supported, turn } = useZineRenderer({
+    stageRef,
+    canvasRef,
+    sheetRef,
+  });
 
+  /* Both directions always turn: the book loops, so there is no end to stop at. */
   const onKeyDown = (ev: KeyboardEvent<HTMLDivElement>) => {
-    if (ev.key === "ArrowRight" && canTurnForward) {
+    if (ev.key === "ArrowRight") {
       ev.preventDefault();
       turn(1);
     }
-    if (ev.key === "ArrowLeft" && canTurnBack) {
+    if (ev.key === "ArrowLeft") {
       ev.preventDefault();
       turn(-1);
     }
@@ -37,7 +42,7 @@ const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
        inside has focus — the canvas or either nav button. */
     <div className={styles.zine} ref={ref} onKeyDown={onKeyDown}>
       <div className={styles.stage} ref={stageRef} style={stageInset}>
-        <div className={styles.sheet} style={{ inset: sheetInset }}>
+        <div className={styles.sheet} ref={sheetRef} style={{ inset: sheetInset }}>
           {/* Without WebGL the spread is still readable — just not turnable by hand. */}
           {supported === false && (
             <div className={styles.fallback}>
@@ -79,7 +84,6 @@ const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
           type="button"
           className={`${styles.nav} ${styles.prev}`}
           aria-label={zineContent.prevLabel}
-          disabled={!canTurnBack}
           onClick={() => turn(-1)}
         >
           &lsaquo;
@@ -90,7 +94,6 @@ const ZineBook = forwardRef<HTMLDivElement>(function ZineBook(_props, ref) {
           type="button"
           className={`${styles.nav} ${styles.next}`}
           aria-label={zineContent.nextLabel}
-          disabled={!canTurnForward}
           onClick={() => turn(1)}
         >
           &rsaquo;

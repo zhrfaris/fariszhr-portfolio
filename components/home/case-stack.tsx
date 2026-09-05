@@ -44,7 +44,13 @@ const CaseStack = forwardRef<
   useImperativeHandle(ref, () => ({ paint }), [paint]);
 
   return (
-    <div className={styles.caseStack} ref={hostRef}>
+    /* data-deck-motion is present from SSR until the deck is at rest, and is
+       what the skeuomorphic tier treatment keys off. */
+    <div
+      className={styles.caseStack}
+      ref={hostRef}
+      data-deck-motion={settled ? undefined : ""}
+    >
       {children}
 
       {/* While the deck has not landed it is one object, not four cards: this

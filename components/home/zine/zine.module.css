@@ -20,6 +20,9 @@
 
 .sheet {
   position: absolute;
+  /* the paper is what a reader grabs, so it is what takes the pointer */
+  cursor: grab;
+  touch-action: none;
   background: var(--paper);
   box-shadow: 0 22px 44px -22px rgba(0, 0, 0, 0.3);
 }
@@ -51,10 +54,13 @@
   height: 100%;
   z-index: 2;
   touch-action: none;
-  cursor: grab;
+  /* The stage overhangs the paper generously so the fold has room to curl into,
+     which means this element covers the copy and badge around it. It must not
+     swallow their clicks: the paper below carries the drag instead. */
+  pointer-events: none;
 }
 
-.canvas[data-grabbing] {
+.sheet[data-grabbing] {
   cursor: grabbing;
 }
 
@@ -118,15 +124,22 @@
    kept from the earlier measurement because without it the sheet would sit
    exactly under the pill and never show. */
 
+/* The 68px box holds both layers. The sheet is the in-flow child, so the
+   wrapper's own flex-end/center is what pins it to the bottom, centred; the
+   pill floats above it, overlapping. --pill-lift is how far the pill's bottom
+   sits above the sheet's, i.e. how much sheet shows underneath. */
 .soonBadgeStack {
   position: relative;
-  display: inline-flex;
+  display: flex;
+  width: 202px;
+  height: 68px;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  --pill-lift: 16px;
 }
 
 .soonBadgeSheet {
-  position: absolute;
-  left: 0;
-  top: 0;
   display: flex;
   width: 190px;
   height: 27px;
@@ -139,16 +152,15 @@
   box-shadow:
     0 2px 4px 0 rgba(0, 0, 0, 0.15) inset,
     0 1px 1px 0 rgba(255, 255, 255, 0.8);
-  /* No rotation: the sheet sits upright, only the pill is tilted. The drop is
-     the one value not in the Figma spec — it is what makes the sheet visible
-     below the pill at all. */
-  transform: translateY(62%);
+  /* Upright — only the pill is tilted. */
 }
 
 .soonBadge {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  bottom: var(--pill-lift);
   display: inline-flex;
-  transform: rotate(-6deg);
+  transform: translateX(-50%) rotate(-6deg);
   padding: 6px 12px 10px 8px;
   justify-content: center;
   align-items: center;
@@ -179,8 +191,18 @@
   transition: background-color 0.18s ease;
 }
 
+/* Hover changes exactly two things from the default pill: the fill, and the
+   inset highlight, which goes grey because a white one reads wrong on dark.
+   Rotation, shape and every other shadow layer are identical. */
 .soonBadge:hover {
   background: #353535;
+  box-shadow:
+    20px 22px 18px 0 rgba(0, 0, 0, 0.05),
+    9px 10px 13px 0 rgba(0, 0, 0, 0.1),
+    2px 2px 7px 0 rgba(0, 0, 0, 0.1),
+    0 -1px 1px 0 rgba(0, 0, 0, 0.15) inset,
+    0.5px 1.5px 0 0 #666 inset,
+    -2px -4px 1px 0 rgba(0, 0, 0, 0.2) inset;
   color: #fff;
 }
 

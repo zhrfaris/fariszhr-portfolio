@@ -118,7 +118,7 @@ const ShowcaseCard = ({
             )}
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-2 py-2 px-3">
+        <div className="hidden md:flex items-center gap-2 py-0.5 px-3">
           {categories?.map((category) => (
             <div
               key={category.id}

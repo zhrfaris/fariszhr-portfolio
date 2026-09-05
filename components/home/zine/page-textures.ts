@@ -26,23 +26,24 @@ export class PageTextures {
     this.placeholder.needsUpdate = true;
   }
 
+  /** The book loops, so a page index past either end is the one that wraps to. */
+  private wrap(index: number) {
+    const n = ZINE_PAGES.length;
+    return ((index % n) + n) % n;
+  }
+
   /** Best available artwork for a page index — never null, so the scene always draws. */
   get(index: number): THREE.Texture {
-    return this.textures[index] ?? this.placeholder;
+    return this.textures[this.wrap(index)] ?? this.placeholder;
   }
 
   has(index: number) {
     return index >= 0 && index < ZINE_PAGES.length && !!this.textures[index];
   }
 
-  load(index: number) {
-    if (
-      index < 0 ||
-      index >= ZINE_PAGES.length ||
-      this.textures[index] ||
-      this.pending.has(index)
-    )
-      return;
+  load(raw: number) {
+    const index = this.wrap(raw);
+    if (this.textures[index] || this.pending.has(index)) return;
 
     this.pending.add(index);
     this.loader.load(ZINE_PAGES[index], (texture) => {

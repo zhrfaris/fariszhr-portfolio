@@ -27,7 +27,6 @@ import {
 
 /** Twelve page faces read as six spreads, so there are five turns. */
 export const SPREAD_COUNT = Math.ceil(ZINE_PAGES.length / 2);
-const LAST_SPREAD = SPREAD_COUNT - 1;
 
 const SHADOW = 0.46;
 
@@ -51,9 +50,12 @@ type Sim = { dir: THREE.Vector2; p: number; v: number; t: number; instant: boole
 export const useZineRenderer = ({
   stageRef,
   canvasRef,
+  sheetRef,
 }: {
   stageRef: RefObject<HTMLDivElement>;
   canvasRef: RefObject<HTMLCanvasElement>;
+  /** The paper. It carries the drag; the canvas takes no pointer events. */
+  sheetRef: RefObject<HTMLDivElement>;
 }) => {
   const [spread, setSpread] = useState(0);
   const [supported, setSupported] = useState<boolean | null>(null);
@@ -61,13 +63,14 @@ export const useZineRenderer = ({
      the nav working on a machine with no WebGL, where the fallback below shows
      the spread as two images. */
   const turnToRef = useRef<(dir: 1 | -1) => void>((dir) =>
-    setSpread((s) => Math.min(Math.max(s + dir, 0), LAST_SPREAD)),
+    setSpread((s) => (s + dir + SPREAD_COUNT) % SPREAD_COUNT),
   );
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const stage = stageRef.current;
-    if (!canvas || !stage) return;
+    const sheet = sheetRef.current;
+    if (!canvas || !stage || !sheet) return;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -202,10 +205,9 @@ export const useZineRenderer = ({
       setSpread(current);
     }
 
+    /* No boundary refusal: PageTextures wraps the indices, so a turn off either
+       end folds exactly like any other turn and lands on the opposite spread. */
     function begin(d: 1 | -1, gy: number) {
-      if (d > 0 && current >= LAST_SPREAD) return false;
-      if (d < 0 && current <= 0) return false;
-
       const k = current;
       if (d > 0) {
         leftMat.uniforms.uMap.value = tex.get(2 * k);
@@ -341,7 +343,7 @@ export const useZineRenderer = ({
       if (!turn) return;
       const d = turn.dir;
       sim = null;
-      if (over) current += d;
+      if (over) current = (current + d + SPREAD_COUNT) % SPREAD_COUNT;
       rest();
     }
 
@@ -364,9 +366,9 @@ export const useZineRenderer = ({
 
     const endDrag = (ev?: PointerEvent) => {
       setDrag(false);
-      delete canvas.dataset.grabbing;
-      if (ev && canvas.hasPointerCapture(ev.pointerId))
-        canvas.releasePointerCapture(ev.pointerId);
+      delete sheet.dataset.grabbing;
+      if (ev && sheet.hasPointerCapture(ev.pointerId))
+        sheet.releasePointerCapture(ev.pointerId);
     };
 
     const onPointerDown = (ev: PointerEvent) => {
@@ -381,8 +383,13 @@ export const useZineRenderer = ({
       downPt = { x: ev.clientX, y: ev.clientY };
       vel = 0;
       velAt = null;
-      canvas.dataset.grabbing = "true";
-      canvas.setPointerCapture(ev.pointerId);
+      sheet.dataset.grabbing = "true";
+      /* Capture on the paper, so a drag keeps tracking once it leaves it —
+         which every turn does. */
+      sheet.setPointerCapture(ev.pointerId);
+      // the canvas is the focusable element, so clicking the paper still
+      // hands it focus and leaves the arrow keys working
+      canvas.focus({ preventScroll: true });
     };
 
     const onPointerMove = (ev: PointerEvent) => {
@@ -424,10 +431,10 @@ export const useZineRenderer = ({
       letGo(moved ? vel : FLICK);
     };
 
-    canvas.addEventListener("pointerdown", onPointerDown);
-    canvas.addEventListener("pointermove", onPointerMove);
-    canvas.addEventListener("pointerup", release);
-    canvas.addEventListener("pointercancel", release);
+    sheet.addEventListener("pointerdown", onPointerDown);
+    sheet.addEventListener("pointermove", onPointerMove);
+    sheet.addEventListener("pointerup", release);
+    sheet.addEventListener("pointercancel", release);
 
     /* ---------- render loop ---------- */
     const resize = () => {
@@ -485,17 +492,17 @@ export const useZineRenderer = ({
       cancelAnimationFrame(raf);
       ro.disconnect();
       window.removeEventListener("resize", resize);
-      canvas.removeEventListener("pointerdown", onPointerDown);
-      canvas.removeEventListener("pointermove", onPointerMove);
-      canvas.removeEventListener("pointerup", release);
-      canvas.removeEventListener("pointercancel", release);
+      sheet.removeEventListener("pointerdown", onPointerDown);
+      sheet.removeEventListener("pointermove", onPointerMove);
+      sheet.removeEventListener("pointerup", release);
+      sheet.removeEventListener("pointercancel", release);
       setZineDragging(false);
       [geoL, geoR, gL, gR, ...blockGeos].forEach((g) => g.dispose());
       [leftMat, rightMat, foldMat, blockMat].forEach((m) => m.dispose());
       tex.dispose();
       renderer.dispose();
     };
-  }, [canvasRef, stageRef]);
+  }, [canvasRef, stageRef, sheetRef]);
 
   const turn = useCallback((dir: 1 | -1) => turnToRef.current(dir), []);
 
@@ -503,8 +510,6 @@ export const useZineRenderer = ({
     spread,
     spreadCount: SPREAD_COUNT,
     supported,
-    canTurnBack: spread > 0,
-    canTurnForward: spread < LAST_SPREAD,
     turn,
   };
 };

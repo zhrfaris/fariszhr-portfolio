@@ -31,6 +31,15 @@
   padding: 0 32px;
 }
 
+/* The case-study grid is its own frame, not the hero's. Two 408px cards plus
+   the grid's 16px gap need 832px of content, which the hero's 720px column
+   cannot hold — so this section is decoupled from --maxw entirely. */
+.casesWrap {
+  max-width: 896px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
 /* ---------- hero pinned under the rising surface ---------- */
 
 .heroTrack {
@@ -195,6 +204,39 @@
 }
 
 
+/* ---------- the case-study card ----------
+
+   Figma: 408x240 with a 12px radius, a 2px border in the same #F5F5F5 as the
+   fill, and an inset for depth. Width comes from the 832px grid (two columns
+   plus a 16px gap); the height is fixed here. Desktop only — below md the grid
+   is a single column and the cards are content-height. */
+
+@media (min-width: 768px) {
+  .caseStack [data-case-grid] > * {
+    height: 240px;
+    border-radius: 12px;
+    border: 2px solid #f5f5f5;
+    background: #f5f5f5;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1) inset;
+    /* showcase-card.module.scss transitions `all .3s`, which the card falls
+       back to once the deck stops driving it. That made hover a 300ms fade on
+       the card while its inner wrapper flipped instantly — the light-and-dark
+       layered frame. Hover is two discrete states, so nothing here eases. */
+    transition: none;
+  }
+
+  /* Hover. ShowcaseCard paints its dark hover on an inner wrapper, which sits
+     inside this element's 2px border and 3px padding, so filling the card
+     itself is what closes the seam around it and the tag row. The border is
+     deliberately a shade lighter than the fill — #444 against #353535 — which
+     is what keeps the edge readable once the card goes dark. Radius and inset
+     are unchanged from the default, so they are not restated. */
+  .caseStack [data-case-grid] > *:hover {
+    background: #353535;
+    border-color: #444;
+  }
+}
+
 /* ---------- the stacked state the server already ships ----------
 
    The deck's geometry is measured in JS, but hydration lands roughly half a
@@ -206,8 +248,8 @@
 
    The numbers mirror the constants in use-case-stack.ts — STACK_DROP 14,
    STEP_Y 13, STEP_SX 0.1, TIERS 3, TIER_TONES 245/217/192, STACK_W 0.79 —
-   resolved against the 720px grid the 784px content column gives, where they
-   equal the measured values exactly. dx is half a card
+   resolved against the 832px grid the case-study section's own 896px container
+   gives, where they equal the measured values exactly. dx is half a card
    plus half the 16px gap; the second row is offset by its own height, which
    holds because the grid's two rows are equal. Narrower grids drift by a
    fraction of a percent on scaleX alone, and the hook corrects even that.
@@ -226,6 +268,35 @@
     > * {
     transform-origin: 50% 0;
     will-change: transform;
+  }
+
+  /* The stacked card itself: shape, border and inset depth are declared once
+     here and never re-applied, for the whole time the deck is in motion. Only
+     --deck-tone changes as the deck deals out, so nothing about this treatment
+     can pop in partway through the scroll. Border and background share the tone
+     deliberately — the border is what makes the slab read a touch larger than
+     the paper, not an outline. */
+  .caseStack[data-deck-motion]
+    [data-case-grid]:has(> :nth-child(4):last-child)
+    > * {
+    border-radius: 12px;
+    border: 2px solid var(--deck-tone);
+    background: var(--deck-tone);
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, calc(0.1 * var(--deck-depth, 1))) inset;
+  }
+
+  /* Same treatment, softened on the tiers that are nearly all hidden. The
+     spec's inset is a ~6px band, which is 2.4% of the front card but 46% of
+     the ~13px sliver a back tier actually shows — identical shadow, and it
+     reads as depth on one and as a dark bar on the other. Back tiers get a
+     lighter inset and a hairline top highlight instead, so the stack reads as
+     paper edges catching light. Front card keeps the spec exactly. */
+  .caseStack[data-deck-motion]
+    [data-case-grid]:has(> :nth-child(4):last-child)
+    > *:nth-child(n + 2) {
+    box-shadow:
+      0 1px 2px 0 rgba(0, 0, 0, calc(0.05 * var(--deck-depth, 1))) inset,
+      0 1px 0 0 rgba(255, 255, 255, calc(0.45 * var(--deck-depth, 1))) inset;
   }
 
   /* The heading is hidden for exactly as long as the deck is stacked, so the
@@ -256,30 +327,30 @@
   .caseStack:not([data-stack-ready])
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(1) {
-    --deck-isx: 0.6188;
-    transform: translate(calc(50% + 8px), 40px) scaleX(1.6159);
-    border-radius: 7.43px / 12px;
-    background-color: rgb(245, 245, 245);
+    --deck-isx: 0.6207;
+    transform: translate(calc(50% + 8px), 40px) scaleX(1.6110);
+    border-radius: 7.45px / 12px;
+    --deck-tone: rgb(245, 245, 245);
     z-index: 4;
   }
 
   .caseStack:not([data-stack-ready])
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(2) {
-    --deck-isx: 0.6876;
-    transform: translate(calc(-50% - 8px), 27px) scaleX(1.4543);
-    border-radius: 8.25px / 12px;
-    background-color: rgb(217, 217, 217);
+    --deck-isx: 0.6897;
+    transform: translate(calc(-50% - 8px), 27px) scaleX(1.4499);
+    border-radius: 8.28px / 12px;
+    --deck-tone: rgb(217, 217, 217);
     z-index: 3;
   }
 
   .caseStack:not([data-stack-ready])
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(3) {
-    --deck-isx: 0.7736;
-    transform: translate(calc(50% + 8px), calc(-100% - 2px)) scaleX(1.2927);
-    border-radius: 9.28px / 12px;
-    background-color: rgb(192, 192, 192);
+    --deck-isx: 0.7759;
+    transform: translate(calc(50% + 8px), calc(-100% - 2px)) scaleX(1.2888);
+    border-radius: 9.31px / 12px;
+    --deck-tone: rgb(192, 192, 192);
     z-index: 2;
   }
 
@@ -288,10 +359,10 @@
   .caseStack:not([data-stack-ready])
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(4) {
-    --deck-isx: 0.8841;
-    transform: translate(calc(-50% - 8px), calc(-100% - 2px)) scaleX(1.1311);
-    border-radius: 10.61px / 12px;
-    background-color: rgb(192, 192, 192);
+    --deck-isx: 0.8868;
+    transform: translate(calc(-50% - 8px), calc(-100% - 2px)) scaleX(1.1277);
+    border-radius: 10.64px / 12px;
+    --deck-tone: rgb(192, 192, 192);
     z-index: 1;
   }
 }

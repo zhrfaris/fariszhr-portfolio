@@ -82,7 +82,7 @@ const HomeExperience = ({
 
       <section className={styles.cases} ref={casesRef}>
         <div className={styles.casesInner} ref={innerRef}>
-          <div className={styles.wrap}>
+          <div className={styles.casesWrap}>
             {/* hidden while the deck is stacked; the deck fades it up on the
                 same ramp as the card contents */}
             <div className={styles.casesHead} ref={casesHeadRef}>

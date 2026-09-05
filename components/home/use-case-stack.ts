@@ -65,13 +65,38 @@ const FRONT_TONE = 245;
 const RADIUS = 12;
 
 /**
- * The card contents only fade up once the deck is nearly dealt out — and the
- * section heading rides the same ramp, so heading, card bodies and tags all
- * arrive together rather than the heading announcing a grid that is still a
- * blank stack.
+ * The heading reserves layout height the deck offsets while it is hidden; this
+ * ramp is what hands that height back. It is layout compensation only — the
+ * content reveal itself is no longer scroll-linked (see FADE_MS).
  */
-const CONTENT_FROM = 0.82;
-const CONTENT_SPAN = 0.16;
+const RESERVE_FROM = 0.82;
+const RESERVE_SPAN = 0.16;
+
+/**
+ * Card bodies, tags and the heading stay at zero for the whole scroll-driven
+ * approach, then rise into place the moment the deck is genuinely at rest —
+ * a short lift plus a fade on an ease-out, so the content arrives rather than
+ * simply appearing. Deliberately the opposite character to the card's hover,
+ * which is instant. Applied as a transition for the duration and then taken
+ * back off, the same lifecycle as the hover lift, so it never fights a
+ * scroll-driven write.
+ */
+const REVEAL_MS = 560;
+const REVEAL_LIFT = 12;
+const REVEAL_EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+
+/** The heading gets a flat fade — no motion of its own. */
+const HEAD_FADE_MS = 180;
+
+/**
+ * The stacked depth treatment is at full strength while the tiers are still
+ * clearly apart, off while they cross, and back only once the cards have
+ * separated into their own slots — which happens later than the content
+ * reveal, so it gets its own window rather than sharing that ramp.
+ */
+const DEPTH_HOLD = 0.3;
+const DEPTH_RETURN_FROM = 0.95;
+const DEPTH_RETURN_SPAN = 0.05;
 
 const STACK_LIFT = 8;
 const LIFT_DUR = 160;
@@ -137,6 +162,7 @@ export const useCaseStack = ({
   /** true whenever the deck must not animate at all: mobile, or reduced motion */
   const staticRef = useRef(false);
   const liftTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   /* the blanket is the only piece of this that React renders, so it is the
      only piece that needs state — everything else is written to the DOM */
@@ -160,7 +186,7 @@ export const useCaseStack = ({
   const stripCard = useCallback((card: HTMLElement) => {
     card.style.transform = "";
     card.style.borderRadius = "";
-    card.style.backgroundColor = "";
+    card.style.removeProperty("--deck-tone");
     const content = contentOf(card);
     if (content) {
       content.style.transform = "";
@@ -198,11 +224,79 @@ export const useCaseStack = ({
         // lift is dropped here as well as on pointerleave
         liftedRef.current = false;
         clearTimeout(liftTimerRef.current);
+
+        const heading = headingRef.current;
+
+        /* Only what sits inside the card rises: the thumbnail/text row and the
+           tag row. The card's own shell — border, fill, inset — has been
+           visible since the deck was stacked and must not re-reveal, so the
+           wrapper that carries it is restored instantly instead. */
+        const risers = cards.flatMap((card) => {
+          const content = contentOf(card);
+          return content
+            ? Array.from(content.children).filter(
+                (el): el is HTMLElement => el instanceof HTMLElement,
+              )
+            : [];
+        });
+
+        risers.forEach((el) => {
+          el.style.transition = "none";
+          el.style.transform = `translateY(${REVEAL_LIFT}px)`;
+          el.style.opacity = "0";
+          void el.offsetHeight;
+        });
+        if (heading) {
+          heading.style.transition = "none";
+          heading.style.opacity = "0";
+          void heading.offsetHeight;
+        }
+
+        const ease =
+          `opacity ${REVEAL_MS}ms ${REVEAL_EASE},` +
+          ` transform ${REVEAL_MS}ms ${REVEAL_EASE}`;
+        risers.forEach((el) => {
+          el.style.transition = ease;
+        });
+        // flat fade, no motion — the heading is not part of the card group
+        if (heading) heading.style.transition = `opacity ${HEAD_FADE_MS}ms ease`;
+
         cards.forEach(restCard);
-        if (headingRef.current) headingRef.current.style.opacity = "";
-        if (hostRef.current) hostRef.current.style.transform = "";
+        risers.forEach((el) => {
+          el.style.transform = "";
+          el.style.opacity = "";
+        });
+        if (heading) heading.style.opacity = "";
+
+        if (hostRef.current) {
+          hostRef.current.style.transform = "";
+          hostRef.current.style.removeProperty("--deck-depth");
+        }
+
+        clearTimeout(fadeTimerRef.current);
+        fadeTimerRef.current = setTimeout(() => {
+          risers.forEach((el) => {
+            el.style.transition = "";
+          });
+          if (headingRef.current) headingRef.current.style.transition = "";
+        }, REVEAL_MS + 60);
         return;
       }
+
+      clearTimeout(fadeTimerRef.current);
+      cards.forEach((card) => {
+        const content = contentOf(card);
+        if (!content) return;
+        content.style.transition = "";
+        Array.from(content.children).forEach((el) => {
+          if (el instanceof HTMLElement) {
+            el.style.transition = "";
+            el.style.transform = "";
+            el.style.opacity = "";
+          }
+        });
+      });
+      if (headingRef.current) headingRef.current.style.transition = "";
 
       cards.forEach((card, i) => {
         card.style.transformOrigin = "50% 0";
@@ -230,44 +324,70 @@ export const useCaseStack = ({
       /* the lift fades out with inv on its own: by the time a card has settled
          there is nothing left to lift, so no separate settled-check is needed */
       const lift = liftedRef.current ? -STACK_LIFT * inv : 0;
-      const revealed = clamp01((s - CONTENT_FROM) / CONTENT_SPAN);
-      const reveal = revealed.toFixed(3);
+      /* Only the cards that own a tier lift. Anything past TIERS is nested
+         inside the back tier and invisible, and giving it a staggered lift of
+         its own made it lag its tier-mate mid-transition and peek out. It now
+         holds still, which keeps it occluded through the whole animation. */
+      // nothing is revealed until settle: this only closes the heading's reserve
+      const revealed = clamp01((s - RESERVE_FROM) / RESERVE_SPAN);
 
       const heading = headingRef.current;
-      if (heading) heading.style.opacity = reveal;
+      if (heading) heading.style.opacity = "0";
 
       /* The heading is back in flow but still invisible, so the whole deck
          region rides up by the height it reserves and gives it back exactly as
          the heading fades in. Done as a transform rather than a layout change:
          the cards' slots are measured from this layout, so collapsing it for
          real would move their targets mid-flight. */
+      /* The tiers sit 13px apart while stacked but converge to nothing as they
+         deal out, and each card's inset band is ~6px thick — so through the
+         middle of the range two bands land within a few px of each other and
+         read as one doubled edge. Depth is therefore full while the deck is
+         genuinely stacked, off through the crossing, and back with the content
+         reveal once the cards are separate grid cards again. One scalar, on the
+         host, so the treatment itself stays static CSS. */
+      const stacked = clamp01((inv - DEPTH_HOLD) / (1 - DEPTH_HOLD));
+      const returning = clamp01(
+        (s - DEPTH_RETURN_FROM) / DEPTH_RETURN_SPAN,
+      );
       const host = hostRef.current;
-      if (host)
+      if (host) {
+        host.style.setProperty(
+          "--deck-depth",
+          Math.max(stacked, returning).toFixed(3),
+        );
         host.style.transform = `translateY(${(
           -headReserveRef.current * (1 - revealed)
         ).toFixed(2)}px)`;
+      }
 
       cards.forEach((card, i) => {
         const layer = layers[i];
         if (!layer) return;
 
         const sx = 1 + (layer.sx - 1) * inv;
+        const cardLift = i < TIERS ? lift : 0;
         card.style.transform =
           `translate(${(layer.dx * inv).toFixed(2)}px,` +
-          `${(layer.dy * inv + lift).toFixed(2)}px)` +
+          `${(layer.dy * inv + cardLift).toFixed(2)}px)` +
           ` scaleX(${sx.toFixed(4)})`;
         // scaleX would smear the corners into ellipses, so pre-divide the x radius
         card.style.borderRadius = `${(RADIUS / sx).toFixed(2)}px / ${RADIUS}px`;
 
+        /* The only thing here that changes continuously is the tone itself, so
+           that is all the frame writes. Its border, inset shadow and radius are
+           static CSS keyed to the tier — set once, never re-applied. */
         const tone = Math.round(layer.tone + (FRONT_TONE - layer.tone) * s);
-        card.style.backgroundColor = `rgb(${tone},${tone},${tone})`;
+        card.style.setProperty("--deck-tone", `rgb(${tone},${tone},${tone})`);
 
         const content = contentOf(card);
         if (content) {
           // and undo the stretch on the contents, so type is never distorted
           content.style.transformOrigin = "50% 0";
           content.style.transform = `scaleX(${(1 / sx).toFixed(4)})`;
-          content.style.opacity = reveal;
+          /* Hidden at the row level: the wrapper keeps its own styling visible
+             and carries the counter-scale for everything inside it. */
+          content.style.opacity = "0";
         }
       });
 
@@ -368,7 +488,11 @@ export const useCaseStack = ({
 
       const cards = cardsRef.current;
       cards.forEach((card, i) => {
-        card.style.transition = `transform ${LIFT_DUR}ms ease ${i * LIFT_STAGGER}ms`;
+        // the nested cards never move, so they are never given a transition
+        card.style.transition =
+          i < TIERS
+            ? `transform ${LIFT_DUR}ms ease ${i * LIFT_STAGGER}ms`
+            : NO_TRANSITION;
       });
       const deck = deckRef.current;
       if (deck) deck.style.transition = `transform ${LIFT_DUR}ms ease`;
@@ -384,7 +508,7 @@ export const useCaseStack = ({
             card.style.transition = NO_TRANSITION;
           });
         },
-        LIFT_DUR + (cards.length - 1) * LIFT_STAGGER + 60,
+        LIFT_DUR + (Math.min(cards.length, TIERS) - 1) * LIFT_STAGGER + 60,
       );
     },
     [deckRef, paint],
@@ -409,7 +533,10 @@ export const useCaseStack = ({
       if (wasOff) return; // already handed over; nothing left to undo
       cardsRef.current.forEach(restCard);
       if (headingRef.current) headingRef.current.style.opacity = "";
-      if (hostRef.current) hostRef.current.style.transform = "";
+      if (hostRef.current) {
+        hostRef.current.style.transform = "";
+        hostRef.current.style.removeProperty("--deck-depth");
+      }
       measuredRef.current = false;
       settledRef.current = true;
       setSettled(true);
