@@ -43,6 +43,12 @@ void main(){
 /* One light and one gutter model, shared by the folding sheet and the flat
    pages. That is the only way the hand-off at 0% and 100% stays invisible. */
 const PAPER_GLSL = /* glsl */ `
+/* The page art is 1440px wide and lands on roughly 580 device px, so the
+   sampler sits at LOD ~1.31 and trilinear blends in a third of the 360px mip —
+   half the resolution actually needed, which is what reads as soft. Biasing
+   half a level pulls the blend down to mip0/mip1 (1440/720): sharper, and still
+   mipped, so a page mid-turn does not shimmer. */
+const float LOD_BIAS = -0.5;
 const vec3 LIGHT = vec3(-0.26, 0.46, 0.85);
 float lambert(vec3 N){
   float d = dot(N, normalize(LIGHT));
@@ -66,8 +72,8 @@ varying vec2 vUv; varying vec3 vN; varying float vBend; varying vec2 vFlat;
 void main(){
   bool front = gl_FrontFacing;
   float land = smoothstep(0.90, 1.0, uProgress);
-  vec3 col = front ? texture2D(uFront, vUv).rgb
-                   : texture2D(uBack, vec2(1.0-vUv.x, vUv.y)).rgb * mix(0.972, 1.0, land);
+  vec3 col = front ? texture2D(uFront, vUv, LOD_BIAS).rgb
+                   : texture2D(uBack, vec2(1.0-vUv.x, vUv.y), LOD_BIAS).rgb * mix(0.972, 1.0, land);
   vec3 N = normalize(vN); if(!front) N = -N;
   col *= (0.74 + 0.30*lambert(N)) * (1.0 - vBend*0.13);
   col += sheen(N, vec3(0.0, 0.0, 1.0));
@@ -98,7 +104,7 @@ float onSheet(vec2 p, float e){
   return mx * my;
 }
 void main(){
-  vec3 col = texture2D(uMap, vUv).rgb;
+  vec3 col = texture2D(uMap, vUv, LOD_BIAS).rgb;
   if (uActive > 0.5){
     float s = dot(vPos - uMid, uDir);
     float arc  = min(uHalf / uR, PI);

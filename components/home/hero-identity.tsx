@@ -13,7 +13,7 @@ import { User } from "@/actions/user/get/type";
  */
 const HeroIdentity = ({ user }: { user?: User }) => (
   <div className={styles.identity}>
-    <Avatar className="size-[clamp(56px,8.2vh,84px)] rounded-[calc(clamp(56px,8.2vh,84px)/4.2)] shadow-[0_0_0_5px_#fff,0_3px_14px_rgba(0,0,0,.16)]">
+    <Avatar className={styles.portrait}>
       <AvatarImage
         src={user?.photo?.img_url ?? identityContent.portraitFallback}
         alt=""

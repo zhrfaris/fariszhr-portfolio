@@ -28,9 +28,10 @@ const SiteFooter = ({
   onBackToTop: () => void;
 }) => (
   <footer className={styles.siteFooter}>
-    {/* casesWrap, not wrap: the footer sits under the case-study grid and has
-        to share its 832px column, not the hero's narrower 720px one. */}
-    <div className={`${styles.casesWrap} ${styles.footerInner}`}>
+    {/* footerWrap, not casesWrap: the footer is deliberately inset deeper than
+        the card grid — 320px a side against the grid's 304px at the 1440
+        reference width. */}
+    <div className={`${styles.footerWrap} ${styles.footerInner}`}>
       <div className={styles.links}>
         {user?.email && (
           <Link href={`mailto:${user.email}`} className="group">

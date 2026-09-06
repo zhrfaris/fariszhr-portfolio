@@ -82,19 +82,22 @@ const RESERVE_SPAN = 0.16;
  * scroll-driven write.
  */
 /**
- * The reveal is tied to the scroll rather than to a timer at the settle
- * boundary: the rows and the heading come up over the last fifth of the range,
- * barely there at REVEAL_FROM and complete as the cards reach their slots.
- * Being a function of s it is symmetric for free — scrolling back up runs the
- * same curve in reverse, so content trails off at low opacity instead of
- * snapping away.
+ * Hybrid reveal: scroll decides *when*, the clock decides *how long*. Content
+ * stays hidden until the deck is nearly home, then rises on its own eased
+ * transition — so the motion reads the same whether the reader eases in or
+ * flicks through. Tying opacity straight to s made the duration whatever the
+ * scroll happened to cover, which is what felt rushed.
  *
- * Smoothstep rather than a plain ease-out: gentle at both ends, so nothing
- * jumps into being just after REVEAL_FROM and nothing lands hard at 1.
+ * Crossing the threshold in either direction runs the same transition, so
+ * scrolling back up is the reveal in reverse rather than a snap.
  */
-const REVEAL_FROM = 0.8;
+const REVEAL_AT = 0.92;
+const REVEAL_MS = 700;
+const REVEAL_EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 const REVEAL_LIFT = 16;
-const smoothstep = (t: number) => t * t * (3 - 2 * t);
+
+/** No hover-lift while the page is moving; cleared this long after the last frame. */
+const SCROLL_IDLE_MS = 140;
 
 /**
  * Depth never falls all the way to nothing. Zeroing it removed the doubled edge
@@ -106,6 +109,9 @@ const smoothstep = (t: number) => t * t * (3 - 2 * t);
  */
 const DEPTH_FLOOR = 0.5;
 
+/** eased 0..1, flat at both ends — no velocity step where a ramp begins or ends */
+const smoothstep = (t: number) => t * t * (3 - 2 * t);
+
 /**
  * The stacked depth treatment is at full strength while the tiers are still
  * clearly apart, off while they cross, and back only once the cards have
@@ -113,8 +119,20 @@ const DEPTH_FLOOR = 0.5;
  * reveal, so it gets its own window rather than sharing that ramp.
  */
 const DEPTH_HOLD = 0.3;
-const DEPTH_RETURN_FROM = 0.95;
-const DEPTH_RETURN_SPAN = 0.05;
+/**
+ * Measured, not chosen: adjacent cards in a row overlap by 48px at s=0.90,
+ * 16px at 0.95, and exactly 0 at 0.975 — so the doubled-edge risk this hold
+ * exists to suppress decays linearly to nothing across that stretch. The
+ * return therefore tracks the overlap decay rather than waiting for it to
+ * finish: it starts while the bands still overlap but is weak there, and only
+ * reaches full once they have separated.
+ *
+ * It ends at 0.99, deliberately short of the settle boundary, so the last
+ * hundredth of the scroll changes nothing at all and the hand-off from the
+ * inline values to the CSS fallbacks is a no-op by construction.
+ */
+const DEPTH_RETURN_FROM = 0.9;
+const DEPTH_RETURN_SPAN = 0.09;
 
 const STACK_LIFT = 8;
 const LIFT_DUR = 160;
@@ -176,10 +194,19 @@ export const useCaseStack = ({
   const lastSRef = useRef(0);
   const measuredRef = useRef(false);
   const liftedRef = useRef(false);
+  /* what the pointer wants, kept apart from what the deck is doing: a hover
+     that arrives mid-scroll is remembered and honoured once the page stops,
+     rather than dropped on the floor until the cursor moves again */
+  const hoverRef = useRef(false);
+  const applyLiftRef = useRef<() => void>();
   const settledRef = useRef(false);
   /** true whenever the deck must not animate at all: mobile, or reduced motion */
   const staticRef = useRef(false);
   const liftTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const shownRef = useRef(false);
+  const scrollingRef = useRef(false);
+  const scrollIdleRef = useRef<ReturnType<typeof setTimeout>>();
 
   /* the blanket is the only piece of this that React renders, so it is the
      only piece that needs state — everything else is written to the DOM */
@@ -218,6 +245,10 @@ export const useCaseStack = ({
     return out;
   }, [headingRef]);
 
+  const hide = (el: HTMLElement) => {
+    el.style.transform = `translateY(${REVEAL_LIFT}px)`;
+    el.style.opacity = "0";
+  };
   const show = (el: HTMLElement) => {
     el.style.transform = "";
     el.style.opacity = "";
@@ -235,6 +266,31 @@ export const useCaseStack = ({
       content.style.opacity = "";
     }
   }, []);
+
+  /**
+   * Settling is NOT the same as releasing. Dropping will-change, z-index and
+   * the transform together destroyed every card's compositing layer in the one
+   * frame that also enabled hover, and re-rasterising eight elements at once —
+   * text antialiasing included — is the flash seen the moment a card became
+   * hoverable. Nothing about the colour, the geometry or the hover rule changed
+   * there; only whether the card was still its own layer.
+   *
+   * So the promotions stay and only the values are normalised. The card keeps
+   * will-change, z-index, transform-origin and its (now identity) transform,
+   * and gets its tab stop back. restCard below is the real release, for when
+   * the deck is genuinely torn down.
+   */
+  const settleCard = useCallback(
+    (card: HTMLElement) => {
+      card.style.transform = "translate(0px, 0px) scaleX(1)";
+      card.style.borderRadius = "";
+      card.style.removeProperty("--deck-tone");
+      card.removeAttribute("tabindex");
+      const content = contentOf(card);
+      if (content) content.style.transform = "scaleX(1)";
+    },
+    [],
+  );
 
   /** hand the card back to the grid exactly as it was rendered */
   const restCard = useCallback(
@@ -264,8 +320,9 @@ export const useCaseStack = ({
         // the pointer leaves with the blanket rather than by moving, so the
         // lift is dropped here as well as on pointerleave
         liftedRef.current = false;
+        hoverRef.current = false;
         clearTimeout(liftTimerRef.current);
-        cards.forEach(restCard);
+        cards.forEach(settleCard);
         /* The curve is already at 1 by the time this runs, so handing the
            resting values back changes nothing on screen — it only stops the
            per-frame writes. */
@@ -273,8 +330,16 @@ export const useCaseStack = ({
         if (hostRef.current) {
           hostRef.current.style.transform = "";
           hostRef.current.style.removeProperty("--deck-depth");
+          hostRef.current.style.removeProperty("--deck-nested");
         }
         return;
+      }
+
+      if (!shownRef.current) {
+        risers().forEach((el) => {
+          el.style.transition = "";
+          hide(el);
+        });
       }
 
       cards.forEach((card, i) => {
@@ -285,13 +350,37 @@ export const useCaseStack = ({
         card.tabIndex = -1;
       });
     },
-    [restCard, hostRef, risers],
+    [settleCard, hostRef, risers],
   );
 
   const paint = useCallback(
     (s: number) => {
+      const prev = lastSRef.current;
       lastSRef.current = s;
       if (staticRef.current || !measuredRef.current) return;
+
+      /* The signal is the scroll having actually moved, not paint having been
+         called. applyLift repaints at the same s to put the lift on screen, so
+         keying off the call would have the lift cancel itself the moment it was
+         applied — which is exactly what it did. A lift armed while the page is
+         moving tweens every scroll-driven transform for its 160ms and reads as
+         a shake, so it is dropped for as long as the scroll is live. */
+      if (s !== prev) {
+        scrollingRef.current = true;
+        if (liftedRef.current) {
+          liftedRef.current = false;
+          clearTimeout(liftTimerRef.current);
+          cardsRef.current.forEach((card) => {
+            card.style.transition = NO_TRANSITION;
+          });
+        }
+        clearTimeout(scrollIdleRef.current);
+        scrollIdleRef.current = setTimeout(() => {
+          scrollingRef.current = false;
+          // the cursor may have come to rest over the deck while it was moving
+          applyLiftRef.current?.();
+        }, SCROLL_IDLE_MS);
+      }
 
       const atRest = s >= SETTLED;
       if (atRest !== settledRef.current) applySettled(atRest);
@@ -310,14 +399,26 @@ export const useCaseStack = ({
       // nothing is revealed until settle: this only closes the heading's reserve
       const revealed = clamp01((s - RESERVE_FROM) / RESERVE_SPAN);
 
-      const shown = smoothstep(clamp01((s - REVEAL_FROM) / (1 - REVEAL_FROM)));
-      risers().forEach((el) => {
-        el.style.opacity = shown.toFixed(3);
-        el.style.transform = `translateY(${(
-          REVEAL_LIFT *
-          (1 - shown)
-        ).toFixed(2)}px)`;
-      });
+      /* Crossing the threshold arms the transition and sets the target once;
+         nothing is written per frame, so the scroll cannot re-trigger it. */
+      const wantShown = s >= REVEAL_AT;
+      if (wantShown !== shownRef.current) {
+        shownRef.current = wantShown;
+        const els = risers();
+        const ease =
+          `opacity ${REVEAL_MS}ms ${REVEAL_EASE},` +
+          ` transform ${REVEAL_MS}ms ${REVEAL_EASE}`;
+        els.forEach((el) => {
+          el.style.transition = ease;
+        });
+        els.forEach(wantShown ? show : hide);
+        clearTimeout(revealTimerRef.current);
+        revealTimerRef.current = setTimeout(() => {
+          els.forEach((el) => {
+            el.style.transition = "";
+          });
+        }, REVEAL_MS + 60);
+      }
 
       /* The heading is back in flow but still invisible, so the whole deck
          region rides up by the height it reserves and gives it back exactly as
@@ -332,16 +433,26 @@ export const useCaseStack = ({
          reveal once the cards are separate grid cards again. One scalar, on the
          host, so the treatment itself stays static CSS. */
       const stacked = clamp01((inv - DEPTH_HOLD) / (1 - DEPTH_HOLD));
-      const returning = clamp01(
-        (s - DEPTH_RETURN_FROM) / DEPTH_RETURN_SPAN,
+      /* Blended, not max()'d. Taking the larger of the floor and a linear ramp
+         left the floor winning until the ramp crossed it, which put a hard
+         velocity step at s=0.975: depth sat flat for the whole scroll and then
+         doubled the front card's inset over the last 2.5% — 2-3 frames, and
+         the flash. Easing from the floor to full removes the step entirely. */
+      const returning = smoothstep(
+        clamp01((s - DEPTH_RETURN_FROM) / DEPTH_RETURN_SPAN),
       );
-      const depth = Math.max(stacked, returning, DEPTH_FLOOR);
+      const base = Math.max(stacked, DEPTH_FLOOR);
+      const depth = base + (1 - base) * returning;
+      /* The back tiers' softened inset is a stack treatment, so it has to be
+         gone by the time they are plain grid cards — and gone *continuously*,
+         or the frame that drops it flashes. It rides the depth's own return
+         ramp: full while they are still tiers, zero at rest, where it equals
+         the resting shadow exactly. */
+      const nested = 1 - returning;
       const host = hostRef.current;
       if (host) {
-        host.style.setProperty(
-          "--deck-depth",
-          depth.toFixed(3),
-        );
+        host.style.setProperty("--deck-depth", depth.toFixed(3));
+        host.style.setProperty("--deck-nested", nested.toFixed(3));
         host.style.transform = `translateY(${(
           -headReserveRef.current * (1 - revealed)
         ).toFixed(2)}px)`;
@@ -463,12 +574,16 @@ export const useCaseStack = ({
    * runs front-to-back either way: the front card leads and each layer behind
    * follows a beat later, same order lifting up and dropping back down.
    */
-  const setLift = useCallback(
-    (v: boolean) => {
-      if (liftedRef.current === v || settledRef.current || staticRef.current)
-        return;
-      liftedRef.current = v;
+  const applyLift = useCallback(() => {
+    const want =
+      hoverRef.current &&
+      !scrollingRef.current &&
+      !settledRef.current &&
+      !staticRef.current;
+    if (liftedRef.current === want) return;
+    liftedRef.current = want;
 
+    {
       const cards = cardsRef.current;
       cards.forEach((card, i) => {
         // the nested cards never move, so they are never given a transition
@@ -493,8 +608,16 @@ export const useCaseStack = ({
         },
         LIFT_DUR + (Math.min(cards.length, TIERS) - 1) * LIFT_STAGGER + 60,
       );
+    }
+  }, [deckRef, paint]);
+  applyLiftRef.current = applyLift;
+
+  const setLift = useCallback(
+    (v: boolean) => {
+      hoverRef.current = v;
+      applyLift();
     },
-    [deckRef, paint],
+    [applyLift],
   );
 
   /**
@@ -515,10 +638,18 @@ export const useCaseStack = ({
     if (off) {
       if (wasOff) return; // already handed over; nothing left to undo
       cardsRef.current.forEach(restCard);
+      /* the reveal is inline, so handing over to the static layout has to give
+         the rows back explicitly or they stay hidden at their offset */
+      shownRef.current = true;
+      risers().forEach((el) => {
+        el.style.transition = "";
+        show(el);
+      });
       if (headingRef.current) headingRef.current.style.opacity = "";
       if (hostRef.current) {
         hostRef.current.style.transform = "";
         hostRef.current.style.removeProperty("--deck-depth");
+        hostRef.current.style.removeProperty("--deck-nested");
       }
       measuredRef.current = false;
       settledRef.current = true;
@@ -530,7 +661,7 @@ export const useCaseStack = ({
     // settled — the deck has to be built again before paint can drive it
     if (wasOff) settledRef.current = false;
     measure();
-  }, [measure, restCard, hostRef, headingRef]);
+  }, [measure, restCard, risers, hostRef, headingRef]);
 
   useIsomorphicLayoutEffect(() => {
     const mobile = window.matchMedia(MOBILE);

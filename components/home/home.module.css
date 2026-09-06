@@ -25,10 +25,19 @@
   letter-spacing: -0.01em;
 }
 
+/* One gutter for the hero, the case grid and the footer. They used to declare
+   32px each independently, which is how the case section ended up out of step
+   with the hero once the hero's mobile gutter dropped to 22px. */
+.wrap,
+.casesWrap,
+.footerWrap {
+  --gutter: 32px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
 .wrap {
   max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 0 32px;
 }
 
 /* The case-study grid is its own frame, not the hero's. Two 408px cards plus
@@ -36,8 +45,14 @@
    cannot hold — so this section is decoupled from --maxw entirely. */
 .casesWrap {
   max-width: 896px;
-  margin: 0 auto;
-  padding: 0 32px;
+}
+
+/* The footer is inset deeper than the cards on purpose. cases-default.png's
+   frame is 1440 wide with the footer content 320px in from each side, against
+   the card grid's own 304px — so 800px of content here where the grid gets
+   832px. */
+.footerWrap {
+  max-width: 864px;
 }
 
 /* ---------- hero pinned under the rising surface ---------- */
@@ -74,6 +89,25 @@
   gap: 18px;
   align-items: center;
   flex: none;
+}
+
+/* Sized to the copy beside it rather than to the viewport. It used to be
+   clamp(56px, 8.2vh, 84px), which is why it grew to overhang the text block on
+   a tall screen — the copy column is font-driven and stays 68px whatever the
+   viewport height is, so on 1080p the portrait stood ~14px proud of it.
+
+   68px is that measured copy height. It is a fixed number rather than a
+   stretch because flex resolves an item's main size before its stretched cross
+   size, so `aspect-ratio` cannot feed a stretched height back into the width —
+   the square ends up contributing zero width and the name overlaps the copy. */
+.portrait {
+  flex: none;
+  width: 68px;
+  height: 68px;
+  border-radius: 23.8%;
+  box-shadow:
+    0 0 0 5px #fff,
+    0 3px 14px rgba(0, 0, 0, 0.16);
 }
 
 .identity h1 {
@@ -215,6 +249,17 @@
   .caseStack [data-case-grid] > * {
     height: 240px;
     border-radius: 12px;
+    /* The 2px border is what holds the skeuomorphic edge together: .card sets
+       background-clip: padding-box, so the border paints its own ring and the
+       inset depth shadow starts 2px in from the outer edge rather than flush
+       with it. Carrying it as padding instead flattened that bevel away.
+
+       It does mean the border is stretched by the deck's scaleX (2px renders as
+       3.22px on the front tier against 2.26px on the back), so each tier's
+       padding-box corner — the one the inset shadow traces — sits on a slightly
+       different curve. The outer edge is a true 12px on every tier either way.
+       That ~1px variation is the lesser of the two evils; a fractional border
+       cannot fix it because border-width snaps to 0.5px. */
     border: 2px solid #f5f5f5;
     background: #f5f5f5;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1) inset;
@@ -301,18 +346,49 @@
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, calc(0.1 * var(--deck-depth, 1))) inset;
   }
 
+  /* The stacked value of the scalar above, so the first painted frame — before
+     hydration, and between hand-off and the first scroll frame — softens the
+     back tiers exactly as the hook's own s=0 write would. JS overrides this
+     inline per frame; at settle both the attribute and the inline value go and
+     the calc() falls back to 0, which is the resting shadow. */
+  .caseStack[data-deck-motion] {
+    --deck-nested: 1;
+  }
+
   /* Same treatment, softened on the tiers that are nearly all hidden. The
      spec's inset is a ~6px band, which is 2.4% of the front card but 46% of
      the ~13px sliver a back tier actually shows — identical shadow, and it
      reads as depth on one and as a dark bar on the other. Back tiers get a
      lighter inset and a hairline top highlight instead, so the stack reads as
-     paper edges catching light. Front card keeps the spec exactly. */
+     paper edges catching light. Front card keeps the spec exactly.
+
+     Every component is interpolated on --deck-nested rather than switched, so
+     at nested 0 this rule resolves to the spec shadow above — same offset,
+     same blur, same alpha, highlight at zero opacity — and the treatment can
+     be handed back at settle without a frame that changes. It used to simply
+     stop applying when data-deck-motion came off, which dropped a 0.45 white
+     highlight and doubled the inset in one frame: the flash. */
   .caseStack[data-deck-motion]
     [data-case-grid]:has(> :nth-child(4):last-child)
     > *:nth-child(n + 2) {
     box-shadow:
-      0 1px 2px 0 rgba(0, 0, 0, calc(0.05 * var(--deck-depth, 1))) inset,
-      0 1px 0 0 rgba(255, 255, 255, calc(0.45 * var(--deck-depth, 1))) inset;
+      0 calc(2px - 1px * var(--deck-nested, 0))
+        calc(4px - 2px * var(--deck-nested, 0)) 0
+        rgba(
+          0,
+          0,
+          0,
+          calc((0.1 - 0.05 * var(--deck-nested, 0)) * var(--deck-depth, 1))
+        )
+        inset,
+      0 1px 0 0
+        rgba(
+          255,
+          255,
+          255,
+          calc(0.45 * var(--deck-nested, 0) * var(--deck-depth, 1))
+        )
+        inset;
   }
 
   /* The heading is hidden for exactly as long as the deck is stacked, so the
@@ -430,14 +506,29 @@
 }
 
 .footerInner {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 24px;
   flex-wrap: wrap;
-  border-top: 1px solid #ededed;
   margin-top: clamp(22px, 3.6vh, 40px);
   padding-top: 22px;
+}
+
+/* Drawn inside the gutter rather than as a border-top. A border is painted on
+   the border box, so it ran the full padded width and overhung the footer's own
+   content by the gutter at each end — full-bleed on mobile, 32px proud on
+   desktop. As a pseudo-element it starts and ends exactly where the content
+   does. */
+.footerInner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--gutter);
+  right: var(--gutter);
+  height: 1px;
+  background: #ededed;
 }
 
 .links {
@@ -467,9 +558,99 @@
   font-family: inherit;
 }
 
+/* ---- mobile corrections (docs/design/mobile-final.png is the reference) ----
+   Both of these are desktop figures leaking down: the card sizing round fixed
+   the thumbnail at 200px square and the footer was only ever laid out as a
+   row. 767px is the same gate the choreography, the deck and the grid's own
+   md: breakpoint use, so everything switches together and desktop is untouched. */
+@media (max-width: 767px) {
+  /* 200px square is 63% of a 375px card and overflows the row. The reference
+     has the thumbnail at ~45% of the card width, square, filling the card's
+     height. Kept as a proportion rather than a second fixed number so it holds
+     across mobile widths. `.img` is showcase-card.tsx's own class — that file
+     is protected and untouched, so it is reached here with :global() to stop
+     CSS Modules hashing the name. */
+  .caseStack [data-case-grid] :global(.img) {
+    width: 45%;
+    height: auto;
+    aspect-ratio: 1;
+    flex: none;
+  }
+
+  /* One left-aligned column, in DOM order: email, LinkedIn, CV, back to top.
+     As a wrapping row the three links ran out of width and broke into two
+     lines with the button stranded on a third. Gaps are measured off the
+     reference: 49-50px between link rows and 59px before the button, against a
+     21px row box. */
+  /* mobile-final.png has the heading and its subtitle ranged left with the
+     cards, both starting at the same 32px gutter. */
+  .casesHead {
+    text-align: left;
+  }
+
+  /* Measured off mobile-final.png at 375: the heading's ink is 24 image px on
+     a 1.92 scale, which is 16px of a face whose ink is 0.769em; the subtitle's
+     0.977em ink gives 13px. They were rendering at 18 and 14. */
+  .casesHead h2 {
+    font-size: 16px;
+    /* the 5px it carries at desktop put 15.2 between the two inks where the
+       reference has 10.4; the line boxes already supply the rest */
+    margin-bottom: 0;
+  }
+
+  .casesHead p {
+    font-size: 13px;
+  }
+
+  /* The reference leaves 49 image px (25.5) between the subtitle's ink and the
+     first card, where the shared clamp was giving ~32. */
+  .casesHead {
+    margin-bottom: 23px;
+  }
+
+  /* Same method on the card: the description's 19px ink at 0.957em is 10px,
+     not the 11px it was. The title already measured 14px and is left alone,
+     and the tag row is display:none below md so it never renders here. */
+  .caseStack [data-case-grid] :global(.text) p {
+    font-size: 10px;
+  }
+
+  /* a step over the 10px description rather than the 14px it was */
+  .caseStack [data-case-grid] :global(.text) h3 {
+    font-size: 13px;
+  }
+
+  /* The case section's own bottom margin (mb-12, 48px) is what sets the
+     distance to the footer rule — it collapses with the footer's margin and
+     wins. It is zeroed here so the footer's own margin below is the single
+     value that decides the gap. mobile-final.png puts the rule 63 image px
+     under the last card, which is 33 at this scale. */
+  .caseStack > :first-child {
+    margin-bottom: 0;
+  }
+
+  /* casesWrap pads the footer rather than insetting it, so the border-top ran
+     the full 375px edge to edge. Swapping the horizontal padding for margin
+     moves the border box itself in, so the rule starts and ends with the
+     content. The auto margins it replaces are already 0 at these widths. */
+  .footerInner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 40px;
+    margin-top: 33px;
+  }
+
+  .links {
+    flex-direction: column;
+    gap: 28px;
+  }
+}
+
 @media (max-width: 640px) {
-  .wrap {
-    padding: 0 22px;
+  .wrap,
+  .casesWrap,
+  .footerWrap {
+    --gutter: 22px;
   }
 
   .headerInner {
@@ -479,6 +660,11 @@
 
   .identity h1 {
     font-size: 18px;
+  }
+
+  .portrait {
+    width: clamp(56px, 8.2vh, 84px);
+    height: clamp(56px, 8.2vh, 84px);
   }
 
   .heroFoot {
@@ -501,7 +687,11 @@
     height: auto;
     transform: none;
     opacity: 1;
-    padding-bottom: 70px;
+    /* Measured off mobile-final.png: the badge sheet's bottom edge is y1217 —
+       y1241 is halfway down its drop shadow, which is what I mistook for the
+       edge — and the grey/white boundary is y1266. That is 49 image px, or 26
+       at this scale. */
+    padding-bottom: 26px;
   }
 
   .heroTrack {
@@ -516,7 +706,10 @@
 
   .casesInner {
     transform: none !important;
-    padding-top: 26px !important;
+    /* 16, not 26: mobile-final.png puts the heading's ink 42 image px under the
+       grey/white edge, which is 21.9 at this scale, and 26 was landing it at
+       32.4 once the font's own half-leading was counted. */
+    padding-top: 16px !important;
     padding-bottom: 26px !important;
   }
 
