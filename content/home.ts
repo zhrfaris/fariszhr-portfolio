@@ -46,15 +46,16 @@ export const zineContent = {
 /**
  * Final, pre-composed page artwork. One image per page face, in numeric order:
  * page-01 is the left half of the opening spread, page-02 its right half, and
- * so on — so eight images read as four spreads. The book loops, so every
+ * so on — so twelve images read as six spreads. The book loops, so every
  * spread has a turn out of it in both directions.
  *
- * Served as WebP (q82): the book is drawn in WebGL from the raw URL, so Next's
- * image optimizer never sees these files and the encoding has to be done ahead
- * of time. The source PNGs are kept alongside them at the same names.
+ * Served as WebP (q90, -sharp_yuv): the book is drawn in WebGL from the raw
+ * URL, so Next's image optimizer never sees these files and the encoding has to
+ * be done ahead of time. The source PNGs are kept alongside them at the same
+ * names.
  */
 export const ZINE_PAGES = Array.from(
-  { length: 8 },
+  { length: 12 },
   (_, i) => `/zine/page-${String(i + 1).padStart(2, "0")}.webp`,
 );
 
