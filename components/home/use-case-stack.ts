@@ -396,8 +396,15 @@ export const useCaseStack = ({
          inside the back tier and invisible, and giving it a staggered lift of
          its own made it lag its tier-mate mid-transition and peek out. It now
          holds still, which keeps it occluded through the whole animation. */
-      // nothing is revealed until settle: this only closes the heading's reserve
-      const revealed = clamp01((s - RESERVE_FROM) / RESERVE_SPAN);
+      /* Nothing is revealed until settle: this only closes the heading's reserve.
+         Eased, not linear — the host's translateY carries the whole deck region,
+         heading included, and a linear ramp clamped at RESERVE_FROM + SPAN was
+         travelling ~510px per unit s and then stopping dead at s=0.98 while the
+         cards themselves kept converging to 0.9999. The value was continuous but
+         its first derivative was not, and a whole block halting mid-motion is
+         exactly the kind of hitch that reads as a flash. Smoothstep brings it to
+         rest with zero velocity instead. */
+      const revealed = smoothstep(clamp01((s - RESERVE_FROM) / RESERVE_SPAN));
 
       /* Crossing the threshold arms the transition and sets the target once;
          nothing is written per frame, so the scroll cannot re-trigger it. */
