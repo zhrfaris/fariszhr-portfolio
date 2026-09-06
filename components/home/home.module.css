@@ -341,8 +341,17 @@
     [data-case-grid]:has(> :nth-child(4):last-child)
     > * {
     border-radius: 12px;
-    border: 2px solid var(--deck-tone);
-    background: var(--deck-tone);
+    /* The fallback is load-bearing, not defensive. settleCard removes
+       --deck-tone imperatively, but data-deck-motion is removed by a React
+       re-render on a later tick — so there is a window where this rule still
+       matches and the variable is already gone. Without a fallback the whole
+       declaration is invalid at computed-value time and drops to `unset`:
+       background-color goes transparent and border-color goes to currentColor,
+       and every card paints as bare white surface for a frame. #f5f5f5 is the
+       colour the base rule gives them at rest, so the two styling sources now
+       agree and the order they are applied in stops mattering. */
+    border: 2px solid var(--deck-tone, #f5f5f5);
+    background: var(--deck-tone, #f5f5f5);
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, calc(0.1 * var(--deck-depth, 1))) inset;
   }
 
