@@ -437,7 +437,13 @@ export const useZineRenderer = ({
          which every turn does. */
       sheet.setPointerCapture(ev.pointerId);
       // the canvas is the focusable element, so clicking the paper still
-      // hands it focus and leaves the arrow keys working
+      // hands it focus and leaves the arrow keys working.
+      // Flagged as pointer-driven first: Safari counts a scripted focus() as
+      // :focus-visible, and the ring that draws is the canvas box — the whole
+      // stage, 1.8x the book's height — so a touch drew a rectangle across
+      // half the page. The flag suppresses the ring for this focus only; a
+      // key press or a re-focus by Tab brings it straight back.
+      canvas.dataset.pointerFocus = "true";
       canvas.focus({ preventScroll: true });
     };
 
@@ -479,6 +485,15 @@ export const useZineRenderer = ({
       if (velAt && performance.now() - velAt.t > 90) vel = 0; // hand had already stopped
       letGo(moved ? vel : FLICK);
     };
+
+    /* Focus is only "pointer-driven" until the reader reaches for a key, or
+       leaves and comes back — either way the ring is theirs again. */
+    const clearPointerFocus = () => {
+      delete canvas.dataset.pointerFocus;
+    };
+
+    canvas.addEventListener("keydown", clearPointerFocus);
+    canvas.addEventListener("blur", clearPointerFocus);
 
     sheet.addEventListener("pointerdown", onPointerDown);
     sheet.addEventListener("pointermove", onPointerMove);
@@ -569,6 +584,8 @@ export const useZineRenderer = ({
       sheet.removeEventListener("pointermove", onPointerMove);
       sheet.removeEventListener("pointerup", release);
       sheet.removeEventListener("pointercancel", release);
+      canvas.removeEventListener("keydown", clearPointerFocus);
+      canvas.removeEventListener("blur", clearPointerFocus);
       setZineDragging(false);
       [geoL, geoR, gL, gR, ...blockGeos].forEach((g) => g.dispose());
       [leftMat, rightMat, foldMat, blockMat].forEach((m) => m.dispose());

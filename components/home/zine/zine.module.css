@@ -42,9 +42,19 @@
   display: block;
 }
 
-.canvas:focus-visible {
-  outline: 2px solid #111;
-  outline-offset: -8px;
+/* The keyboard ring belongs on the paper, not on the canvas: the canvas fills
+   the stage, which overhangs the book by 5% each side and 40% top and bottom
+   for the fold's working room, so a ring on it framed a box 1.8x the book's
+   height. It is drawn just outside the sheet, in that transparent overhang,
+   where the canvas above it has nothing painted.
+
+   [data-pointer-focus] is set by the renderer when focus came from a touch or
+   a click (see use-zine-renderer.ts) — Safari matches :focus-visible on the
+   scripted focus() that follows a touch, and this keeps that from ringing the
+   page. Tabbing here, or pressing a key after touching, still rings. */
+.stage:has(.canvas:focus-visible:not([data-pointer-focus])) .sheet {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
 }
 
 .canvas {
@@ -54,6 +64,9 @@
   height: 100%;
   z-index: 2;
   touch-action: none;
+  /* The ring for this element is drawn on the paper above; the browser's own
+     would frame this box, which is the whole stage. */
+  outline: none;
   /* The stage overhangs the paper generously so the fold has room to curl into,
      which means this element covers the copy and badge around it. It must not
      swallow their clicks: the paper below carries the drag instead. */
@@ -261,6 +274,27 @@
 @media (max-width: 900px) {
   .zine {
     width: min(740px, 88vw, calc(var(--zineH, 300px) * 1.5));
+  }
+}
+
+/* No chevrons on mobile: the paper is the control there. At mobile widths the
+   book is nearly the full viewport, so the buttons — which sit outside the
+   stage by design (see .prev/.next above) — had nowhere to go and hung off the
+   edge, one of them clipped away entirely. Dragging turns the page and wraps at
+   both ends on its own, so nothing is lost by dropping them.
+
+   The gate is 899px rather than the 767px the rest of the page switches on,
+   because the buttons need room, not a breakpoint: the .zine rule below widens
+   the book to 88vw up to 900px, and at 768 that leaves the prev button at
+   x=-16 and the next one reaching 784 on a 768 viewport — visible, clipped,
+   and pushing the document 16px wider than the screen. At 900 the book has
+   narrowed enough that they sit at x=50 and x=815, clear of both edges, so
+   that is where they come back. display:none also takes them out of the tab
+   order, which is what should happen to a control that is not on screen; the
+   canvas stays focusable, and the arrow keys still turn the book. */
+@media (max-width: 899px) {
+  .nav {
+    display: none;
   }
 }
 
