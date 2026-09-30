@@ -75,7 +75,9 @@ const BlockEditor = ({
       toast.success("Image uploaded");
     } catch (error) {
       console.error(error);
-      toast.error("Failed to upload image");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload image"
+      );
     } finally {
       toast.dismiss("block-editor-upload");
     }

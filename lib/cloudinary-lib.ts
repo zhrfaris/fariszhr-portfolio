@@ -109,13 +109,13 @@ export const uploadCloudinaryImage = async (base64: string) => {
   }
 
   try {
+    // Note: sources/clientAllowedFormats/maxFileSize/multiple are Upload Widget
+    // options, not Upload API params. The 3MB maxFileSize in particular would
+    // (if honored) reject normal screenshots, so we do not pass it here — the
+    // client already caps files at 10MB. Format/size limits belong on the
+    // Cloudinary upload preset if needed.
     const response: CldImageUploadFetchResponse =
-      await cloudinary.v2.uploader.unsigned_upload(base64, upload_preset, {
-        sources: ["local", "url"],
-        clientAllowedFormats: ["png", "jpg", "jpeg", "gif", "svg"],
-        maxFileSize: 3_000_000,
-        multiple: false,
-      });
+      await cloudinary.v2.uploader.unsigned_upload(base64, upload_preset);
 
     const image: ImageType = {
       public_id: response.public_id,

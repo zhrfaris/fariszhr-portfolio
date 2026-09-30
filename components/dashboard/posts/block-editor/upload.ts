@@ -40,7 +40,15 @@ export const uploadImageFile = async (
   });
 
   if (!res.ok) {
-    throw new Error("Failed to upload image");
+    let message = `Upload failed (${res.status})`;
+    try {
+      const err = await res.json();
+      const detail = err?.error?.message ?? err?.error;
+      if (detail) message = String(detail);
+    } catch {
+      // response had no JSON body; keep the status-based message
+    }
+    throw new Error(message);
   }
 
   const { image } = await res.json();
