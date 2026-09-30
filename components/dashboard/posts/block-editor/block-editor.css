@@ -1,16 +1,16 @@
 /* Block editor (Tiptap) styling — dashboard look, no TinyMCE skin. */
 
-/* Comfortable clickable space below the last block (click-to-focus target). */
-.block-editor-content {
-  padding-bottom: 120px;
-}
-
 .block-editor-content .ProseMirror {
   outline: none;
   font-size: 15px;
   line-height: 1.85;
   color: hsl(var(--foreground));
   min-height: 180px;
+  /* Comfortable clickable/droppable space below the last block. This MUST live
+     on the ProseMirror element (not the outer container) so that dragover/drop
+     and posAtCoords work in this area — otherwise dropping a block at the very
+     bottom is outside the editor DOM and gets cancelled. */
+  padding-bottom: 120px;
 }
 
 .block-editor-content .ProseMirror > * + * {

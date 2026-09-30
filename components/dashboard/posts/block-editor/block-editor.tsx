@@ -91,6 +91,9 @@ const BlockEditor = ({
       }),
       GlobalDragHandle.configure({
         dragHandleWidth: 20,
+        // Auto-scroll the window when dragging near the top/bottom viewport edge
+        // (the dashboard scrolls on the window). Key name matches the library.
+        scrollTreshold: 100,
       }),
       TrailingNode,
     ],
