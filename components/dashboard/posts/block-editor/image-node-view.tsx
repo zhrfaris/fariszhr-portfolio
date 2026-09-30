@@ -4,27 +4,23 @@ import React, { Fragment, useEffect, useState } from "react";
 import { NodeViewWrapper, NodeViewProps } from "@tiptap/react";
 import {
   AlertCircle,
-  Check,
+  ChevronDown,
   Loader2,
   RotateCw,
-  Squircle,
   Trash2,
   X,
-  type LucideIcon,
 } from "lucide-react";
 
-import {
-  contentImageRadius,
-  ContentImageRadiusType,
-} from "@/actions/post/create/schema";
+import { ContentImageRadiusType } from "@/actions/post/create/schema";
 import { getRadiusPx, RADIUS_PX } from "@/lib/section-content";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/shadcn/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/shadcn/popover";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/shadcn/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -38,14 +34,14 @@ import {
   useUploadTask,
 } from "./upload-manager";
 
+/** Selectable corner radii (in enum order 8 -> 24px). SM (4px) and MD (6px)
+ * remain valid for existing images but are no longer offered here. */
+const SELECTABLE_RADII: ContentImageRadiusType[] = ["LG", "XL", "XXL", "XXXL"];
+
 interface ToolbarAction {
   key: string;
-  tooltip: string;
-  icon: LucideIcon;
   dividerBefore?: boolean;
-  danger?: boolean;
-  onClick?: () => void;
-  popover?: React.ReactNode;
+  render: () => React.ReactNode;
 }
 
 const CircularProgress = ({ value }: { value: number }) => {
@@ -79,40 +75,49 @@ const CircularProgress = ({ value }: { value: number }) => {
   );
 };
 
-const RadiusPopoverContent = ({
+const RadiusControl = ({
   radius,
+  open,
+  onOpenChange,
   onSelect,
 }: {
   radius: ContentImageRadiusType;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSelect: (r: ContentImageRadiusType) => void;
 }) => (
-  <div className="w-52">
-    <p className="mb-2 px-1 text-xs font-semibold text-muted-foreground">
-      Corner radius
-    </p>
-    <div className="flex flex-col">
-      {contentImageRadius.map((r) => (
+  <div className="flex items-center gap-3">
+    <span className="text-sm font-medium text-foreground">Corner radius</span>
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger asChild>
         <button
-          key={r}
           type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            onSelect(r);
-          }}
-          className="flex items-center gap-3 rounded px-2 py-1.5 text-left text-sm hover:bg-muted"
+          className="flex items-center gap-2 rounded-lg bg-[#eeeeee] px-3 py-1.5 text-sm font-medium text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
         >
-          <span
-            className="h-5 w-5 shrink-0 border-2 border-foreground/70"
-            style={{ borderRadius: RADIUS_PX[r] }}
-          />
-          <span className="flex-1">
-            {RADIUS_PX[r]}px{" "}
-            <span className="text-muted-foreground">({r})</span>
-          </span>
-          {radius === r && <Check className="h-4 w-4 text-foreground" />}
+          <span>{getRadiusPx(radius)}px</span>
+          <ChevronDown className="h-4 w-4" />
         </button>
-      ))}
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="min-w-[7rem] rounded-xl p-1 shadow-lg"
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
+        {SELECTABLE_RADII.map((r) => (
+          <DropdownMenuItem
+            key={r}
+            onSelect={() => onSelect(r)}
+            className={cn(
+              "cursor-pointer rounded-md px-3 py-2 text-sm",
+              radius === r && "bg-muted focus:bg-muted"
+            )}
+          >
+            {RADIUS_PX[r]}px
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   </div>
 );
 
@@ -164,11 +169,11 @@ const ImageNodeView = ({
   const actions: ToolbarAction[] = [
     {
       key: "radius",
-      tooltip: "Corner radius",
-      icon: Squircle,
-      popover: (
-        <RadiusPopoverContent
+      render: () => (
+        <RadiusControl
           radius={radius}
+          open={openKey === "radius"}
+          onOpenChange={(o) => setOpenKey(o ? "radius" : null)}
           onSelect={(r) => {
             updateAttributes({ radius: r });
             setOpenKey(null);
@@ -178,11 +183,24 @@ const ImageNodeView = ({
     },
     {
       key: "delete",
-      tooltip: "Delete",
-      icon: Trash2,
       dividerBefore: true,
-      danger: true,
-      onClick: handleDelete,
+      render: () => (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8 text-red-600 hover:text-red-600"
+              aria-label="Delete"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Delete</TooltipContent>
+        </Tooltip>
+      ),
     },
   ];
 
@@ -264,61 +282,18 @@ const ImageNodeView = ({
       {showToolbar && (
         <TooltipProvider delayDuration={200}>
           <div
-            className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-1 rounded-md border border-border bg-popover p-1 shadow-md"
+            className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 shadow-lg"
             // Keep the ProseMirror node selected while using the toolbar.
             onMouseDown={(e) => e.preventDefault()}
           >
-            {actions.map((action) => {
-              const IconButton = (
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className={cn(
-                    "h-8 w-8",
-                    action.danger && "text-red-600 hover:text-red-600"
-                  )}
-                  aria-label={action.tooltip}
-                  onClick={action.onClick}
-                >
-                  <action.icon className="h-4 w-4" />
-                </Button>
-              );
-
-              return (
-                <Fragment key={action.key}>
-                  {action.dividerBefore && (
-                    <span className="mx-0.5 h-5 w-px bg-border" />
-                  )}
-                  {action.popover ? (
-                    <Popover
-                      open={openKey === action.key}
-                      onOpenChange={(o) => setOpenKey(o ? action.key : null)}
-                    >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <PopoverTrigger asChild>{IconButton}</PopoverTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>{action.tooltip}</TooltipContent>
-                      </Tooltip>
-                      <PopoverContent
-                        align="center"
-                        className="w-auto p-2"
-                        onOpenAutoFocus={(e) => e.preventDefault()}
-                        onMouseDown={(e) => e.preventDefault()}
-                      >
-                        {action.popover}
-                      </PopoverContent>
-                    </Popover>
-                  ) : (
-                    <Tooltip>
-                      <TooltipTrigger asChild>{IconButton}</TooltipTrigger>
-                      <TooltipContent>{action.tooltip}</TooltipContent>
-                    </Tooltip>
-                  )}
-                </Fragment>
-              );
-            })}
+            {actions.map((action) => (
+              <Fragment key={action.key}>
+                {action.dividerBefore && (
+                  <span className="mx-0.5 h-5 w-px bg-border" />
+                )}
+                {action.render()}
+              </Fragment>
+            ))}
           </div>
         </TooltipProvider>
       )}
