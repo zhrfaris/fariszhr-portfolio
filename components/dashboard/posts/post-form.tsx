@@ -7,7 +7,7 @@ import FormInput from "@/components/form/form-input";
 import FormWrapper from "@/components/form/form-wrapper";
 import { useAction } from "@/hooks/use-action";
 import { Status } from "@prisma/client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { CreatePost } from "@/actions/post/create/schema";
@@ -16,7 +16,12 @@ import FormImageUpload, {
   FormImageUploadHandle,
 } from "@/components/form/form-image-upload";
 import FormTextarea from "@/components/form/form-textarea";
-import ListPostSection from "./list-post-section";
+import BlockEditor from "./block-editor/block-editor";
+import { Label } from "@/components/shadcn/label";
+import {
+  sectionsToDocumentHtml,
+  documentHtmlToSections,
+} from "@/lib/section-content";
 import { usePostForm } from "@/hooks/use-post-form";
 import FormCombobox from "@/components/form/form-combobox/form-combobox";
 import { getCategoriesComboboxAction } from "@/actions/category/get-list";
@@ -48,13 +53,11 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
   );
   const {
     saveAsDraft,
-    sections,
     isRestricted,
     isDirty,
     setSlug,
     setTitle,
     setExcerpt,
-    setSections,
     setSaveAsDraft,
     setIsRestricted,
     setPassword,
@@ -62,22 +65,22 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
     setDirty,
   } = usePostForm((state) => state);
 
+  // The whole post body is one Tiptap document. Seed it from the stored
+  // sections once, then track the current HTML in a ref (updated on change).
+  const initialBodyHtml = useMemo(
+    () => sectionsToDocumentHtml(initialData?.post_sections ?? []),
+    [initialData]
+  );
+  const bodyHtmlRef = useRef<string>(initialBodyHtml);
+
   useEffect(() => {
     if (initialData) {
       setIsRestricted(initialData?.isRestricted);
       setTitle(initialData?.title);
       setSlug(initialData?.slug);
       setExcerpt(initialData?.excerpt);
-      setSections(initialData?.post_sections);
     }
-  }, [
-    initialData,
-    setExcerpt,
-    setSections,
-    setTitle,
-    setSlug,
-    setIsRestricted,
-  ]);
+  }, [initialData, setExcerpt, setTitle, setSlug, setIsRestricted]);
 
   useEffect(() => {
     if (!isDirty) return;
@@ -92,11 +95,11 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
   const resetForm = () => {
     setTitle("");
     setExcerpt("");
-    setSections([]);
     setIsRestricted(null);
     setPassword(null);
     setPreviewSectionAmount(null);
     setDirty(false);
+    bodyHtmlRef.current = "";
   };
 
   const {
@@ -156,16 +159,7 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
       return;
     }
 
-    // if (sections.length <= 0) {
-    //   toast.error("Add at least one section");
-    //   return;
-    // }
-
-    const untitledSection = sections.find((s) => !s.title?.trim());
-    if (untitledSection) {
-      toast.error("Every section needs a title");
-      return;
-    }
+    const post_sections = documentHtmlToSections(bodyHtmlRef.current);
 
     const slug = formData.get("slug") as string;
     const title = formData.get("title") as string;
@@ -189,7 +183,7 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
       thumbnail_gif: thumbnailGif
         ? { ...thumbnailGif, img_type: thumbnailGif.img_type }
         : null,
-      post_sections: sections,
+      post_sections,
       categoryIds: categories,
       workplaceId: workplaces[0],
       isRestricted: isRestricted === "on",
@@ -347,7 +341,21 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
         )}
       </form>
 
-      <ListPostSection />
+      <div className="space-y-2">
+        <Label className="text-sm font-semibold text-foreground/70">
+          Post Body
+        </Label>
+        <div className="rounded-md border border-black/30 p-4">
+          <BlockEditor
+            initialHTML={initialBodyHtml}
+            onChange={(html) => {
+              bodyHtmlRef.current = html;
+              setDirty(true);
+            }}
+            placeholder="Type '/' for commands, or '/section' to add a section…"
+          />
+        </div>
+      </div>
 
       <div className="flex gap-4 justify-end">
         <Button

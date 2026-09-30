@@ -1,10 +1,8 @@
-import { PostSection } from "@/actions/post/create/types";
 import { create } from "zustand";
 
 export type Lang = "en" | "id";
 
 type State = {
-  sections: PostSection[];
   saveAsDraft: boolean;
   title: string;
   slug: string;
@@ -20,7 +18,6 @@ type Action = {
   setTitle: (title: string) => void;
   setExcerpt: (excerpt: string) => void;
   setSaveAsDraft: (bool: boolean) => void;
-  setSections: (sections: PostSection[]) => void;
   setIsRestricted: (data: boolean | null) => void;
   setPassword: (data: string | null) => void;
   setPreviewSectionAmount: (data: number | null) => void;
@@ -32,7 +29,6 @@ export const usePostForm = create<State & Action>((set) => ({
   title: "",
   excerpt: "",
   saveAsDraft: false,
-  sections: [],
   isRestricted: null,
   password: null,
   previewSectionAmount: null,
@@ -40,7 +36,6 @@ export const usePostForm = create<State & Action>((set) => ({
   setSlug: (slug) => set(() => ({ slug })),
   setTitle: (title) => set(() => ({ title })),
   setExcerpt: (excerpt) => set(() => ({ excerpt })),
-  setSections: (sections) => set(() => ({ sections })),
   setSaveAsDraft: (bool) => set(() => ({ saveAsDraft: bool })),
   setDirty: (bool) => set(() => ({ isDirty: bool })),
   setIsRestricted: (data) =>
