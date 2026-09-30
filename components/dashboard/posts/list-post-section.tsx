@@ -1,32 +1,66 @@
 "use client";
 
+import React from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Plus } from "lucide-react";
+
 import { PostSection } from "@/actions/post/create/types";
 import { Label } from "@/components/shadcn/label";
-import PostSectionForm from "./post-section-form";
-import { usePostForm } from "@/hooks/use-post-form";
 import { Button } from "@/components/shadcn/button";
-import PostSectionItem from "./post-section-item";
+import { usePostForm } from "@/hooks/use-post-form";
+import SectionEditor from "./section-editor";
 
 const ListPostSection = () => {
-  const {
-    sections,
-    showFormSection,
-    editSectionData,
-    setSections,
-    setContents,
-    setShowFormSection,
-    setShowFormContent,
-  } = usePostForm((state) => state);
+  const { sections, setSections, setDirty } = usePostForm((state) => state);
+
+  const orderedSections = [...sections].sort((a, b) => a.order - b.order);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const addSectionHandler = () => {
-    setShowFormSection(true);
-    setShowFormContent(true);
-    setContents([]);
+    const newSection: PostSection = {
+      id: crypto.randomUUID(),
+      order: sections.length,
+      title: "",
+      icon_type: "",
+      contents: [],
+    };
+    setSections([...sections, newSection]);
+    setDirty(true);
   };
 
-  const onChangeSectionHandler = (section: PostSection) => {
-    setSections([...sections, section]);
-    setShowFormSection(false);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = orderedSections.findIndex((s) => s.id === active.id);
+    const newIndex = orderedSections.findIndex((s) => s.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(orderedSections, oldIndex, newIndex).map(
+      (s, index) => ({ ...s, order: index })
+    );
+    setSections(reordered);
+    setDirty(true);
   };
 
   return (
@@ -34,33 +68,35 @@ const ListPostSection = () => {
       <Label className="text-sm font-semibold text-foreground/70">
         Section List
       </Label>
-      <div className="flex flex-col min-h-56 justify-center border border-black/30 rounded-md p-4">
-        {sections.length <= 0 && !showFormSection && (
-          <p className="text-center w-full">
-            No section has been added to this post,{" "}
-            <Button
-              variant="ghost"
-              className="text-sky-400"
-              onClick={addSectionHandler}
-            >
-              Add one
-            </Button>
+      <div className="flex flex-col gap-4 rounded-md border border-black/30 p-4">
+        {orderedSections.length <= 0 && (
+          <p className="w-full py-8 text-center text-muted-foreground">
+            No section has been added to this post yet.
           </p>
         )}
-        {sections
-          .sort((a, b) => a.order - b.order)
-          .map((section) => (
-            <PostSectionItem key={section.id} section={section} />
-          ))}
-        {showFormSection && (
-          <PostSectionForm sectionChange={onChangeSectionHandler} />
-        )}
-        <div className="flex items-start gap-4 mt-4">
-          {!showFormSection && !editSectionData && sections.length > 0 && (
-            <Button type="button" onClick={addSectionHandler}>
-              Add {sections.length > 0 ? "More" : ""} Section
-            </Button>
-          )}
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={orderedSections.map((s) => s.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="flex flex-col gap-4">
+              {orderedSections.map((section) => (
+                <SectionEditor key={section.id} section={section} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+
+        <div>
+          <Button type="button" onClick={addSectionHandler}>
+            <Plus className="mr-1 h-4 w-4" />
+            Add {orderedSections.length > 0 ? "More" : ""} Section
+          </Button>
         </div>
       </div>
     </div>

@@ -49,28 +49,17 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
   const {
     saveAsDraft,
     sections,
-    editSectionData,
-    editContentData,
-    showFormSection,
-    showFormContent,
     isRestricted,
-    // title,
-    // excerpt,
-    // slug,
-    // password,
-    // previewSectionAmount,
+    isDirty,
     setSlug,
     setTitle,
     setExcerpt,
     setSections,
     setSaveAsDraft,
-    setShowFormContent,
-    setShowFormSection,
-    setEditContentData,
-    setEditSectionData,
     setIsRestricted,
     setPassword,
     setPreviewSectionAmount,
+    setDirty,
   } = usePostForm((state) => state);
 
   useEffect(() => {
@@ -90,6 +79,16 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
     setIsRestricted,
   ]);
 
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
+
   const resetForm = () => {
     setTitle("");
     setExcerpt("");
@@ -97,10 +96,7 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
     setIsRestricted(null);
     setPassword(null);
     setPreviewSectionAmount(null);
-    setShowFormContent(false);
-    setShowFormSection(false);
-    setEditContentData(null);
-    setEditSectionData(null);
+    setDirty(false);
   };
 
   const {
@@ -165,13 +161,9 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
     //   return;
     // }
 
-    if (showFormSection || editSectionData) {
-      toast.warning("You have unsaved changes in Section form");
-      return;
-    }
-
-    if (showFormContent || editContentData) {
-      toast.warning("You have unsaved changes in Content form");
+    const untitledSection = sections.find((s) => !s.title?.trim());
+    if (untitledSection) {
+      toast.error("Every section needs a title");
       return;
     }
 
@@ -223,6 +215,7 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
       <form
         id="post-form"
         action={formAction}
+        onChange={() => setDirty(true)}
         className="flex-1 space-y-6 @container"
       >
         {/* 
@@ -361,6 +354,12 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
           type="button"
           variant="ghost"
           onClick={() => {
+            if (
+              isDirty &&
+              !window.confirm("You have unsaved changes. Leave anyway?")
+            ) {
+              return;
+            }
             router.push("/dashboard/posts");
             resetForm();
           }}
