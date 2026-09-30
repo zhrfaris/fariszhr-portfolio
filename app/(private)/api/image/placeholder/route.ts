@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { getPlaiceholder } from "plaiceholder";
+import { auth } from "@/auth";
 
 export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { image_url }: { image_url: string } = await request.json();
 
   try {
