@@ -8,7 +8,7 @@ import {
   contentImageRadius,
   ContentImageRadiusType,
 } from "@/actions/post/create/schema";
-import { getRadiusClass } from "@/lib/section-content";
+import { getRadiusPx } from "@/lib/section-content";
 import { cn } from "@/lib/utils";
 import { deleteCloudinaryImage } from "./upload";
 
@@ -43,9 +43,9 @@ const ImageNodeView = ({
           "w-full min-h-12 border overflow-hidden relative transition-shadow",
           selected
             ? "border-sky-400 ring-2 ring-sky-400/40"
-            : "border-[#d9d9d9]",
-          getRadiusClass(radius)
+            : "border-[#d9d9d9]"
         )}
+        style={{ borderRadius: getRadiusPx(radius) }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt="" className="w-full object-contain" />

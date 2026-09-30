@@ -34,28 +34,22 @@ export const IMAGE_ATTR = {
 
 export const DEFAULT_INLINE_RADIUS: ContentImageRadiusType = "XXL";
 
-/** Tailwind rounded-* class for a given radius enum. Shared by the editor and
- * the public renderer so both stay visually identical. */
-export const getRadiusClass = (
-  radius?: ContentImageRadiusType | null
-): string => {
-  switch (radius) {
-    case "SM":
-      return "rounded-[4px]";
-    case "MD":
-      return "rounded-[6px]";
-    case "LG":
-      return "rounded-[8px]";
-    case "XL":
-      return "rounded-[12px]";
-    case "XXL":
-      return "rounded-[16px]";
-    case "XXXL":
-      return "rounded-[24px]";
-    default:
-      return "rounded-[16px]";
-  }
+/** Corner-radius in px for a given radius enum. Applied as an inline
+ * border-radius (not a Tailwind class) because arbitrary classes like
+ * `rounded-[16px]` living in lib/ are never generated — Tailwind only scans
+ * pages/components/app. Shared by the editor and the public renderer so both
+ * stay visually identical. */
+export const RADIUS_PX: Record<ContentImageRadiusType, number> = {
+  SM: 4,
+  MD: 6,
+  LG: 8,
+  XL: 12,
+  XXL: 16,
+  XXXL: 24,
 };
+
+export const getRadiusPx = (radius?: ContentImageRadiusType | null): number =>
+  radius ? (RADIUS_PX[radius] ?? RADIUS_PX.XXL) : RADIUS_PX.XXL;
 
 const escapeAttr = (value: string) =>
   value

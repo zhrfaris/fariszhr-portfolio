@@ -10,7 +10,7 @@ import { Button, buttonVariants } from "../shadcn/button";
 import Link from "next/link";
 import { Maximize } from "lucide-react";
 import {
-  getRadiusClass,
+  getRadiusPx,
   parseSectionHtml,
   ParsedInlineImage,
 } from "@/lib/section-content";
@@ -25,10 +25,8 @@ const InlineImage = ({ image }: { image: ParsedInlineImage }) => {
 
   return (
     <div
-      className={cn(
-        "w-full min-h-12 border border-[#d9d9d9] overflow-hidden relative",
-        getRadiusClass(image.radius)
-      )}
+      className="w-full min-h-12 border border-[#d9d9d9] overflow-hidden relative"
+      style={{ borderRadius: getRadiusPx(image.radius) }}
     >
       <Image
         src={image.src}
