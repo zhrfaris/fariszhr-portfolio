@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import { EditorView } from "@tiptap/pm/view";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
@@ -84,9 +85,13 @@ const BlockEditor = ({
     fileInputRef.current?.click();
   }, []);
 
-  const editor = useEditor({
-    immediatelyRender: false,
-    extensions: [
+  // The editor is created once. Its options MUST stay reference-stable across
+  // re-renders: @tiptap/react re-applies editor.setOptions() on every render
+  // whenever it detects an option changed, and re-applying view props mid-typing
+  // drops the caret. So the extensions array and editorProps are memoized once.
+  // `placeholder` and the upload callbacks are captured on first mount by design.
+  const extensions = useMemo(
+    () => [
       StarterKit.configure({
         heading: { levels: [2, 3] },
       }),
@@ -107,12 +112,16 @@ const BlockEditor = ({
         dragHandleWidth: 20,
       }),
     ],
-    content: initialHTML || "",
-    editorProps: {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const editorProps = useMemo(
+    () => ({
       attributes: {
         class: "focus:outline-none",
       },
-      handlePaste: (_view, event) => {
+      handlePaste: (_view: unknown, event: ClipboardEvent) => {
         const files = Array.from(event.clipboardData?.files ?? []);
         const images = files.filter(isAcceptedImage);
         if (images.length === 0) return false;
@@ -120,10 +129,8 @@ const BlockEditor = ({
         void uploadAndInsert(images);
         return true;
       },
-      handleDrop: (view, event) => {
-        const files = Array.from(
-          (event as DragEvent).dataTransfer?.files ?? []
-        );
+      handleDrop: (view: EditorView, event: DragEvent) => {
+        const files = Array.from(event.dataTransfer?.files ?? []);
         const images = files.filter(isAcceptedImage);
         if (images.length === 0) return false;
         event.preventDefault();
@@ -132,7 +139,22 @@ const BlockEditor = ({
         void uploadAndInsert(images, pos);
         return true;
       },
-    },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  // Seeded once; changing content later would reset the cursor, so we never do.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const initialContent = useMemo(() => initialHTML || "", []);
+
+  // onChange identity may change per render, but Tiptap always calls the latest
+  // onUpdate via its internal options ref, so this stays current without churn.
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions,
+    content: initialContent,
+    editorProps,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },

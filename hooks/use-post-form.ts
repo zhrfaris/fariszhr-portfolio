@@ -37,7 +37,11 @@ export const usePostForm = create<State & Action>((set) => ({
   setTitle: (title) => set(() => ({ title })),
   setExcerpt: (excerpt) => set(() => ({ excerpt })),
   setSaveAsDraft: (bool) => set(() => ({ saveAsDraft: bool })),
-  setDirty: (bool) => set(() => ({ isDirty: bool })),
+  // Return the unchanged state when the flag already matches so zustand skips
+  // the update entirely — this keeps typing from re-rendering the whole form
+  // (and the editor) once the post is already marked dirty.
+  setDirty: (bool) =>
+    set((state) => (state.isDirty === bool ? state : { isDirty: bool })),
   setIsRestricted: (data) =>
     set(() => {
       if (!data) {
