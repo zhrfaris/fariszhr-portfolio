@@ -7,12 +7,15 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/shadcn/sidebar";
+import { redirect } from "next/navigation";
 import React from "react";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();
 
-  if (!session) return <>{children}</>;
+  // Server-side gate for every /dashboard page. Previously this rendered the
+  // page content to anonymous visitors (just without the sidebar chrome).
+  if (!session) redirect("/login");
 
   return (
     <SidebarProvider>
