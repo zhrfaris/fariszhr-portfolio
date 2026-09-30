@@ -11,7 +11,8 @@ import { toast } from "sonner";
 import { CloudinaryImage } from "./cloudinary-image";
 import { SectionNode } from "./section-node";
 import { SlashCommand } from "./slash-command";
-import { uploadImageFile, isAcceptedImage } from "./upload";
+import { isAcceptedImage } from "./upload";
+import { createUploadTask } from "./upload-manager";
 import "./block-editor.css";
 
 interface BlockEditorProps {
@@ -19,33 +20,6 @@ interface BlockEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
 }
-
-const insertImageAttrs = (
-  editor: Editor,
-  attrs: Awaited<ReturnType<typeof uploadImageFile>>,
-  pos?: number
-) => {
-  const node = {
-    type: "image",
-    attrs: {
-      src: attrs.src,
-      alt: "",
-      publicId: attrs.publicId,
-      placeholder: attrs.placeholder,
-      thumbnail: attrs.thumbnail,
-      width: attrs.width,
-      height: attrs.height,
-      imgType: attrs.imgType,
-      radius: attrs.radius,
-    },
-  };
-
-  if (typeof pos === "number") {
-    editor.chain().focus().insertContentAt(pos, node).run();
-  } else {
-    editor.chain().focus().insertContent(node).run();
-  }
-};
 
 const BlockEditor = ({
   initialHTML,
@@ -55,31 +29,35 @@ const BlockEditor = ({
   const editorRef = useRef<Editor | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadAndInsert = useCallback(async (files: File[], pos?: number) => {
+  // Insert each image immediately with its local object-URL preview + a
+  // transient uploadId; the node view drives the upload/progress from there.
+  const uploadAndInsert = useCallback((files: File[], pos?: number) => {
     const editor = editorRef.current;
     if (!editor) return;
 
     const images = files.filter(isAcceptedImage);
     if (images.length === 0) return;
 
-    toast.loading("Uploading image...", { id: "block-editor-upload" });
-    try {
-      for (const file of images) {
-        if (file.size > 10_000_000) {
-          toast.error("File size must be less than 10MB");
-          continue;
-        }
-        const attrs = await uploadImageFile(file);
-        insertImageAttrs(editor, attrs, pos);
+    if (typeof pos === "number") {
+      editor.chain().focus(pos).run();
+    } else {
+      editor.chain().focus().run();
+    }
+
+    for (const file of images) {
+      if (file.size > 10_000_000) {
+        toast.error(`"${file.name}" exceeds the 10MB limit`);
+        continue;
       }
-      toast.success("Image uploaded");
-    } catch (error) {
-      console.error(error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to upload image"
-      );
-    } finally {
-      toast.dismiss("block-editor-upload");
+      const { id, objectUrl } = createUploadTask(file);
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "image",
+          attrs: { src: objectUrl, alt: "", uploadId: id },
+        })
+        .run();
     }
   }, []);
 
@@ -128,7 +106,7 @@ const BlockEditor = ({
         const images = files.filter(isAcceptedImage);
         if (images.length === 0) return false;
         event.preventDefault();
-        void uploadAndInsert(images);
+        uploadAndInsert(images);
         return true;
       },
       handleDrop: (view: EditorView, event: DragEvent) => {
@@ -138,7 +116,7 @@ const BlockEditor = ({
         event.preventDefault();
         const coords = { left: event.clientX, top: event.clientY };
         const pos = view.posAtCoords(coords)?.pos;
-        void uploadAndInsert(images, pos);
+        uploadAndInsert(images, pos);
         return true;
       },
     }),
@@ -166,10 +144,10 @@ const BlockEditor = ({
     editorRef.current = editor;
   }, [editor]);
 
-  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    await uploadAndInsert(files);
+    uploadAndInsert(files);
   };
 
   return (

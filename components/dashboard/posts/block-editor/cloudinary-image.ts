@@ -52,6 +52,12 @@ export const CloudinaryImage = Image.extend({
       imgType: stringAttr(IMAGE_ATTR.imgType),
       width: numberAttr(IMAGE_ATTR.width),
       height: numberAttr(IMAGE_ATTR.height),
+      // Transient: links the node to an in-flight upload task. `rendered: false`
+      // keeps it out of the serialized HTML so it is never saved.
+      uploadId: {
+        default: null as string | null,
+        rendered: false,
+      },
       radius: {
         default: DEFAULT_INLINE_RADIUS,
         parseHTML: (element: HTMLElement) =>

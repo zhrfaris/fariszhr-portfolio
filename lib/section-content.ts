@@ -200,6 +200,11 @@ export const htmlToContents = (
 
 const stripTags = (value: string) => value.replace(/<[^>]*>/g, "");
 
+/** Defensive: never persist temporary object-URL previews of in-flight uploads.
+ * Saving is disabled while uploads are active, so this should be a no-op. */
+const stripBlobImages = (html: string) =>
+  html.replace(/<img\b[^>]*\bsrc="blob:[^"]*"[^>]*>/gi, "");
+
 /**
  * Rebuild the single-document body HTML from stored post_sections. Each section
  * becomes a Section block (skipped when the title is empty — that content stays
@@ -236,7 +241,7 @@ export const documentHtmlToSections = (html: string): PostSection[] => {
 
   let order = 0;
   const pushSection = (title: string, contentHtml: string) => {
-    const trimmed = contentHtml.trim();
+    const trimmed = stripBlobImages(contentHtml).trim();
     // Skip a completely empty leading section (doc starts with a Section block).
     if (!title && !trimmed) return;
     sections.push({

@@ -17,6 +17,13 @@ import FormImageUpload, {
 } from "@/components/form/form-image-upload";
 import FormTextarea from "@/components/form/form-textarea";
 import BlockEditor from "./block-editor/block-editor";
+import { useActiveUploadCount } from "./block-editor/upload-manager";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/shadcn/tooltip";
 import { Label } from "@/components/shadcn/label";
 import {
   sectionsToDocumentHtml,
@@ -64,6 +71,8 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
     setPreviewSectionAmount,
     setDirty,
   } = usePostForm((state) => state);
+
+  const uploadsInProgress = useActiveUploadCount() > 0;
 
   // The whole post body is one Tiptap document. Seed it from the stored
   // sections once, then track the current HTML in a ref (updated on change).
@@ -145,6 +154,11 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
   });
 
   const formAction = (formData: FormData) => {
+    if (uploadsInProgress) {
+      toast.warning("Wait for images to finish uploading");
+      return;
+    }
+
     const headerImage = headerImageRef.current?.image;
     const thumbnailImage = thumbnailImageRef.current?.image;
     const thumbnailGif = thumbnailGifRef.current?.image;
@@ -375,23 +389,51 @@ const PostForm = ({ initialData, initialPasscode }: PostFormProps) => {
         >
           Cancel
         </Button>
-        <Button
-          type="submit"
-          form="post-form"
-          variant="outline"
-          onClick={() => setSaveAsDraft(true)}
-          disabled={createIsLoading || updateIsLoading}
-        >
-          Save as Draft
-        </Button>
-        <Button
-          type="submit"
-          form="post-form"
-          onClick={() => setSaveAsDraft(false)}
-          disabled={createIsLoading || updateIsLoading}
-        >
-          Publish
-        </Button>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span tabIndex={uploadsInProgress ? 0 : undefined}>
+                <Button
+                  type="submit"
+                  form="post-form"
+                  variant="outline"
+                  onClick={() => setSaveAsDraft(true)}
+                  disabled={
+                    createIsLoading || updateIsLoading || uploadsInProgress
+                  }
+                >
+                  Save as Draft
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {uploadsInProgress && (
+              <TooltipContent>
+                Wait for images to finish uploading
+              </TooltipContent>
+            )}
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span tabIndex={uploadsInProgress ? 0 : undefined}>
+                <Button
+                  type="submit"
+                  form="post-form"
+                  onClick={() => setSaveAsDraft(false)}
+                  disabled={
+                    createIsLoading || updateIsLoading || uploadsInProgress
+                  }
+                >
+                  Publish
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {uploadsInProgress && (
+              <TooltipContent>
+                Wait for images to finish uploading
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </>
   );
