@@ -160,12 +160,32 @@ const BlockEditor = ({
 
   // Clicking the empty area below the last block (the container's bottom padding)
   // focuses the end of the document, adding an empty paragraph if the last block
-  // is not already one.
+  // is not already one. It must NOT interfere with the drag handle, toolbar,
+  // slash menu, dropdowns/popovers, or any click that lands inside the content.
   const handleContainerMouseDown = (e: React.MouseEvent) => {
     const editor = editorRef.current;
     if (!editor) return;
+
+    const target = e.target as HTMLElement | null;
     const pmRoot = editor.view.dom as HTMLElement;
-    if (pmRoot.contains(e.target as Node)) return; // click landed inside content
+
+    // Ignore clicks inside the content itself.
+    if (target && pmRoot.contains(target)) return;
+
+    // Ignore clicks on any editor UI living outside the content (drag handle in
+    // the gutter, floating toolbar, slash menu, popovers/dropdowns).
+    if (
+      target?.closest?.(
+        '[data-drag-handle], [data-editor-ui], .drag-handle, [role="menu"], [role="dialog"], [data-radix-popper-content-wrapper]'
+      )
+    ) {
+      return;
+    }
+
+    // Only act when the click is genuinely below the last block.
+    const lastBlock = pmRoot.lastElementChild as HTMLElement | null;
+    if (!lastBlock) return;
+    if (e.clientY <= lastBlock.getBoundingClientRect().bottom) return;
 
     e.preventDefault();
     const { state } = editor;
