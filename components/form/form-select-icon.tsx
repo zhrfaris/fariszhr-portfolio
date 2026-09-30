@@ -22,14 +22,10 @@ interface FormSelectIconProps {
   errors?: Record<string, string[] | undefined>;
   defaultValue?: string;
   onBlur?: () => void;
-  onChange?: (icon: string) => void;
 }
 
 const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
-  (
-    { id, label, required, disabled, errors, defaultValue, onBlur, onChange },
-    ref
-  ) => {
+  ({ id, label, required, disabled, errors, defaultValue, onBlur }, ref) => {
     const [popoverOpen, setPopoverOpen] = useState(false);
     const [selectedIcon, setSelectedIcon] = useState<string | undefined>(
       defaultValue
@@ -38,7 +34,6 @@ const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
     const selectIconHandler = (icon: string) => {
       setSelectedIcon(icon);
       setPopoverOpen(false);
-      onChange?.(icon);
     };
 
     return (

@@ -82,12 +82,14 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
           isShowMore ? "max-h-none" : "max-h-[400px] overflow-hidden"
         )}
       >
-        <div>
-          <h3 className="text-[15px] font-normal text-foreground/80 mb-3">
-            {section.title}
-          </h3>
-          <hr className="border-[#e5e5e5]" />
-        </div>
+        {section.title?.trim() && (
+          <div>
+            <h3 className="text-[15px] font-normal text-foreground/80 mb-3">
+              {section.title}
+            </h3>
+            <hr className="border-[#e5e5e5]" />
+          </div>
+        )}
         <div className="space-y-6 text-[15px] leading-[185%]">
           {section.contents.map((content) => (
             <SectionContent key={content.id} content={content} />
