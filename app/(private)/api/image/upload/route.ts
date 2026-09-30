@@ -15,8 +15,6 @@ export async function POST(request: Request) {
 
   const base64 = await convertFileToBase64(file);
 
-  console.log(base64);
-
   if (base64.length === 0) {
     return NextResponse.json(
       { error: "Failed to convert file to base64" },

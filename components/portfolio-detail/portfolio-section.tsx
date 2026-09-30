@@ -40,7 +40,7 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
       case "XXL":
         className = "rounded-[16px]";
         break;
-      case "XXL":
+      case "XXXL":
         className = "rounded-[24px]";
         break;
 
