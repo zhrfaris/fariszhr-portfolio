@@ -103,6 +103,78 @@ export const contentsToHtml = (contents: PostSectionContent[]): string => {
     .join("\n");
 };
 
+export interface ParsedInlineImage {
+  src: string;
+  placeholder: string;
+  width: number | null;
+  height: number | null;
+  radius: ContentImageRadiusType;
+  publicId: string;
+}
+
+export type ParsedSegment =
+  | { type: "html"; html: string }
+  | { type: "image"; image: ParsedInlineImage };
+
+const decodeEntities = (value: string) =>
+  value
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+
+const getTagAttr = (tag: string, attr: string): string => {
+  const match = tag.match(new RegExp(`(?:\\s)${attr}="([^"]*)"`, "i"));
+  return match ? decodeEntities(match[1]) : "";
+};
+
+const toIntOrNull = (value: string): number | null => {
+  const n = parseInt(value, 10);
+  return Number.isNaN(n) ? null : n;
+};
+
+/**
+ * Split a section's HTML into ordered segments of rich-text HTML and inline
+ * images. Uses a regex (no DOM) so it is safe to run during SSR. Inline images
+ * are always top-level siblings in the editor output, so this is sufficient.
+ */
+export const parseSectionHtml = (html: string): ParsedSegment[] => {
+  if (!html) return [];
+
+  const segments: ParsedSegment[] = [];
+  const imgRegex = /<img\b[^>]*>/gi;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = imgRegex.exec(html)) !== null) {
+    const before = html.slice(lastIndex, match.index);
+    if (before.trim()) segments.push({ type: "html", html: before });
+
+    const tag = match[0];
+    segments.push({
+      type: "image",
+      image: {
+        src: getTagAttr(tag, "src"),
+        placeholder: getTagAttr(tag, IMAGE_ATTR.placeholder),
+        width: toIntOrNull(getTagAttr(tag, IMAGE_ATTR.width)),
+        height: toIntOrNull(getTagAttr(tag, IMAGE_ATTR.height)),
+        radius:
+          (getTagAttr(tag, IMAGE_ATTR.radius) as ContentImageRadiusType) ||
+          DEFAULT_INLINE_RADIUS,
+        publicId: getTagAttr(tag, IMAGE_ATTR.publicId),
+      },
+    });
+
+    lastIndex = imgRegex.lastIndex;
+  }
+
+  const rest = html.slice(lastIndex);
+  if (rest.trim()) segments.push({ type: "html", html: rest });
+
+  return segments;
+};
+
 /**
  * Collapse the block editor's HTML output into a single PostSectionContent.
  * Images live inline in the HTML, so the separate `image` field is always null.
