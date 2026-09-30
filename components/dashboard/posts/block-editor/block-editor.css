@@ -83,6 +83,13 @@
   outline: none;
 }
 
+/* Section block */
+.block-editor-content .ProseMirror .section-block h3 {
+  min-height: 1.25rem;
+  margin: 0;
+  outline: none;
+}
+
 /* Global drag handle (tiptap-extension-global-drag-handle) */
 .drag-handle {
   position: fixed;

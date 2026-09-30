@@ -17,6 +17,7 @@ import {
   Minus,
   Pilcrow,
   Quote,
+  Rows3,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,6 +38,13 @@ const buildItems = (
   options: SlashCommandOptions
 ): ((query: string) => SlashCommandItem[]) => {
   const items: SlashCommandItem[] = [
+    {
+      title: "Section",
+      description: "Section divider with a title",
+      icon: Rows3,
+      command: ({ editor, range }) =>
+        editor.chain().focus().deleteRange(range).setNode("section").run(),
+    },
     {
       title: "Paragraph",
       description: "Plain text",

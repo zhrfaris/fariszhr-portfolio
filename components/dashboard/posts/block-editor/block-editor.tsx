@@ -8,6 +8,7 @@ import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import { toast } from "sonner";
 
 import { CloudinaryImage } from "./cloudinary-image";
+import { SectionNode } from "./section-node";
 import { SlashCommand } from "./slash-command";
 import { uploadImageFile, isAcceptedImage } from "./upload";
 import "./block-editor.css";
@@ -91,11 +92,13 @@ const BlockEditor = ({
       }),
       Placeholder.configure({
         placeholder: ({ node }) => {
+          if (node.type.name === "section") return "Section title";
           if (node.type.name === "heading") return "Heading";
           return placeholder;
         },
         includeChildren: false,
       }),
+      SectionNode,
       CloudinaryImage,
       SlashCommand.configure({
         onSelectImage: openImagePicker,

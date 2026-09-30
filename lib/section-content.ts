@@ -3,7 +3,15 @@ import {
   ContentImageRadiusType,
   contentImageEnum,
 } from "@/actions/post/create/schema";
-import { PostSectionContent } from "@/actions/post/create/types";
+import { PostSection, PostSectionContent } from "@/actions/post/create/types";
+
+/** Section marker used to split the single-document body back into sections.
+ * The Section block node serializes to <div data-section="true">Title</div>. */
+export const SECTION_MARKER_ATTR = "data-section";
+
+/** icon_type is never rendered on the public site, so the single-document flow
+ * saves this constant instead of asking for an icon per section. */
+export const DEFAULT_SECTION_ICON = "card_file_box";
 
 /**
  * Shared contract for inline Cloudinary images inside section HTML.
@@ -194,4 +202,70 @@ export const htmlToContents = (
       content_image_radius: null,
     },
   ];
+};
+
+const stripTags = (value: string) => value.replace(/<[^>]*>/g, "");
+
+/**
+ * Rebuild the single-document body HTML from stored post_sections. Each section
+ * becomes a Section block (skipped when the title is empty — that content stays
+ * as leading, header-less body) followed by its content, using the existing
+ * backward-compat merge so old contents[] + separate images render inline.
+ */
+export const sectionsToDocumentHtml = (sections: PostSection[]): string => {
+  return [...sections]
+    .sort((a, b) => a.order - b.order)
+    .map((section) => {
+      const body = contentsToHtml(section.contents);
+      const title = section.title?.trim();
+      const header = title
+        ? `<div ${SECTION_MARKER_ATTR}="true">${escapeAttr(title)}</div>`
+        : "";
+      return [header, body].filter(Boolean).join("\n");
+    })
+    .filter((chunk) => chunk.trim().length > 0)
+    .join("\n");
+};
+
+/**
+ * Split the single-document body HTML into post_sections at each Section block.
+ * Content before the first Section block becomes a section with an empty title.
+ * Output keeps the exact stored format (one PostSectionContent per section,
+ * image: null, images inline in the HTML) — no schema change.
+ */
+export const documentHtmlToSections = (html: string): PostSection[] => {
+  const sections: PostSection[] = [];
+  const markerRegex = new RegExp(
+    `<div\\b[^>]*\\b${SECTION_MARKER_ATTR}="true"[^>]*>([\\s\\S]*?)</div>`,
+    "gi"
+  );
+
+  let order = 0;
+  const pushSection = (title: string, contentHtml: string) => {
+    const trimmed = contentHtml.trim();
+    // Skip a completely empty leading section (doc starts with a Section block).
+    if (!title && !trimmed) return;
+    sections.push({
+      id: crypto.randomUUID(),
+      order: order++,
+      title,
+      icon_type: DEFAULT_SECTION_ICON,
+      contents: trimmed ? htmlToContents(trimmed) : [],
+    });
+  };
+
+  let lastIndex = 0;
+  let currentTitle = "";
+  let match: RegExpExecArray | null;
+
+  while ((match = markerRegex.exec(html)) !== null) {
+    const contentBefore = html.slice(lastIndex, match.index);
+    pushSection(currentTitle, contentBefore);
+    currentTitle = decodeEntities(stripTags(match[1])).trim();
+    lastIndex = markerRegex.lastIndex;
+  }
+
+  pushSection(currentTitle, html.slice(lastIndex));
+
+  return sections;
 };
