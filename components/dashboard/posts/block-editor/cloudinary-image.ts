@@ -1,5 +1,10 @@
 import Image from "@tiptap/extension-image";
 import { ReactNodeViewRenderer } from "@tiptap/react";
+import {
+  NodeSelection,
+  Selection,
+  TextSelection,
+} from "@tiptap/pm/state";
 
 import { IMAGE_ATTR, DEFAULT_INLINE_RADIUS } from "@/lib/section-content";
 import ImageNodeView from "./image-node-view";
@@ -72,5 +77,65 @@ export const CloudinaryImage = Image.extend({
 
   addNodeView() {
     return ReactNodeViewRenderer(ImageNodeView);
+  },
+
+  addKeyboardShortcuts() {
+    const isImageSelected = () => {
+      const { selection } = this.editor.state;
+      return (
+        selection instanceof NodeSelection &&
+        selection.node.type.name === this.name
+      );
+    };
+
+    const paragraph = () => this.editor.schema.nodes.paragraph;
+
+    // Move to the block below (creating a trailing paragraph if the image is the
+    // last block), or above.
+    const move = (dir: "up" | "down") => {
+      if (!isImageSelected()) return false;
+      const { state, view } = this.editor;
+      const { selection, doc } = state;
+
+      if (dir === "down") {
+        const after = selection.to;
+        if (after >= doc.content.size) {
+          const tr = state.tr.insert(after, paragraph().create());
+          tr.setSelection(TextSelection.create(tr.doc, after + 1));
+          view.dispatch(tr.scrollIntoView());
+          return true;
+        }
+        const sel = Selection.near(doc.resolve(after), 1);
+        view.dispatch(state.tr.setSelection(sel).scrollIntoView());
+        return true;
+      }
+
+      const before = selection.from;
+      if (before <= 0) {
+        const tr = state.tr.insert(0, paragraph().create());
+        tr.setSelection(TextSelection.create(tr.doc, 1));
+        view.dispatch(tr.scrollIntoView());
+        return true;
+      }
+      const sel = Selection.near(doc.resolve(before), -1);
+      view.dispatch(state.tr.setSelection(sel).scrollIntoView());
+      return true;
+    };
+
+    return {
+      Enter: () => {
+        if (!isImageSelected()) return false;
+        const { state, view } = this.editor;
+        const after = state.selection.to;
+        const tr = state.tr.insert(after, paragraph().create());
+        tr.setSelection(TextSelection.create(tr.doc, after + 1));
+        view.dispatch(tr.scrollIntoView());
+        return true;
+      },
+      ArrowDown: () => move("down"),
+      ArrowRight: () => move("down"),
+      ArrowUp: () => move("up"),
+      ArrowLeft: () => move("up"),
+    };
   },
 });

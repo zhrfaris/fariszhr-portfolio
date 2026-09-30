@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { CloudinaryImage } from "./cloudinary-image";
 import { SectionNode } from "./section-node";
 import { SlashCommand } from "./slash-command";
+import { TrailingNode } from "./trailing-node";
 import { isAcceptedImage } from "./upload";
 import { createUploadTask } from "./upload-manager";
 import "./block-editor.css";
@@ -91,6 +92,7 @@ const BlockEditor = ({
       GlobalDragHandle.configure({
         dragHandleWidth: 20,
       }),
+      TrailingNode,
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -135,6 +137,12 @@ const BlockEditor = ({
     extensions,
     content: initialContent,
     editorProps,
+    onCreate: ({ editor }) => {
+      // appendTransaction (TrailingNode) only runs on transactions, not the
+      // initial doc — dispatch an empty tr so a doc that loads ending with an
+      // image still gets its trailing empty paragraph.
+      editor.view.dispatch(editor.state.tr);
+    },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
@@ -150,8 +158,31 @@ const BlockEditor = ({
     uploadAndInsert(files);
   };
 
+  // Clicking the empty area below the last block (the container's bottom padding)
+  // focuses the end of the document, adding an empty paragraph if the last block
+  // is not already one.
+  const handleContainerMouseDown = (e: React.MouseEvent) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const pmRoot = editor.view.dom as HTMLElement;
+    if (pmRoot.contains(e.target as Node)) return; // click landed inside content
+
+    e.preventDefault();
+    const { state } = editor;
+    const last = state.doc.lastChild;
+    const isEmptyParagraph =
+      last?.type.name === "paragraph" && last.content.size === 0;
+    if (!isEmptyParagraph) {
+      editor
+        .chain()
+        .insertContentAt(state.doc.content.size, { type: "paragraph" })
+        .run();
+    }
+    editor.commands.focus("end");
+  };
+
   return (
-    <div className="block-editor-content">
+    <div className="block-editor-content" onMouseDown={handleContainerMouseDown}>
       <EditorContent editor={editor} />
       <input
         ref={fileInputRef}

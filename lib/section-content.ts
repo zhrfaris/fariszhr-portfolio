@@ -205,6 +205,14 @@ const stripTags = (value: string) => value.replace(/<[^>]*>/g, "");
 const stripBlobImages = (html: string) =>
   html.replace(/<img\b[^>]*\bsrc="blob:[^"]*"[^>]*>/gi, "");
 
+/** Remove empty trailing paragraphs (the editor keeps one for typing space) so
+ * the public page doesn't render extra blank space at the end of a section. */
+const stripTrailingEmptyParagraphs = (html: string) =>
+  html.replace(
+    /(?:\s*<p>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>)+\s*$/gi,
+    ""
+  );
+
 /**
  * Rebuild the single-document body HTML from stored post_sections. Each section
  * becomes a Section block (skipped when the title is empty — that content stays
@@ -241,7 +249,9 @@ export const documentHtmlToSections = (html: string): PostSection[] => {
 
   let order = 0;
   const pushSection = (title: string, contentHtml: string) => {
-    const trimmed = stripBlobImages(contentHtml).trim();
+    const trimmed = stripTrailingEmptyParagraphs(
+      stripBlobImages(contentHtml).trim()
+    ).trim();
     // Skip a completely empty leading section (doc starts with a Section block).
     if (!title && !trimmed) return;
     sections.push({

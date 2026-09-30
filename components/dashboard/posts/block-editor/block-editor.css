@@ -1,5 +1,10 @@
 /* Block editor (Tiptap) styling — dashboard look, no TinyMCE skin. */
 
+/* Comfortable clickable space below the last block (click-to-focus target). */
+.block-editor-content {
+  padding-bottom: 120px;
+}
+
 .block-editor-content .ProseMirror {
   outline: none;
   font-size: 15px;
