@@ -1,17 +1,11 @@
 "use client";
 
 import * as React from "react";
-import {
-  Blocks,
-  BriefcaseBusiness,
-  Globe,
-  House,
-  Newspaper,
-  User,
-} from "lucide-react";
+import { Blocks, BriefcaseBusiness, Globe, User } from "lucide-react";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
+import { NavPosts, SidebarPost } from "./nav-posts";
 import {
   Sidebar,
   SidebarContent,
@@ -21,28 +15,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
 } from "@/components/shadcn/sidebar";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Session } from "next-auth";
 
 const data = {
-  navMain: [
-    {
-      title: "Posts",
-      url: "/dashboard/posts",
-      icon: Newspaper,
-    },
-    {
-      title: "Workplaces",
-      url: "/dashboard/workplaces",
-      icon: BriefcaseBusiness,
-    },
-    {
-      title: "Categories",
-      url: "/dashboard/categories",
-      icon: Blocks,
-    },
-  ],
   profile: [
     {
       title: "Profile",
@@ -61,12 +40,30 @@ const data = {
       ],
     },
   ],
+  footer: [
+    {
+      title: "Workplaces",
+      url: "/dashboard/workplaces",
+      icon: BriefcaseBusiness,
+    },
+    {
+      title: "Categories",
+      url: "/dashboard/categories",
+      icon: Blocks,
+    },
+  ],
 };
 
 export function AppSidebar({
   session,
+  posts,
   ...props
-}: React.ComponentProps<typeof Sidebar> & { session: Session | null }) {
+}: React.ComponentProps<typeof Sidebar> & {
+  session: Session | null;
+  posts: SidebarPost[];
+}) {
+  const pathname = usePathname();
+
   const user = {
     name: session?.user?.name || "Guest",
     email: session?.user?.email || "",
@@ -75,40 +72,37 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <Link href="/dashboard">
-              <SidebarMenuButton>
-                <h4 className="font-bold group-data-[collapsible=icon]:hidden">
-                  Dashboard
-                </h4>
-                <House className="group-data-[state=expanded]:hidden" />
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+      <SidebarHeader>{session && <NavUser user={user} />}</SidebarHeader>
       <SidebarContent>
-        <NavMain groupTitle="Profile" items={data.profile} />
-        <NavMain groupTitle="Posts" items={data.navMain} />
+        <NavMain items={data.profile} />
+        <NavPosts posts={posts} />
       </SidebarContent>
       {session && (
         <SidebarFooter>
+          <SidebarSeparator />
           <SidebarMenu>
+            {data.footer.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <Link href={item.url}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    isActive={pathname.startsWith(item.url)}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            ))}
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton>
-                  {/* group-data-[state=expanded]:hidden */}
-                  <Globe className="" />
-                  <h4 className="group-data-[collapsible=icon]:hidden">
-                    Back To Web
-                  </h4>
+                <SidebarMenuButton tooltip="Back To Web">
+                  <Globe />
+                  <span>Back To Web</span>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
           </SidebarMenu>
-          <NavUser user={user} />
         </SidebarFooter>
       )}
       <SidebarRail />

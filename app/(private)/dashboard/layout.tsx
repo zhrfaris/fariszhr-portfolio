@@ -7,6 +7,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/shadcn/sidebar";
+import { getPosts } from "@/actions/post/get";
 import { redirect } from "next/navigation";
 import React from "react";
 
@@ -17,9 +18,18 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   // page content to anonymous visitors (just without the sidebar chrome).
   if (!session) redirect("/login");
 
+  // Posts drive the sidebar list (every post by title, with a Live/Draft
+  // badge). Keep it slim — the sidebar only needs slug/title/status.
+  const posts = session.user?.id ? await getPosts(session.user.id) : [];
+  const sidebarPosts = posts.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    status: post.status,
+  }));
+
   return (
     <SidebarProvider>
-      <AppSidebar session={session} />
+      <AppSidebar session={session} posts={sidebarPosts} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
