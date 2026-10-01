@@ -15,6 +15,7 @@ import FormImageUpload, {
 } from "@/components/form/form-image-upload";
 import BlockEditor from "./block-editor/block-editor";
 import { useActiveUploadCount } from "./block-editor/upload-manager";
+import { deleteCloudinaryImage } from "./block-editor/upload";
 import {
   Tooltip,
   TooltipContent,
@@ -30,9 +31,6 @@ import {
 } from "@/lib/section-content";
 import { usePostForm } from "@/hooks/use-post-form";
 import FormCombobox from "@/components/form/form-combobox/form-combobox";
-import { getCategoriesComboboxAction } from "@/actions/category/get-list";
-import CategoryForm from "../categories/category-form";
-import { unassignPostFromCategory } from "@/actions/category/unassign-post";
 import { getWorkplacesComboboxAction } from "@/actions/workplace/get-list";
 import WorkplaceForm from "../workplaces/workplace-form";
 import { unassignPostFromWorkplace } from "@/actions/workplace/unassign-post";
@@ -40,6 +38,10 @@ import { useRouter } from "next/navigation";
 import FormSwitch from "@/components/form/form-switch";
 import HeaderActionsPortal from "../header-actions-portal";
 import { cn } from "@/lib/utils";
+import ShowcaseCard from "@/components/home/showcase-card";
+import ThumbnailUploader, { ThumbnailValue } from "./thumbnail-uploader";
+import CategoryMultiSelect from "./category-multi-select";
+import { useCategories } from "./use-categories";
 
 export type EditorTab = "thumbnail" | "content";
 
@@ -59,8 +61,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   const router = useRouter();
 
   const headerImageRef = useRef<FormImageUploadHandle>(null);
-  const thumbnailImageRef = useRef<FormImageUploadHandle>(null);
-  const thumbnailGifRef = useRef<FormImageUploadHandle>(null);
+  const descRef = useRef<HTMLTextAreaElement>(null);
 
   const [activeTab, setActiveTab] = useState<EditorTab>("thumbnail");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -70,6 +71,35 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   );
   const [workplaces, setWorkplaces] = useState<string[]>(
     initialData?.workplaceId ? [initialData?.workplaceId] : []
+  );
+
+  // Thumbnail is now one controlled value (static image + optional GIF) so the
+  // live preview card can react to it. Cloudinary assets replaced before a save
+  // are collected here and deleted after the save succeeds.
+  const [thumbnail, setThumbnail] = useState<ThumbnailValue>({
+    image: initialData?.thumbnail_image ?? null,
+    gif: initialData?.thumbnail_gif ?? null,
+  });
+  const orphanPublicIds = useRef<Set<string>>(new Set());
+  const collectOrphans = (ids: string[]) =>
+    ids.forEach((id) => orphanPublicIds.current.add(id));
+
+  const {
+    options: categoryOptions,
+    busy: categoriesBusy,
+    create: createCategoryOption,
+    remove: removeCategoryGlobal,
+  } = useCategories();
+
+  const selectedCategoryObjects = categories
+    .map((id) => categoryOptions.find((o) => o.id === id))
+    .filter(Boolean)
+    .map((o) => ({ id: o!.id, name: o!.name }));
+
+  // Number of Section blocks in the body → drives the "preview section amount"
+  // options. Clamped to a minimum of 1.
+  const [sectionCount, setSectionCount] = useState<number>(
+    initialData?.post_sections?.length ?? 0
   );
 
   const {
@@ -119,6 +149,14 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
+  // Keep the description textarea sized to its content (incl. prefilled edits).
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [excerpt, activeTab]);
+
   useEffect(() => {
     if (!isDirty) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -139,7 +177,18 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     setPreviewSectionAmount(null);
     setDirty(false);
     bodyHtmlRef.current = "";
+    setThumbnail({ image: null, gif: null });
+    setSectionCount(0);
     setErrors({});
+  };
+
+  // Delete Cloudinary assets that were replaced/removed during the session,
+  // plus the cover's own orphan, once a save has committed the new ones.
+  const cleanupImages = async () => {
+    await headerImageRef.current?.deleteUnusedImage();
+    const ids = [...orphanPublicIds.current];
+    orphanPublicIds.current.clear();
+    await Promise.all(ids.map((id) => deleteCloudinaryImage(id)));
   };
 
   const {
@@ -151,10 +200,8 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     },
     onSuccess: async () => {
       toast.success("Post created!");
+      await cleanupImages();
       resetForm();
-      await headerImageRef.current?.deleteUnusedImage();
-      await thumbnailImageRef.current?.deleteUnusedImage();
-      await thumbnailGifRef.current?.deleteUnusedImage();
       router.push("/dashboard/posts");
     },
     onComplete: () => {
@@ -171,10 +218,8 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     },
     onSuccess: async () => {
       toast.success("Post updated!");
+      await cleanupImages();
       resetForm();
-      await headerImageRef.current?.deleteUnusedImage();
-      await thumbnailImageRef.current?.deleteUnusedImage();
-      await thumbnailGifRef.current?.deleteUnusedImage();
       router.push("/dashboard/posts");
     },
     onComplete: () => {
@@ -187,7 +232,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   /** Validate required fields in tab order, returning the first problem. */
   const validate = (): FieldError | null => {
     const headerImage = headerImageRef.current?.image;
-    const thumbnailImage = thumbnailImageRef.current?.image;
+    const thumbnailImage = thumbnail.image;
 
     const checks: FieldError[] = [];
     if (!title.trim())
@@ -243,8 +288,8 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     setSaveAsDraft(asDraft);
 
     const headerImage = headerImageRef.current!.image!;
-    const thumbnailImage = thumbnailImageRef.current!.image!;
-    const thumbnailGif = thumbnailGifRef.current?.image;
+    const thumbnailImage = thumbnail.image!;
+    const thumbnailGif = thumbnail.gif;
 
     const post_sections = documentHtmlToSections(bodyHtmlRef.current);
 
@@ -262,7 +307,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       workplaceId: workplaces[0],
       isRestricted: !!isRestricted,
       password: isRestricted ? password : null,
-      previewSectionAmount: isRestricted ? previewSectionAmount ?? 0 : null,
+      previewSectionAmount: isRestricted ? previewSectionAmount ?? 1 : null,
     };
 
     if (initialData?.id) {
@@ -290,22 +335,33 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       <div className="flex-1">
         {/* THUMBNAIL TAB */}
         <TabPanel active={activeTab === "thumbnail"}>
-          <div className="mx-auto max-w-5xl space-y-6 p-6">
-            <div className="grid gap-6 md:grid-cols-[220px_1fr]">
-              <div className="space-y-3">
-                <FormImageUpload
-                  ref={thumbnailImageRef}
-                  label="Thumbnail image"
-                  initialImage={initialData?.thumbnail_image || undefined}
+          {/* Live homepage card preview */}
+          <div className="border-b bg-muted/40">
+            <div className="mx-auto max-w-3xl px-6 py-10">
+              <div className="mx-auto w-full max-w-[560px]">
+                <ShowcaseCard
+                  title={title}
+                  description={excerpt}
+                  categories={selectedCategoryObjects}
+                  image_url={thumbnail.image?.img_url}
+                  gif_url={thumbnail.gif?.img_url}
+                  showPlaceholders
                 />
-                <FormImageUpload
-                  ref={thumbnailGifRef}
-                  label="Thumbnail GIF (optional)"
-                  initialImage={initialData?.thumbnail_gif || undefined}
-                  showDeleteButton={true}
-                />
-                <ErrorText message={errors.thumbnail} />
               </div>
+            </div>
+          </div>
+
+          <div className="mx-auto w-full max-w-4xl p-6">
+            <div className="grid gap-8 md:grid-cols-[220px_1fr]">
+              <ThumbnailUploader
+                value={thumbnail}
+                error={errors.thumbnail}
+                onOrphan={collectOrphans}
+                onChange={(next) => {
+                  setThumbnail(next);
+                  markDirty();
+                }}
+              />
 
               <div className="space-y-5">
                 <Field
@@ -330,9 +386,12 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
                   error={errors.excerpt}
                 >
                   <Textarea
+                    ref={descRef}
                     value={excerpt}
+                    rows={2}
                     maxLength={DESCRIPTION_MAX}
                     placeholder="Description here"
+                    className="resize-none overflow-hidden"
                     onChange={(e) => {
                       setExcerpt(e.target.value);
                       markDirty();
@@ -340,19 +399,14 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
                   />
                 </Field>
 
-                <FormCombobox
-                  label="Category"
-                  sideSheetWidth="sm"
-                  selectedChipMode="chip"
-                  parentId={initialData?.id}
-                  initialSelected={categories}
-                  placeholder="Select Category..."
-                  FormCreateComponent={CategoryForm}
-                  onUnassign={unassignPostFromCategory}
-                  getData={getCategoriesComboboxAction}
-                  disabled={isLoading}
-                  onUpdateSelected={(selected) => {
-                    setCategories(selected);
+                <CategoryMultiSelect
+                  options={categoryOptions}
+                  selectedIds={categories}
+                  busy={categoriesBusy}
+                  onCreate={createCategoryOption}
+                  onDeleteGlobal={removeCategoryGlobal}
+                  onChange={(ids) => {
+                    setCategories(ids);
                     markDirty();
                   }}
                 />
@@ -365,6 +419,8 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
                   value={isRestricted === null ? false : isRestricted}
                   onCheckedChange={(bool) => {
                     setIsRestricted(bool);
+                    if (bool && !previewSectionAmount)
+                      setPreviewSectionAmount(1);
                     markDirty();
                   }}
                 />
@@ -382,18 +438,22 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
                       />
                     </Field>
                     <Field label="Preview section amount">
-                      <Input
-                        type="number"
-                        min={1}
-                        value={previewSectionAmount ?? ""}
-                        placeholder="Sections visible when restricted"
+                      <select
+                        value={previewSectionAmount ?? 1}
                         onChange={(e) => {
-                          setPreviewSectionAmount(
-                            e.target.value ? parseInt(e.target.value) : null
-                          );
+                          setPreviewSectionAmount(parseInt(e.target.value));
                           markDirty();
                         }}
-                      />
+                        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      >
+                        {Array.from({
+                          length: Math.max(sectionCount, 1),
+                        }).map((_, i) => (
+                          <option key={i + 1} value={i + 1}>
+                            {i + 1}
+                          </option>
+                        ))}
+                      </select>
                     </Field>
                   </div>
                 )}
@@ -453,6 +513,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
                   initialHTML={initialBodyHtml}
                   onChange={(html) => {
                     bodyHtmlRef.current = html;
+                    setSectionCount(documentHtmlToSections(html).length);
                     markDirty();
                   }}
                   placeholder="Press '/' for commands"
