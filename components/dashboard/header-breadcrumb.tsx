@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../shadcn/dropdown-menu";
+import { usePostForm } from "@/hooks/use-post-form";
 
 const crumb_max_width = "max-w-[200px] line-clamp-[1]";
 
@@ -30,6 +31,7 @@ type Crumb = {
 
 const HeaderBreadcrumb = () => {
   const params = usePathname();
+  const postTitle = usePostForm((state) => state.title);
   const [crumbs, setCrumbs] = useState<string[]>([]);
 
   const [currentPage, setCurrentPage] = useState<Crumb | undefined>();
@@ -104,6 +106,40 @@ const HeaderBreadcrumb = () => {
     const newCrumbs = params.split("/").filter((p) => p !== "");
     setCrumbs(newCrumbs);
   }, [params, resetCrumbs]);
+
+  // On the post editor's edit route the final crumb is the post title (not the
+  // slug + "edit"), matching the design: Dashboard > Posts > <title>.
+  const editMatch = params.match(/^\/dashboard\/posts\/([^/]+)\/edit$/);
+  if (editMatch) {
+    const label =
+      postTitle?.trim() ||
+      capitalizeEachWord(editMatch[1].split("-").join(" "));
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild className={cn(crumb_max_width)}>
+              <Link href="/dashboard">Dashboard</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild className={cn(crumb_max_width)}>
+              <Link href="/dashboard/posts">Posts</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage
+              className={cn("text-primary cursor-default", crumb_max_width)}
+            >
+              {label}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  }
 
   if (!rootPage) {
     return (

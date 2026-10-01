@@ -26,7 +26,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     status,
     thumbnail_image,
     title,
-    slug: newSlug,
     categoryIds,
     thumbnail_gif,
     workplaceId,
@@ -35,18 +34,16 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     previewSectionAmount,
   } = data;
 
-  const slug = slugify(newSlug);
-
-  const postExist = await db.post.findUnique({
-    where: {
-      slug,
-    },
-  });
-
-  if (postExist && postExist.id !== id) {
-    return {
-      error: "Slug already exist",
-    };
+  // Slug is derived from the title on every save (the field was removed from
+  // the UI). When the derived slug collides with a *different* post, append
+  // -2, -3, … until unique. A collision with this same post keeps the slug.
+  const baseSlug = slugify(title);
+  let slug = baseSlug;
+  let suffix = 2;
+  while (true) {
+    const existing = await db.post.findUnique({ where: { slug } });
+    if (!existing || existing.id === id) break;
+    slug = `${baseSlug}-${suffix++}`;
   }
 
   if (isRestricted) {
