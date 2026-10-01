@@ -4,15 +4,12 @@ import { createPost } from "@/actions/post/create";
 import { Post } from "@/actions/post/get/types";
 import { updatePost } from "@/actions/post/update";
 import { useAction } from "@/hooks/use-action";
-import { Status } from "@prisma/client";
+import { Image as ImageType, Status } from "@prisma/client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { CreatePost } from "@/actions/post/create/schema";
 import { Button } from "@/components/shadcn/button";
-import FormImageUpload, {
-  FormImageUploadHandle,
-} from "@/components/form/form-image-upload";
 import BlockEditor from "./block-editor/block-editor";
 import { useActiveUploadCount } from "./block-editor/upload-manager";
 import { deleteCloudinaryImage } from "./block-editor/upload";
@@ -30,10 +27,6 @@ import {
   documentHtmlToSections,
 } from "@/lib/section-content";
 import { usePostForm } from "@/hooks/use-post-form";
-import FormCombobox from "@/components/form/form-combobox/form-combobox";
-import { getWorkplacesComboboxAction } from "@/actions/workplace/get-list";
-import WorkplaceForm from "../workplaces/workplace-form";
-import { unassignPostFromWorkplace } from "@/actions/workplace/unassign-post";
 import { useRouter } from "next/navigation";
 import FormSwitch from "@/components/form/form-switch";
 import HeaderActionsPortal from "../header-actions-portal";
@@ -42,6 +35,13 @@ import ShowcaseCard from "@/components/home/showcase-card";
 import ThumbnailUploader, { ThumbnailValue } from "./thumbnail-uploader";
 import CategoryMultiSelect from "./category-multi-select";
 import { useCategories } from "./use-categories";
+import CoverUploader from "./cover-uploader";
+import WorkplacePicker from "./workplace-picker";
+import { WorkplacePickerItem } from "@/actions/workplace/get-with-image";
+import {
+  DETAIL_COLUMN,
+  DETAIL_TITLE,
+} from "@/components/portfolio-detail/portfolio-styles";
 
 export type EditorTab = "thumbnail" | "content";
 
@@ -60,8 +60,8 @@ type FieldError = { field: string; tab: EditorTab; message: string };
 const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   const router = useRouter();
 
-  const headerImageRef = useRef<FormImageUploadHandle>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
 
   const [activeTab, setActiveTab] = useState<EditorTab>("thumbnail");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -69,17 +69,26 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   const [categories, setCategories] = useState<string[]>(
     initialData?.categoryIds ?? []
   );
-  const [workplaces, setWorkplaces] = useState<string[]>(
-    initialData?.workplaceId ? [initialData?.workplaceId] : []
+  const [workplace, setWorkplace] = useState<WorkplacePickerItem | null>(
+    initialData?.workplace
+      ? {
+          id: initialData.workplace.id,
+          name: initialData.workplace.name,
+          image: initialData.workplace.image,
+        }
+      : null
   );
 
-  // Thumbnail is now one controlled value (static image + optional GIF) so the
-  // live preview card can react to it. Cloudinary assets replaced before a save
-  // are collected here and deleted after the save succeeds.
+  // Thumbnail + cover are controlled values so the live previews react to them.
+  // Cloudinary assets replaced before a save are collected here and deleted
+  // after the save succeeds.
   const [thumbnail, setThumbnail] = useState<ThumbnailValue>({
     image: initialData?.thumbnail_image ?? null,
     gif: initialData?.thumbnail_gif ?? null,
   });
+  const [cover, setCover] = useState<ImageType | null>(
+    initialData?.header_image ?? null
+  );
   const orphanPublicIds = useRef<Set<string>>(new Set());
   const collectOrphans = (ids: string[]) =>
     ids.forEach((id) => orphanPublicIds.current.add(id));
@@ -149,13 +158,20 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
-  // Keep the description textarea sized to its content (incl. prefilled edits).
+  // Keep the auto-growing textareas sized to their content (incl. prefilled).
   useEffect(() => {
     const el = descRef.current;
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${el.scrollHeight}px`;
   }, [excerpt, activeTab]);
+
+  useEffect(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [title, activeTab]);
 
   useEffect(() => {
     if (!isDirty) return;
@@ -178,14 +194,15 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     setDirty(false);
     bodyHtmlRef.current = "";
     setThumbnail({ image: null, gif: null });
+    setCover(null);
+    setWorkplace(null);
     setSectionCount(0);
     setErrors({});
   };
 
   // Delete Cloudinary assets that were replaced/removed during the session,
-  // plus the cover's own orphan, once a save has committed the new ones.
+  // once a save has committed the new ones.
   const cleanupImages = async () => {
-    await headerImageRef.current?.deleteUnusedImage();
     const ids = [...orphanPublicIds.current];
     orphanPublicIds.current.clear();
     await Promise.all(ids.map((id) => deleteCloudinaryImage(id)));
@@ -231,7 +248,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
 
   /** Validate required fields in tab order, returning the first problem. */
   const validate = (): FieldError | null => {
-    const headerImage = headerImageRef.current?.image;
+    const headerImage = cover;
     const thumbnailImage = thumbnail.image;
 
     const checks: FieldError[] = [];
@@ -261,7 +278,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
         tab: "content",
         message: "A cover image is required",
       });
-    if (!workplaces[0])
+    if (!workplace)
       checks.push({
         field: "workplace",
         tab: "content",
@@ -287,7 +304,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     setErrors({});
     setSaveAsDraft(asDraft);
 
-    const headerImage = headerImageRef.current!.image!;
+    const headerImage = cover!;
     const thumbnailImage = thumbnail.image!;
     const thumbnailGif = thumbnail.gif;
 
@@ -304,7 +321,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
         : null,
       post_sections,
       categoryIds: categories,
-      workplaceId: workplaces[0],
+      workplaceId: workplace?.id,
       isRestricted: !!isRestricted,
       password: isRestricted ? password : null,
       previewSectionAmount: isRestricted ? previewSectionAmount ?? 1 : null,
@@ -462,63 +479,58 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
           </div>
         </TabPanel>
 
-        {/* CONTENT TAB */}
+        {/* CONTENT TAB — the editable live case-study page */}
         <TabPanel active={activeTab === "content"}>
-          <div className="mx-auto max-w-3xl space-y-6 p-6">
-            <div className="space-y-2">
-              <FormImageUpload
-                ref={headerImageRef}
-                label="Cover image"
-                initialImage={initialData?.header_image || undefined}
+          <CoverUploader
+            value={cover}
+            error={errors.header}
+            onOrphan={collectOrphans}
+            onChange={(next) => {
+              setCover(next);
+              markDirty();
+            }}
+          />
+
+          <div className="px-6 pb-24">
+            <div className={DETAIL_COLUMN}>
+              {/* Workplace logo + categories row (matches the live page) */}
+              <WorkplacePicker
+                value={workplace}
+                categories={selectedCategoryObjects}
+                error={errors.workplace}
+                onChange={(wp) => {
+                  setWorkplace(wp);
+                  markDirty();
+                }}
               />
-              <ErrorText message={errors.header} />
-            </div>
 
-            <FormCombobox
-              parentId={initialData?.id}
-              label="Workplace"
-              placeholder="Select Workplace..."
-              getData={getWorkplacesComboboxAction}
-              initialSelected={workplaces}
-              FormCreateComponent={WorkplaceForm}
-              sideSheetWidth="sm"
-              onUnassign={unassignPostFromWorkplace}
-              onUpdateSelected={(selected) => {
-                setWorkplaces(selected);
-                markDirty();
-              }}
-              disabled={isLoading}
-              selectionType="single"
-            />
-            <ErrorText message={errors.workplace} />
-
-            <Field label="Title" counter={`${title.length}/${TITLE_MAX}`}>
-              <Input
+              {/* Inline title — shares the Thumbnail-tab title field */}
+              <textarea
+                ref={titleRef}
                 value={title}
+                rows={1}
                 maxLength={TITLE_MAX}
                 placeholder="Enter title here"
                 onChange={(e) => {
                   setTitle(e.target.value);
                   markDirty();
                 }}
+                className={cn(
+                  DETAIL_TITLE,
+                  "w-full resize-none overflow-hidden border-0 bg-transparent p-0 outline-none placeholder:text-muted-foreground/40 focus-visible:ring-0"
+                )}
               />
-            </Field>
 
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-foreground/70">
-                Body
-              </Label>
-              <div className="rounded-md border border-black/30 p-4">
-                <BlockEditor
-                  initialHTML={initialBodyHtml}
-                  onChange={(html) => {
-                    bodyHtmlRef.current = html;
-                    setSectionCount(documentHtmlToSections(html).length);
-                    markDirty();
-                  }}
-                  placeholder="Press '/' for commands"
-                />
-              </div>
+              {/* Body — existing block editor, public section typography */}
+              <BlockEditor
+                initialHTML={initialBodyHtml}
+                onChange={(html) => {
+                  bodyHtmlRef.current = html;
+                  setSectionCount(documentHtmlToSections(html).length);
+                  markDirty();
+                }}
+                placeholder="Press '/' for commands"
+              />
             </div>
           </div>
         </TabPanel>

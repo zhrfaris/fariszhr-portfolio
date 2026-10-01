@@ -14,6 +14,7 @@ import {
   parseSectionHtml,
   ParsedInlineImage,
 } from "@/lib/section-content";
+import { SECTION_BODY, SECTION_TITLE } from "./portfolio-styles";
 
 interface PortfolioSectionProps {
   section: PostSection;
@@ -82,13 +83,11 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
       >
         {section.title?.trim() && (
           <div>
-            <h3 className="text-[15px] font-normal text-foreground/80 mb-3">
-              {section.title}
-            </h3>
+            <h3 className={SECTION_TITLE}>{section.title}</h3>
             <hr className="border-[#e5e5e5]" />
           </div>
         )}
-        <div className="space-y-6 text-[15px] leading-[185%]">
+        <div className={SECTION_BODY}>
           {section.contents.map((content) => (
             <SectionContent key={content.id} content={content} />
           ))}
