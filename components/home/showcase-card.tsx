@@ -100,7 +100,7 @@ const ShowcaseCard = ({
                 <img
                   alt=""
                   src={gif_url}
-                  className="absolute inset-0 size-full object-cover object-left-top md:object-center opacity-0 transition-opacity duration-200 group-hover:md:opacity-100 pointer-events-none"
+                  className="absolute inset-0 size-full object-cover object-left-top md:object-center opacity-0 transition-opacity duration-200 [@media(hover:hover)]:group-hover:opacity-100 pointer-events-none"
                 />
               )}
               <div className="img_overlay absolute inset-x-0 bottom-0 w-full h-[40px] bg-gradient-to-t from-[#f5f5f5] to-transparent z-10 group-hover:md:from-[#353535]" />
