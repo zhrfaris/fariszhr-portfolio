@@ -355,7 +355,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
           {/* Live homepage card preview */}
           <div className="border-b bg-muted/40">
             <div className="mx-auto max-w-3xl px-6 py-10">
-              <div className="mx-auto w-full max-w-[560px]">
+              <div className="mx-auto w-full max-w-[408px]">
                 <ShowcaseCard
                   title={title}
                   description={excerpt}
@@ -368,7 +368,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-4xl p-6">
+          <div className="mx-auto w-full max-w-4xl px-12 py-6">
             <div className="grid gap-8 md:grid-cols-[220px_1fr]">
               <ThumbnailUploader
                 value={thumbnail}
@@ -537,7 +537,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       </div>
 
       {/* Sticky bottom action bar */}
-      <div className="sticky bottom-0 z-10 flex items-center justify-end gap-3 border-t bg-background px-6 py-3">
+      <div className="sticky bottom-0 z-10 flex items-center justify-end gap-3 border-t bg-background px-12 py-3">
         <Button
           type="button"
           variant="ghost"

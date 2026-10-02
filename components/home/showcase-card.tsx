@@ -107,7 +107,7 @@ const ShowcaseCard = ({
             </div>
           ) : (
             showPlaceholders && (
-              <div className="img size-[200px] shrink-0 rounded-[8px] bg-black/[0.03] flex items-center justify-center">
+              <div className="img size-[200px] shrink-0 rounded-[8px] flex items-center justify-center">
                 <ImageIcon className="size-10 text-muted-foreground/40" />
               </div>
             )
@@ -142,9 +142,11 @@ const ShowcaseCard = ({
             ? Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="bg-white border border-[#eeeeee] rounded-full py-1 px-2"
+                  className="bg-white group-hover:md:bg-[#444444] border border-[#eeeeee] group-hover:md:border-[#EEEEEE1A] rounded-full py-1 px-2"
                 >
-                  <p className="text-muted-foreground/50 text-xs">Category</p>
+                  <p className="text-muted-foreground/50 text-xs group-hover:md:text-white/60">
+                    Category
+                  </p>
                 </div>
               ))
             : categories?.map((category) => (
