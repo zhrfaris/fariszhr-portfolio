@@ -10,6 +10,12 @@ const execFileAsync = promisify(execFile);
 
 const TMP_INDEX = path.join(ANNOTATIONS_DIR, ".git-tmp-index");
 
+/** The temp index lives under the gitignored .annotations/ dir; make sure it
+ * exists before git tries to create its lock file there. */
+async function ensureTmpDir() {
+  await fs.mkdir(ANNOTATIONS_DIR, { recursive: true });
+}
+
 async function git(
   args: string[],
   opts?: { indexFile?: string }
@@ -44,6 +50,7 @@ export async function snapshotWorkingTree(): Promise<{
   head: string;
 }> {
   const head = await getHead();
+  await ensureTmpDir();
   await fs.rm(TMP_INDEX, { force: true });
   try {
     // Seed temp index from HEAD, then stage every change (adds/mods/deletes).
@@ -64,15 +71,36 @@ export async function snapshotWorkingTree(): Promise<{
   }
 }
 
-/** Paths changed by the run = diff between the snapshot and the working tree. */
+/**
+ * Paths changed by the run = diff between the snapshot tree and a tree built
+ * from the CURRENT working tree. Comparing two trees (both via `add -A`) is the
+ * only correct way here: a plain `git diff <commit>` ignores untracked files,
+ * so it would miss run-created files and get confused by the index. Both trees
+ * honor .gitignore, so .annotations/ is never included.
+ */
 export async function changedPathsSince(
   snapshotCommit: string
 ): Promise<string[]> {
-  const out = await git(["diff", "--name-only", snapshotCommit, "--"]);
-  return out
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  await ensureTmpDir();
+  await fs.rm(TMP_INDEX, { force: true });
+  try {
+    const head = await getHead();
+    await git(["read-tree", head], { indexFile: TMP_INDEX });
+    await git(["add", "-A"], { indexFile: TMP_INDEX });
+    const currentTree = await git(["write-tree"], { indexFile: TMP_INDEX });
+    const out = await git([
+      "diff",
+      "--name-only",
+      `${snapshotCommit}^{tree}`,
+      currentTree,
+    ]);
+    return out
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  } finally {
+    await fs.rm(TMP_INDEX, { force: true });
+  }
 }
 
 /**
@@ -88,6 +116,7 @@ export async function commitRunDelta(
   if (paths.length === 0) return null;
 
   const head = await getHead();
+  await ensureTmpDir();
   await fs.rm(TMP_INDEX, { force: true });
   try {
     await git(["read-tree", head], { indexFile: TMP_INDEX });
