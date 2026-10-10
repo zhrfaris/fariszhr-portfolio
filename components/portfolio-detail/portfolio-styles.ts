@@ -23,6 +23,9 @@ export const CATEGORY_ROW_TEXT = "text-xs md:text-base";
 /** Case-study title. */
 export const DETAIL_TITLE = "text-3xl md:text-5xl font-bold md:!leading-[3.75rem]";
 
-/** Section body + section title typography. */
+/** Section body + section title typography. The title matches Heading 3
+ * (see `.section-richtext` in globals.css): H2 > H3/Section > H4 > text. */
 export const SECTION_BODY = "space-y-6 text-[15px] leading-[185%]";
-export const SECTION_TITLE = "text-[15px] font-normal text-foreground/80 mb-3";
+/** Rich-text class for section body HTML (block editor output). */
+export const SECTION_RICHTEXT = "section-richtext";
+export const SECTION_TITLE = "text-lg font-semibold leading-[1.35] text-foreground";

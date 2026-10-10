@@ -54,6 +54,8 @@ const SanitizedHtml = ({
               "data-height",
               "data-img-type",
               "data-radius",
+              // Links from the block editor open in a new tab (rel is kept).
+              "target",
             ],
           }),
         }}
