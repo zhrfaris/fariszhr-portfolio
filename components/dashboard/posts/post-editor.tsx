@@ -6,6 +6,7 @@ import { updatePost } from "@/actions/post/update";
 import { useAction } from "@/hooks/use-action";
 import { Image as ImageType, Status } from "@prisma/client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { CreatePost } from "@/actions/post/create/schema";
@@ -29,21 +30,13 @@ import {
 import { usePostForm } from "@/hooks/use-post-form";
 import { useRouter } from "next/navigation";
 import FormSwitch from "@/components/form/form-switch";
-import HeaderActionsPortal from "../header-actions-portal";
 import { cn } from "@/lib/utils";
-import ShowcaseCard from "@/components/home/showcase-card";
 import ThumbnailUploader, { ThumbnailValue } from "./thumbnail-uploader";
 import CategoryMultiSelect from "./category-multi-select";
 import { useCategories } from "./use-categories";
 import CoverUploader from "./cover-uploader";
 import WorkplacePicker from "./workplace-picker";
 import { WorkplacePickerItem } from "@/actions/workplace/get-with-image";
-import {
-  DETAIL_COLUMN,
-  DETAIL_TITLE,
-} from "@/components/portfolio-detail/portfolio-styles";
-
-export type EditorTab = "thumbnail" | "content";
 
 /** Max lengths for the Title / Description fields (design placeholders — swap
  * for the longest-existing values once the DB is reachable). */
@@ -55,16 +48,47 @@ interface PostEditorProps {
   initialPasscode?: string;
 }
 
-type FieldError = { field: string; tab: EditorTab; message: string };
+/** Validated fields, in the order they appear on the page. */
+type FieldKey =
+  | "thumbnail"
+  | "header"
+  | "title"
+  | "excerpt"
+  | "workplace"
+  | "password";
+type FieldError = { field: FieldKey; message: string };
 
 const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   const router = useRouter();
 
   const descRef = useRef<HTMLTextAreaElement>(null);
-  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const thumbnailRef = useRef<HTMLDivElement>(null);
+  const coverRef = useRef<HTMLDivElement>(null);
+  const workplaceRef = useRef<HTMLButtonElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const fieldRefs: Record<FieldKey, React.RefObject<HTMLElement | null>> = {
+    thumbnail: thumbnailRef,
+    header: coverRef,
+    title: titleRef,
+    excerpt: descRef,
+    workplace: workplaceRef,
+    password: passwordRef,
+  };
 
-  const [activeTab, setActiveTab] = useState<EditorTab>("thumbnail");
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
+  const clearError = (field: FieldKey) =>
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+
+  const [showPassword, setShowPassword] = useState(false);
+  // Raw text of the preview-amount input while typing; null shows the stored
+  // value (so a cleared field doesn't fight the controlled number).
+  const [previewInput, setPreviewInput] = useState<string | null>(null);
 
   const [categories, setCategories] = useState<string[]>(
     initialData?.categoryIds ?? []
@@ -79,9 +103,8 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       : null
   );
 
-  // Thumbnail + cover are controlled values so the live previews react to them.
-  // Cloudinary assets replaced before a save are collected here and deleted
-  // after the save succeeds.
+  // Thumbnail + cover are controlled values. Cloudinary assets replaced
+  // before a save are collected here and deleted after the save succeeds.
   const [thumbnail, setThumbnail] = useState<ThumbnailValue>({
     image: initialData?.thumbnail_image ?? null,
     gif: initialData?.thumbnail_gif ?? null,
@@ -99,13 +122,8 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     create: createCategoryOption,
   } = useCategories();
 
-  const selectedCategoryObjects = categories
-    .map((id) => categoryOptions.find((o) => o.id === id))
-    .filter(Boolean)
-    .map((o) => ({ id: o!.id, name: o!.name }));
-
-  // Number of Section blocks in the body → drives the "preview section amount"
-  // options. Clamped to a minimum of 1.
+  // Number of Section blocks in the body → the max for "preview section
+  // amount" (never below 1).
   const [sectionCount, setSectionCount] = useState<number>(
     initialData?.post_sections?.length ?? 0
   );
@@ -157,20 +175,15 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
-  // Keep the auto-growing textareas sized to their content (incl. prefilled).
+  const maxPreviewSections = Math.max(sectionCount, 1);
+
+  // Keep the auto-growing description sized to its content (incl. prefilled).
   useEffect(() => {
     const el = descRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  }, [excerpt, activeTab]);
-
-  useEffect(() => {
-    const el = titleRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  }, [title, activeTab]);
+    el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
+  }, [excerpt]);
 
   useEffect(() => {
     if (!isDirty) return;
@@ -245,46 +258,35 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
 
   const isLoading = createIsLoading || updateIsLoading;
 
-  /** Validate required fields in tab order, returning the first problem. */
-  const validate = (): FieldError | null => {
-    const headerImage = cover;
-    const thumbnailImage = thumbnail.image;
-
+  /** Validate required fields in page order (first entry = topmost). */
+  const validate = (): FieldError[] => {
     const checks: FieldError[] = [];
-    if (!title.trim())
-      checks.push({ field: "title", tab: "thumbnail", message: "Title is required" });
-    if (!excerpt.trim())
-      checks.push({
-        field: "excerpt",
-        tab: "thumbnail",
-        message: "Description is required",
-      });
-    if (!thumbnailImage)
+    if (!thumbnail.image)
       checks.push({
         field: "thumbnail",
-        tab: "thumbnail",
         message: "A thumbnail image is required",
       });
+    if (!cover)
+      checks.push({ field: "header", message: "A cover image is required" });
+    if (!title.trim())
+      checks.push({ field: "title", message: "Title is required" });
+    if (!excerpt.trim())
+      checks.push({ field: "excerpt", message: "Description is required" });
+    if (!workplace)
+      checks.push({ field: "workplace", message: "A company is required" });
     if (isRestricted && (!password || !password.trim()))
       checks.push({
         field: "password",
-        tab: "thumbnail",
         message: "Password is required when the post is restricted",
       });
-    if (!headerImage)
-      checks.push({
-        field: "header",
-        tab: "content",
-        message: "A cover image is required",
-      });
-    if (!workplace)
-      checks.push({
-        field: "workplace",
-        tab: "content",
-        message: "A workplace is required",
-      });
+    return checks;
+  };
 
-    return checks[0] ?? null;
+  const focusField = (field: FieldKey) => {
+    const el = fieldRefs[field].current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.focus({ preventScroll: true });
   };
 
   const handleSave = (asDraft: boolean) => {
@@ -293,11 +295,13 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       return;
     }
 
-    const problem = validate();
-    if (problem) {
-      setErrors({ [problem.field]: problem.message });
-      setActiveTab(problem.tab);
-      toast.error(problem.message);
+    const problems = validate();
+    if (problems.length) {
+      setErrors(
+        Object.fromEntries(problems.map((p) => [p.field, p.message]))
+      );
+      focusField(problems[0].field);
+      toast.error(problems[0].message);
       return;
     }
     setErrors({});
@@ -343,194 +347,211 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* Segmented control lives in the dashboard header, on the right. */}
-      <HeaderActionsPortal>
-        <SegmentedControl value={activeTab} onChange={setActiveTab} />
-      </HeaderActionsPortal>
-
       <div className="flex-1">
-        {/* THUMBNAIL TAB */}
-        <TabPanel active={activeTab === "thumbnail"}>
-          {/* Live homepage card preview */}
-          <div className="border-b bg-muted/40">
-            <div className="mx-auto max-w-3xl px-6 py-10">
-              <div className="mx-auto w-full max-w-[408px]">
-                <ShowcaseCard
-                  title={title}
-                  description={excerpt}
-                  categories={selectedCategoryObjects}
-                  image_url={thumbnail.image?.img_url}
-                  gif_url={thumbnail.gif?.img_url}
-                  showPlaceholders
-                />
-              </div>
-            </div>
-          </div>
+        {/* Post metadata */}
+        <div className="bg-muted/40">
+          <div className="mx-auto w-full max-w-[742px] space-y-6 px-6 pb-10 pt-16 md:pt-28">
+            <ThumbnailUploader
+              ref={thumbnailRef}
+              value={thumbnail}
+              error={errors.thumbnail}
+              onOrphan={collectOrphans}
+              onChange={(next) => {
+                setThumbnail(next);
+                if (next.image) clearError("thumbnail");
+                markDirty();
+              }}
+            />
 
-          <div className="mx-auto w-full max-w-4xl px-12 py-6">
-            <div className="grid gap-8 md:grid-cols-[220px_1fr]">
-              <ThumbnailUploader
-                value={thumbnail}
-                error={errors.thumbnail}
-                onOrphan={collectOrphans}
-                onChange={(next) => {
-                  setThumbnail(next);
+            <CoverUploader
+              ref={coverRef}
+              value={cover}
+              error={errors.header}
+              onOrphan={collectOrphans}
+              onChange={(next) => {
+                setCover(next);
+                if (next) clearError("header");
+                markDirty();
+              }}
+            />
+
+            <Field
+              id="post-title"
+              label="Title"
+              counter={`${title.length}/${TITLE_MAX}`}
+              error={errors.title}
+            >
+              <Input
+                id="post-title"
+                ref={titleRef}
+                value={title}
+                maxLength={TITLE_MAX}
+                placeholder="Title here"
+                aria-invalid={!!errors.title}
+                className={cn(
+                  "bg-background",
+                  errors.title && "border-destructive"
+                )}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  clearError("title");
+                  markDirty();
+                }}
+              />
+            </Field>
+
+            <Field
+              id="post-excerpt"
+              label="Description"
+              counter={`${excerpt.length}/${DESCRIPTION_MAX}`}
+              error={errors.excerpt}
+            >
+              <Textarea
+                id="post-excerpt"
+                ref={descRef}
+                value={excerpt}
+                rows={1}
+                maxLength={DESCRIPTION_MAX}
+                placeholder="Description here"
+                aria-invalid={!!errors.excerpt}
+                className={cn(
+                  "min-h-9 resize-none overflow-hidden bg-background",
+                  errors.excerpt && "border-destructive"
+                )}
+                onChange={(e) => {
+                  setExcerpt(e.target.value);
+                  clearError("excerpt");
+                  markDirty();
+                }}
+              />
+            </Field>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <CategoryMultiSelect
+                options={categoryOptions}
+                selectedIds={categories}
+                busy={categoriesBusy}
+                onCreate={createCategoryOption}
+                onChange={(ids) => {
+                  setCategories(ids);
                   markDirty();
                 }}
               />
 
-              <div className="space-y-5">
-                <Field
-                  label="Title"
-                  counter={`${title.length}/${TITLE_MAX}`}
-                  error={errors.title}
-                >
-                  <Input
-                    value={title}
-                    maxLength={TITLE_MAX}
-                    placeholder="Title here"
-                    onChange={(e) => {
-                      setTitle(e.target.value);
-                      markDirty();
-                    }}
-                  />
-                </Field>
-
-                <Field
-                  label="Description"
-                  counter={`${excerpt.length}/${DESCRIPTION_MAX}`}
-                  error={errors.excerpt}
-                >
-                  <Textarea
-                    ref={descRef}
-                    value={excerpt}
-                    rows={2}
-                    maxLength={DESCRIPTION_MAX}
-                    placeholder="Description here"
-                    className="resize-none overflow-hidden"
-                    onChange={(e) => {
-                      setExcerpt(e.target.value);
-                      markDirty();
-                    }}
-                  />
-                </Field>
-
-                <CategoryMultiSelect
-                  options={categoryOptions}
-                  selectedIds={categories}
-                  busy={categoriesBusy}
-                  onCreate={createCategoryOption}
-                  onChange={(ids) => {
-                    setCategories(ids);
-                    markDirty();
-                  }}
-                />
-
-                <hr className="border-border" />
-
-                <FormSwitch
-                  label="Restrict post?"
-                  id="isRestricted"
-                  value={isRestricted === null ? false : isRestricted}
-                  onCheckedChange={(bool) => {
-                    setIsRestricted(bool);
-                    if (bool && !previewSectionAmount)
-                      setPreviewSectionAmount(1);
-                    markDirty();
-                  }}
-                />
-
-                {isRestricted && (
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <Field label="Password" error={errors.password}>
-                      <Input
-                        value={password ?? ""}
-                        placeholder="Password to unlock the post"
-                        onChange={(e) => {
-                          setPassword(e.target.value);
-                          markDirty();
-                        }}
-                      />
-                    </Field>
-                    <Field label="Preview section amount">
-                      <select
-                        value={previewSectionAmount ?? 1}
-                        onChange={(e) => {
-                          setPreviewSectionAmount(parseInt(e.target.value));
-                          markDirty();
-                        }}
-                        className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        {Array.from({
-                          length: Math.max(sectionCount, 1),
-                        }).map((_, i) => (
-                          <option key={i + 1} value={i + 1}>
-                            {i + 1}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </TabPanel>
-
-        {/* CONTENT TAB — the editable live case-study page */}
-        <TabPanel active={activeTab === "content"}>
-          <CoverUploader
-            value={cover}
-            error={errors.header}
-            onOrphan={collectOrphans}
-            onChange={(next) => {
-              setCover(next);
-              markDirty();
-            }}
-          />
-
-          <div className="px-6 pb-24">
-            <div className={DETAIL_COLUMN}>
-              {/* Workplace logo + categories row (matches the live page) */}
               <WorkplacePicker
+                ref={workplaceRef}
                 value={workplace}
                 error={errors.workplace}
                 onChange={(wp) => {
                   setWorkplace(wp);
+                  if (wp) clearError("workplace");
                   markDirty();
                 }}
-              />
-
-              {/* Inline title — shares the Thumbnail-tab title field */}
-              <textarea
-                ref={titleRef}
-                value={title}
-                rows={1}
-                maxLength={TITLE_MAX}
-                placeholder="Enter title here"
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  markDirty();
-                }}
-                className={cn(
-                  DETAIL_TITLE,
-                  "w-full resize-none overflow-hidden border-0 bg-transparent p-0 outline-none placeholder:text-muted-foreground/40 focus-visible:ring-0"
-                )}
-              />
-
-              {/* Body — existing block editor, public section typography */}
-              <BlockEditor
-                initialHTML={initialBodyHtml}
-                onChange={(html) => {
-                  bodyHtmlRef.current = html;
-                  setSectionCount(documentHtmlToSections(html).length);
-                  markDirty();
-                }}
-                placeholder="Press '/' for commands"
               />
             </div>
+
+            <hr className="border-border" />
+
+            <FormSwitch
+              label="Restrict post?"
+              id="isRestricted"
+              value={isRestricted === null ? false : isRestricted}
+              onCheckedChange={(bool) => {
+                setIsRestricted(bool);
+                if (bool && !previewSectionAmount) setPreviewSectionAmount(1);
+                if (!bool) clearError("password");
+                markDirty();
+              }}
+            />
+
+            {isRestricted && (
+              <div className="grid gap-6 md:grid-cols-2">
+                <Field
+                  id="post-password"
+                  label="Password"
+                  error={errors.password}
+                >
+                  <div className="relative">
+                    <Input
+                      id="post-password"
+                      ref={passwordRef}
+                      type={showPassword ? "text" : "password"}
+                      // Keep the browser from autofilling the admin's own login.
+                      autoComplete="new-password"
+                      value={password ?? ""}
+                      placeholder="Password to unlock the post"
+                      aria-invalid={!!errors.password}
+                      className={cn(
+                        "bg-background pr-10",
+                        errors.password && "border-destructive"
+                      )}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        clearError("password");
+                        markDirty();
+                      }}
+                    />
+                    <button
+                      type="button"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </button>
+                  </div>
+                </Field>
+
+                <Field id="post-preview-amount" label="Preview section amount">
+                  <Input
+                    id="post-preview-amount"
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={maxPreviewSections}
+                    step={1}
+                    value={previewInput ?? previewSectionAmount ?? 1}
+                    className="bg-background"
+                    onChange={(e) => {
+                      setPreviewInput(e.target.value);
+                      const n = parseInt(e.target.value, 10);
+                      if (Number.isNaN(n)) return;
+                      setPreviewSectionAmount(
+                        Math.min(Math.max(n, 1), maxPreviewSections)
+                      );
+                      markDirty();
+                    }}
+                    onBlur={() => setPreviewInput(null)}
+                  />
+                </Field>
+              </div>
+            )}
           </div>
-        </TabPanel>
+        </div>
+
+        {/* Body — the block editor, in the same column as the form */}
+        <div className="mx-auto w-full max-w-[742px] px-6 pb-24 pt-8">
+          <BlockEditor
+            initialHTML={initialBodyHtml}
+            onChange={(html) => {
+              bodyHtmlRef.current = html;
+              const count = documentHtmlToSections(html).length;
+              setSectionCount(count);
+              // Removing Sections lowers the max preview amount with them.
+              const max = Math.max(count, 1);
+              if (previewSectionAmount && previewSectionAmount > max)
+                setPreviewSectionAmount(max);
+              markDirty();
+            }}
+            placeholder="Press '/' for commands"
+          />
+        </div>
       </div>
 
       {/* Sticky bottom action bar */}
@@ -589,52 +610,14 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
 
 /* ---------------------------------------------------------------- helpers */
 
-function SegmentedControl({
-  value,
-  onChange,
-}: {
-  value: EditorTab;
-  onChange: (tab: EditorTab) => void;
-}) {
-  return (
-    <div className="flex items-center rounded-lg border bg-muted p-1 text-sm">
-      {(["thumbnail", "content"] as const).map((tab) => (
-        <button
-          key={tab}
-          type="button"
-          onClick={() => onChange(tab)}
-          className={cn(
-            "rounded-md px-4 py-1.5 font-medium capitalize transition-colors",
-            value === tab
-              ? "bg-background text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {tab}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/** Keep both tab panels mounted (just hidden) so switching tabs never loses
- * in-progress edits, upload refs, or the block editor's state. */
-function TabPanel({
-  active,
-  children,
-}: {
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return <div className={cn(active ? "block" : "hidden")}>{children}</div>;
-}
-
 function Field({
+  id,
   label,
   counter,
   error,
   children,
 }: {
+  id: string;
   label: string;
   counter?: string;
   error?: string;
@@ -643,7 +626,7 @@ function Field({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-semibold text-foreground/80">
+        <Label htmlFor={id} className="text-sm font-semibold text-foreground">
           {label}
         </Label>
         {counter && (
