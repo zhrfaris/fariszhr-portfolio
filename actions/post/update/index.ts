@@ -26,7 +26,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     status,
     thumbnail_image,
     title,
-    slug: newSlug,
     categoryIds,
     thumbnail_gif,
     workplaceId,
@@ -35,18 +34,35 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     previewSectionAmount,
   } = data;
 
-  const slug = slugify(newSlug);
-
-  const postExist = await db.post.findUnique({
-    where: {
-      slug,
-    },
+  const current = await db.post.findUnique({
+    where: { id },
+    select: { slug: true, status: true, publishedAt: true },
   });
-
-  if (postExist && postExist.id !== id) {
+  if (!current) {
     return {
-      error: "Slug already exist",
+      error: "Post not found",
     };
+  }
+
+  const finalStatus = status ?? "ACTIVE";
+  const wasLive = !!current.publishedAt || current.status === "ACTIVE";
+
+  // A post that has ever been Live keeps its slug so public links never
+  // break, even if it is moved back to Draft. `status === ACTIVE` also counts
+  // for posts published before `publishedAt` existed. Otherwise the slug
+  // follows the title (the field was removed from the UI); when the derived
+  // slug collides with a *different* post, append -2, -3, … until unique.
+  // A collision with this same post keeps it.
+  let slug = current.slug;
+  if (!wasLive) {
+    const baseSlug = slugify(title);
+    slug = baseSlug;
+    let suffix = 2;
+    while (true) {
+      const existing = await db.post.findUnique({ where: { slug } });
+      if (!existing || existing.id === id) break;
+      slug = `${baseSlug}-${suffix++}`;
+    }
   }
 
   if (isRestricted) {
@@ -72,7 +88,12 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         thumbnail_image,
         thumbnail_gif,
         post_sections,
-        status: status ?? "ACTIVE",
+        status: finalStatus,
+        // Stamp the first publish; older Live posts get it on their next save.
+        ...(!current.publishedAt &&
+          (current.status === "ACTIVE" || finalStatus === "ACTIVE") && {
+            publishedAt: new Date(),
+          }),
         categories: {
           connect: categoryIds ? categoryIds.map((id) => ({ id })) : [],
         },
@@ -91,7 +112,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
+  // Revalidate with the final slug (and the old one if it changed).
   revalidatePath("/dashboard/posts");
+  revalidatePath("/");
+  for (const path of new Set([post.slug, current.slug])) {
+    revalidatePath(`/portfolios/${path}`);
+    revalidatePath(`/dashboard/posts/${path}/edit`);
+  }
   console.log(post);
   return { data: post };
 };

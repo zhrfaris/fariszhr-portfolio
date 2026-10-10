@@ -10,6 +10,16 @@ import { Portfolio } from "@/actions/post/get/types";
 
 import Image from "next/image";
 import Link from "next/link";
+import {
+  COVER_IMAGE,
+  COVER_INNER,
+  COVER_WRAPPER_BASE,
+  DETAIL_COLUMN,
+  DETAIL_TITLE,
+  CATEGORY_ROW_TEXT,
+  TITLE_HEADER_ROW,
+  WORKPLACE_LOGO,
+} from "./portfolio-styles";
 
 interface PortfolioDetailProps {
   post: NonNullable<Portfolio>;
@@ -47,45 +57,39 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
           <span>Edit Post</span>
         </Link>
       )}
-      <div className="h-[180px] md:h-[50vh] max-h-[500px] bg-[#f5f5f5] relative flex flex-col justify-end">
-        <div className="size-full relative max-w-[1800px] mx-auto">
+      <div className={cn(COVER_WRAPPER_BASE, "flex flex-col justify-end")}>
+        <div className={COVER_INNER}>
           <Image
             alt=""
             src={post.header_image.img_url}
             fill
             placeholder="blur"
             blurDataURL={post.header_image.img_url_placeholder}
-            className="size-full object-contain object-bottom md:object-cover"
+            className={COVER_IMAGE}
           />
         </div>
       </div>
 
       <div className="px-6 pb-24">
-        <div className="max-w-[640px] mx-auto space-y-8 py-6 md:py-12">
+        <div className={DETAIL_COLUMN}>
           {/* Portfolio Title Header */}
-          <div className="portfolio-title-header flex items-center gap-4">
+          <div className={TITLE_HEADER_ROW}>
             {post?.workplace && (
               <Image
                 src={post.workplace.image.img_url}
                 alt=""
                 width={post.workplace.image.img_width}
                 height={post.workplace.image.img_height}
-                className="max-w-24 md:max-w-40 h-fit object-contain"
+                className={WORKPLACE_LOGO}
               />
             )}
-            <h4 className="text-xs md:text-base">
+            <h4 className={CATEGORY_ROW_TEXT}>
               {post.categories.map((category) => category.name).join(" - ")}
             </h4>
           </div>
 
           {/* Portfolio Title */}
-          <h2
-            className={cn(
-              "text-3xl md:text-5xl font-bold md:!leading-[3.75rem]",
-            )}
-          >
-            {post.title}
-          </h2>
+          <h2 className={DETAIL_TITLE}>{post.title}</h2>
 
           {/* Portfolio Sections */}
           {post?.post_sections.map((section) => (

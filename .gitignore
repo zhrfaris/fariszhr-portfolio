@@ -38,3 +38,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dev-only annotation tool data
+.annotations/
+
+# local Claude Code config
+.claude/

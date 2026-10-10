@@ -33,18 +33,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     previewSectionAmount,
   } = data;
 
-  const slug = slugify(title);
-
-  const postExist = await db.post.findUnique({
-    where: {
-      slug,
-    },
-  });
-
-  if (postExist) {
-    return {
-      error: `Post with title of ${title} already exist`,
-    };
+  // Slug is always derived from the title (the field was removed from the UI).
+  // If the base slug is taken, append -2, -3, … until it is unique.
+  const baseSlug = slugify(title);
+  let slug = baseSlug;
+  let suffix = 2;
+  while (await db.post.findUnique({ where: { slug } })) {
+    slug = `${baseSlug}-${suffix++}`;
   }
 
   if (isRestricted) {
@@ -56,6 +51,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   }
 
   const postsLength = await db.post.count();
+  const finalStatus = status ?? "ACTIVE";
 
   let post;
 
@@ -70,7 +66,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         thumbnail_gif,
         post_sections,
         order: postsLength,
-        status: status ?? "ACTIVE",
+        status: finalStatus,
+        publishedAt: finalStatus === "ACTIVE" ? new Date() : null,
         categories: {
           connect: categoryIds ? categoryIds.map((id) => ({ id })) : [],
         },

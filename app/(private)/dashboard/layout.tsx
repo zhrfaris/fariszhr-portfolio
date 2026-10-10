@@ -7,25 +7,46 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/shadcn/sidebar";
+import { getPosts } from "@/actions/post/get";
+import DashboardMain from "@/components/dashboard/dashboard-main";
+import { HEADER_ACTIONS_SLOT_ID } from "@/components/dashboard/header-actions-portal";
+import { redirect } from "next/navigation";
 import React from "react";
 
 const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await auth();
 
-  if (!session) return <>{children}</>;
+  // Server-side gate for every /dashboard page. Previously this rendered the
+  // page content to anonymous visitors (just without the sidebar chrome).
+  if (!session) redirect("/login");
+
+  // Posts drive the sidebar list (every post by title, with a Live/Draft
+  // badge). Keep it slim — the sidebar only needs slug/title/status.
+  const posts = session.user?.id ? await getPosts(session.user.id) : [];
+  const sidebarPosts = posts.map((post) => ({
+    slug: post.slug,
+    title: post.title,
+    status: post.status,
+  }));
 
   return (
     <SidebarProvider>
-      <AppSidebar session={session} />
+      <AppSidebar session={session} posts={sidebarPosts} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
+        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-2 border-b bg-background transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex w-full items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <HeaderBreadcrumb />
+            {/* Per-page header actions (e.g. the Thumbnail|Content segmented
+                control) are portaled into this slot by the active page. */}
+            <div
+              id={HEADER_ACTIONS_SLOT_ID}
+              className="ml-auto flex items-center gap-2"
+            />
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+        <DashboardMain>{children}</DashboardMain>
       </SidebarInset>
     </SidebarProvider>
   );

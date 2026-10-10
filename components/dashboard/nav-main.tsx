@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 interface NavMainProps {
-  groupTitle: string;
+  groupTitle?: string;
   items: {
     title: string;
     url: string;
@@ -37,7 +37,7 @@ interface NavMainProps {
 export function NavMain({ items, groupTitle }: NavMainProps) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{groupTitle}</SidebarGroupLabel>
+      {groupTitle && <SidebarGroupLabel>{groupTitle}</SidebarGroupLabel>}
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible

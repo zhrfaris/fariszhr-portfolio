@@ -45,7 +45,19 @@ const SanitizedHtml = ({
           className
         )}
         dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(innerHTML),
+          __html: DOMPurify.sanitize(innerHTML, {
+            ADD_ATTR: [
+              "data-public-id",
+              "data-placeholder",
+              "data-thumbnail",
+              "data-width",
+              "data-height",
+              "data-img-type",
+              "data-radius",
+              // Links from the block editor open in a new tab (rel is kept).
+              "target",
+            ],
+          }),
         }}
       ></div>
       {currRestrict && showMoreButton && (

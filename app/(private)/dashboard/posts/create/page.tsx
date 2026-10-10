@@ -1,13 +1,8 @@
-import DbPageWrapper from "@/components/dashboard/page-wrapper";
-import PostForm from "@/components/dashboard/posts/post-form";
+import PostEditor from "@/components/dashboard/posts/post-editor";
 import React from "react";
 
 const CreatePostPage = () => {
-  return (
-    <DbPageWrapper title="Create Post">
-      <PostForm />
-    </DbPageWrapper>
-  );
+  return <PostEditor />;
 };
 
 export default CreatePostPage;

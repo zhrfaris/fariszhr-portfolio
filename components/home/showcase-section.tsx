@@ -19,6 +19,7 @@ const ShowcaseSection = async ({ posts }: { posts: Post[] }) => {
                 : `/coming-soon`
             }
             image_url={post.thumbnail_image.img_url}
+            gif_url={post.thumbnail_gif?.img_url}
           />
         ))}
       </>
