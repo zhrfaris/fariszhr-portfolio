@@ -4,8 +4,8 @@ import Link from "@tiptap/extension-link";
 const SITE_HOSTS = [
   "fariszhr.studio",
   "www.fariszhr.studio",
-  "farisazhr.com",
-  "www.farisazhr.com",
+  "farisazhar.com",
+  "www.farisazhar.com",
 ];
 
 /** True for absolute http(s) links to another domain. Relative paths,
