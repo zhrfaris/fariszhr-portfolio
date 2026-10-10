@@ -34,16 +34,32 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     previewSectionAmount,
   } = data;
 
-  // Slug is derived from the title on every save (the field was removed from
-  // the UI). When the derived slug collides with a *different* post, append
-  // -2, -3, … until unique. A collision with this same post keeps the slug.
-  const baseSlug = slugify(title);
-  let slug = baseSlug;
-  let suffix = 2;
-  while (true) {
-    const existing = await db.post.findUnique({ where: { slug } });
-    if (!existing || existing.id === id) break;
-    slug = `${baseSlug}-${suffix++}`;
+  const current = await db.post.findUnique({
+    where: { id },
+    select: { slug: true, status: true },
+  });
+  if (!current) {
+    return {
+      error: "Post not found",
+    };
+  }
+
+  // A post that is Live (ACTIVE in the DB) keeps its slug so public links
+  // never break. Otherwise the slug follows the title (the field was removed
+  // from the UI); when the derived slug collides with a *different* post,
+  // append -2, -3, … until unique. A collision with this same post keeps it.
+  // There is no "was ever published" field, so a Live post saved back to
+  // Draft keeps its slug on that save, but later Draft saves unlock it.
+  let slug = current.slug;
+  if (current.status !== "ACTIVE") {
+    const baseSlug = slugify(title);
+    slug = baseSlug;
+    let suffix = 2;
+    while (true) {
+      const existing = await db.post.findUnique({ where: { slug } });
+      if (!existing || existing.id === id) break;
+      slug = `${baseSlug}-${suffix++}`;
+    }
   }
 
   if (isRestricted) {
@@ -88,7 +104,13 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
+  // Revalidate with the final slug (and the old one if it changed).
   revalidatePath("/dashboard/posts");
+  revalidatePath("/");
+  for (const path of new Set([post.slug, current.slug])) {
+    revalidatePath(`/portfolios/${path}`);
+    revalidatePath(`/dashboard/posts/${path}/edit`);
+  }
   console.log(post);
   return { data: post };
 };
