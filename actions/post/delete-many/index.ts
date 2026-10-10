@@ -10,6 +10,10 @@ import {
   destroyCloudinaryImage,
   initializeCloudinary,
 } from "@/lib/cloudinary-lib";
+import {
+  partitionUnusedPublicIds,
+  postImagePublicIds,
+} from "@/lib/post-image-cleanup";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const session = await auth();
@@ -31,47 +35,33 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     })
   );
 
-  const allCoverPublicIds: string[] = [];
-
   const postsToDelete = await db.$transaction(allPostTransaction);
 
-  for (const post of postsToDelete) {
-    if (!!post?.header_image?.public_id) {
-      allCoverPublicIds.push(post?.header_image?.public_id);
+  // Delete the posts' Cloudinary images (cover, thumbnail, GIF, legacy
+  // content images and inline block-editor images), skipping any public_id
+  // still used by a post that is not being deleted, a workplace or a user.
+  try {
+    const candidateIds = postsToDelete.flatMap((post) =>
+      post ? postImagePublicIds(post) : []
+    );
+    const { toDelete, inUse } = await partitionUnusedPublicIds(
+      candidateIds,
+      ids
+    );
+    if (inUse.length > 0) {
+      console.log(`Keeping ${inUse.length} image(s) still in use`, inUse);
     }
-    if (!!post?.thumbnail_image?.public_id) {
-      allCoverPublicIds.push(post?.thumbnail_image?.public_id);
-    }
-    if (!!post?.thumbnail_gif?.public_id) {
-      allCoverPublicIds.push(post?.thumbnail_gif?.public_id);
-    }
-
-    if (!!post?.post_sections && post?.post_sections.length > 0) {
-      const sectionsWithContents = post.post_sections.filter(
-        (section) => section.contents.length > 0
-      );
-      const contentsWithImages = sectionsWithContents.flatMap((section) =>
-        section.contents.filter((content) => content.image?.public_id)
-      );
-      const ids: string[] = contentsWithImages
-        .map((content) => content.image?.public_id)
-        .filter((t) => typeof t === "string");
-      allCoverPublicIds.concat(ids);
-    }
-  }
-
-  if (allCoverPublicIds.length > 0) {
-    try {
+    if (toDelete.length > 0) {
       // Call Cloudinary directly: a server-side fetch to /api/image/delete
       // carries no session cookie and would be rejected with 401.
       initializeCloudinary();
-      await destroyCloudinaryImage(allCoverPublicIds);
-    } catch (error) {
-      console.log(error);
-      return {
-        error: "Error while deleting posts images",
-      };
+      await destroyCloudinaryImage(toDelete);
     }
+  } catch (error) {
+    console.log(error);
+    return {
+      error: "Error while deleting posts images",
+    };
   }
 
   // remove all connections
