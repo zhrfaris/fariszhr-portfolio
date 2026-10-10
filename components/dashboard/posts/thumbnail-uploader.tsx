@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { forwardRef, useRef, useState } from "react";
 import { Image as ImageType } from "@prisma/client";
 import { ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/shadcn/button";
 import { cn } from "@/lib/utils";
@@ -29,49 +30,102 @@ const idsOf = (v: ThumbnailValue) => {
   return set;
 };
 
+/** The image slot holds the GIF's derived first frame (same Cloudinary asset). */
+export const isAutoFromGif = (v: ThumbnailValue) =>
+  !!v.image && !!v.gif && v.image.public_id === v.gif.public_id;
+
 /**
- * One uploader for both static images and GIFs. A static upload is saved as
- * `thumbnail_image` (GIF cleared); a GIF is saved as `thumbnail_gif` with a
- * derived static first-frame as `thumbnail_image`.
+ * Two side-by-side slots: `thumbnail_image` (any image) and `thumbnail_gif`
+ * (GIFs only). Uploading a GIF while the image slot is empty fills it with the
+ * GIF's static first frame; deleting the GIF clears that derived frame too, but
+ * leaves a separately uploaded image alone.
  */
-export default function ThumbnailUploader({
-  value,
-  onChange,
-  onOrphan,
-  error,
-}: ThumbnailUploaderProps) {
+const ThumbnailUploader = forwardRef<HTMLDivElement, ThumbnailUploaderProps>(
+  function ThumbnailUploader({ value, onChange, onOrphan, error }, ref) {
+    const commit = (next: ThumbnailValue) => {
+      const newIds = idsOf(next);
+      const orphans = [...idsOf(value)].filter((id) => !newIds.has(id));
+      if (orphans.length) onOrphan(orphans);
+      onChange(next);
+    };
+
+    const autoFrame = isAutoFromGif(value);
+
+    return (
+      <div ref={ref} tabIndex={-1} className="outline-none">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <ThumbnailSlot
+            label="Thumbnail Image"
+            caption={autoFrame ? "Auto from GIF" : undefined}
+            image={value.image}
+            accept=".png,.jpg,.jpeg,.gif,.svg,image/*"
+            onUploaded={(image) => commit({ ...value, image })}
+            onDelete={() => commit({ ...value, image: null })}
+          />
+          <ThumbnailSlot
+            label="Thumbnail GIF"
+            image={value.gif}
+            accept=".gif,image/gif"
+            gifOnly
+            onUploaded={(gif) =>
+              commit({
+                gif,
+                // Fill an empty image slot (or refresh a stale derived frame).
+                image:
+                  !value.image || autoFrame
+                    ? deriveStaticFromGif(gif)
+                    : value.image,
+              })
+            }
+            onDelete={() =>
+              commit({ gif: null, image: autoFrame ? null : value.image })
+            }
+          />
+        </div>
+        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      </div>
+    );
+  }
+);
+
+function ThumbnailSlot({
+  label,
+  caption,
+  image,
+  accept,
+  gifOnly,
+  onUploaded,
+  onDelete,
+}: {
+  label: string;
+  caption?: string;
+  image: ImageType | null;
+  accept: string;
+  gifOnly?: boolean;
+  onUploaded: (image: ImageType) => void;
+  onDelete: () => void;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
-
-  const commit = (next: ThumbnailValue) => {
-    const oldIds = idsOf(value);
-    const newIds = idsOf(next);
-    const orphans = [...oldIds].filter((id) => !newIds.has(id));
-    if (orphans.length) onOrphan(orphans);
-    onChange(next);
-  };
-
-  const upload = useMediaUpload((image, isGif) => {
-    commit(
-      isGif
-        ? { image: deriveStaticFromGif(image), gif: image }
-        : { image, gif: null }
-    );
-  });
+  const upload = useMediaUpload((img) => onUploaded(img));
 
   const pick = () => inputRef.current?.click();
 
   const handleFiles = (files: FileList | null) => {
     const file = files?.[0];
-    if (file) upload.start(file);
+    if (!file) return;
+    if (gifOnly && file.type !== "image/gif") {
+      toast.error("Thumbnail GIF must be a .gif file");
+      return;
+    }
+    upload.start(file);
   };
 
-  const { image, gif } = value;
   const busy = upload.isUploading || upload.isError;
   const showEmpty = !image && !busy;
 
   return (
-    <div className="space-y-3">
+    <div className="flex gap-3">
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -85,7 +139,7 @@ export default function ThumbnailUploader({
         }}
         onClick={showEmpty ? pick : undefined}
         className={cn(
-          "relative aspect-square w-full max-w-[220px] overflow-hidden rounded-xl border bg-muted",
+          "relative aspect-square w-full max-w-[172px] shrink-0 overflow-hidden rounded-lg border bg-muted",
           showEmpty && "cursor-pointer hover:bg-muted/70",
           dragOver && "border-foreground ring-2 ring-foreground/20"
         )}
@@ -113,62 +167,62 @@ export default function ThumbnailUploader({
             )}
           </>
         ) : image ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={image.img_url}
-              alt=""
-              className="size-full object-cover"
-            />
-            {gif && (
-              <span className="absolute left-2 top-2 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                GIF
-              </span>
-            )}
-          </>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image.img_url} alt="" className="size-full object-cover" />
         ) : (
-          <div className="flex size-full flex-col items-center justify-center gap-2 text-muted-foreground/50">
-            <ImageIcon className="size-10" />
-            <span className="text-xs">Click or drop an image</span>
+          <div className="flex size-full items-center justify-center text-muted-foreground/40">
+            <ImageIcon className="size-7" />
           </div>
         )}
       </div>
 
-      <div>
-        <p className="text-sm font-semibold text-foreground">Thumbnail image</p>
-        <div className="mt-2 flex items-center gap-2">
-          {image && !busy ? (
-            <>
-              <Button type="button" variant="outline" size="sm" onClick={pick}>
-                <Pencil className="size-4" />
-                Edit
-              </Button>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-foreground">{label}</p>
+        {caption && (
+          <p className="mt-0.5 text-xs text-muted-foreground">{caption}</p>
+        )}
+        {!busy && (
+          <div className="mt-2 flex flex-col items-start gap-2">
+            {image ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-[126px] bg-background"
+                  onClick={pick}
+                >
+                  <Pencil className="size-4" />
+                  Edit
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-[126px]"
+                  onClick={onDelete}
+                >
+                  <Trash2 className="size-4" />
+                  Delete
+                </Button>
+              </>
+            ) : (
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={() => commit({ image: null, gif: null })}
+                className="w-[126px] bg-background"
+                onClick={pick}
               >
-                <Trash2 className="size-4" />
-                Delete
-              </Button>
-            </>
-          ) : (
-            !busy && (
-              <Button type="button" variant="outline" size="sm" onClick={pick}>
                 <Plus className="size-4" />
                 Add image
               </Button>
-            )
-          )}
-        </div>
-        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+            )}
+          </div>
+        )}
       </div>
 
       <input
         ref={inputRef}
         type="file"
-        accept=".png,.jpg,.jpeg,.gif,.svg,image/*"
+        accept={accept}
         className="hidden"
         onChange={(e) => {
           handleFiles(e.target.files);
@@ -178,3 +232,5 @@ export default function ThumbnailUploader({
     </div>
   );
 }
+
+export default ThumbnailUploader;

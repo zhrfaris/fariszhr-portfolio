@@ -79,17 +79,15 @@ export default function CategoryMultiSelect({
 
   return (
     <div className="space-y-2" ref={wrapRef}>
-      <Label className="text-sm font-semibold text-foreground/80">
+      <Label className="text-sm font-semibold text-foreground">
         Category
       </Label>
-      <div
-        className={cn(
-          "rounded-lg border border-input bg-background",
-          open && "ring-1 ring-ring"
-        )}
-      >
+      <div className="relative">
         <div
-          className="flex flex-wrap items-center gap-2 p-2"
+          className={cn(
+            "flex min-h-9 cursor-text flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1 shadow-sm",
+            open && "rounded-b-none border-foreground/80 bg-muted/40"
+          )}
           onClick={() => {
             setOpen(true);
             inputRef.current?.focus();
@@ -98,7 +96,7 @@ export default function CategoryMultiSelect({
           {selected.map((opt) => (
             <span
               key={opt.id}
-              className="inline-flex items-center gap-1 rounded-md border bg-muted px-2 py-1 text-sm"
+              className="inline-flex items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-xs"
             >
               {opt.name}
               <button
@@ -109,7 +107,7 @@ export default function CategoryMultiSelect({
                   toggle(opt.id);
                 }}
               >
-                <X className="size-3.5" />
+                <X className="size-3" />
               </button>
             </span>
           ))}
@@ -119,7 +117,9 @@ export default function CategoryMultiSelect({
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setOpen(true)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Escape") {
+                setOpen(false);
+              } else if (e.key === "Enter") {
                 e.preventDefault();
                 if (!exactExists && normalizedQuery) {
                   void create();
@@ -134,23 +134,23 @@ export default function CategoryMultiSelect({
                 toggle(selected[selected.length - 1].id);
               }
             }}
-            placeholder={selected.length ? "" : "Select or type to create…"}
-            className="min-w-[8rem] flex-1 bg-transparent px-1 py-1 text-sm outline-none"
+            placeholder={selected.length ? "" : "Select category"}
+            className="min-w-[4rem] flex-1 bg-transparent px-1 py-0.5 text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
 
         {open && (
-          <div className="border-t p-3">
+          <div className="absolute inset-x-0 top-full z-30 -mt-px rounded-b-md border border-foreground/80 bg-popover p-3 shadow-lg">
             <p className="mb-2 text-xs text-muted-foreground">
               Select available option or type to create one
             </p>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex max-h-56 flex-col items-start gap-1.5 overflow-auto">
               {normalizedQuery && !exactExists && (
                 <button
                   type="button"
                   onClick={() => void create()}
                   disabled={busy}
-                  className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 text-sm hover:bg-muted disabled:opacity-50"
+                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 text-xs hover:bg-muted disabled:opacity-50"
                 >
                   Create &quot;{query.trim()}&quot;
                 </button>
@@ -166,7 +166,7 @@ export default function CategoryMultiSelect({
                 </button>
               ))}
               {filtered.length === 0 && !normalizedQuery && (
-                <span className="text-sm text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   No categories yet — type to create one.
                 </span>
               )}

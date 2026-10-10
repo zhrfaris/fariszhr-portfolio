@@ -494,7 +494,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
               {/* Workplace logo + categories row (matches the live page) */}
               <WorkplacePicker
                 value={workplace}
-                categories={selectedCategoryObjects}
                 error={errors.workplace}
                 onChange={(wp) => {
                   setWorkplace(wp);
