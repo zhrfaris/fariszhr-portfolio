@@ -38,8 +38,8 @@ import CoverUploader from "./cover-uploader";
 import WorkplacePicker from "./workplace-picker";
 import { WorkplacePickerItem } from "@/actions/workplace/get-with-image";
 
-/** Max lengths for the Title / Description fields (design placeholders — swap
- * for the longest-existing values once the DB is reachable). */
+/** Max lengths for the Title / Description fields. Final values, with enough
+ * headroom for every existing post. */
 export const TITLE_MAX = 60;
 export const DESCRIPTION_MAX = 150;
 
