@@ -11,6 +11,7 @@ import tippy, { Instance as TippyInstance } from "tippy.js";
 import {
   Heading2,
   Heading3,
+  Heading4,
   Image as ImageIcon,
   List,
   ListOrdered,
@@ -74,6 +75,18 @@ const buildItems = (
           .focus()
           .deleteRange(range)
           .setNode("heading", { level: 3 })
+          .run(),
+    },
+    {
+      title: "Heading 4",
+      description: "Small heading",
+      icon: Heading4,
+      command: ({ editor, range }) =>
+        editor
+          .chain()
+          .focus()
+          .deleteRange(range)
+          .setNode("heading", { level: 4 })
           .run(),
     },
     {

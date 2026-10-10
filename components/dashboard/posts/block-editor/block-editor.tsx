@@ -5,9 +5,12 @@ import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import { EditorView } from "@tiptap/pm/view";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
+import Underline from "@tiptap/extension-underline";
+import Link from "@tiptap/extension-link";
 import GlobalDragHandle from "tiptap-extension-global-drag-handle";
 import { toast } from "sonner";
 
+import EditorBubbleMenu from "./bubble-menu";
 import { CloudinaryImage } from "./cloudinary-image";
 import { SectionNode } from "./section-node";
 import { SlashCommand } from "./slash-command";
@@ -74,7 +77,13 @@ const BlockEditor = ({
   const extensions = useMemo(
     () => [
       StarterKit.configure({
-        heading: { levels: [2, 3] },
+        heading: { levels: [2, 3, 4] },
+      }),
+      Underline,
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        defaultProtocol: "https",
       }),
       Placeholder.configure({
         placeholder: ({ node }) => {
@@ -207,6 +216,7 @@ const BlockEditor = ({
   return (
     <div className="block-editor-content" onMouseDown={handleContainerMouseDown}>
       <EditorContent editor={editor} />
+      {editor && <EditorBubbleMenu editor={editor} />}
       <input
         ref={fileInputRef}
         onChange={onFileChange}

@@ -24,11 +24,28 @@
   margin-top: 1.25rem;
 }
 
-.block-editor-content .ProseMirror h3 {
+/* Heading 3 and the Section title share one size: H2 > H3/Section > H4 > text. */
+.block-editor-content .ProseMirror h3,
+.block-editor-content .ProseMirror .section-block h3 {
   font-size: 1.125rem;
   font-weight: 600;
   line-height: 1.35;
   margin-top: 1rem;
+}
+
+.block-editor-content .ProseMirror h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 0.75rem;
+}
+
+.block-editor-content .ProseMirror u {
+  text-decoration: underline;
+}
+
+.block-editor-content .ProseMirror s {
+  text-decoration: line-through;
 }
 
 .block-editor-content .ProseMirror ul,
@@ -92,6 +109,7 @@
 .block-editor-content .ProseMirror .section-block h3 {
   min-height: 1.25rem;
   margin: 0;
+  color: hsl(var(--foreground));
   outline: none;
 }
 

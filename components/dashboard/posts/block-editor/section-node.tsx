@@ -12,10 +12,11 @@ import { SECTION_MARKER_ATTR } from "@/lib/section-content";
 
 /**
  * The Section block. Acts as a section divider/title inside the single-document
- * body. Styled like the public section header (small muted title + divider),
+ * body. Styled like the public section title (same size as Heading 3),
  * draggable like any other block, and serialized to
  * `<div data-section="true">Title</div>` so the body can be split into
- * post_sections on save.
+ * post_sections on save. Marks are disallowed because the title is stored as
+ * plain text (formatting would be stripped on save anyway).
  */
 const SectionNodeView = () => {
   return (
@@ -24,11 +25,7 @@ const SectionNodeView = () => {
       data-drag-handle
       draggable="true"
     >
-      <NodeViewContent
-        as="h3"
-        className="mb-3 text-[15px] font-normal text-foreground/80"
-      />
-      <hr className="border-[#e5e5e5]" contentEditable={false} />
+      <NodeViewContent as="h3" />
     </NodeViewWrapper>
   );
 };
@@ -37,6 +34,7 @@ export const SectionNode = Node.create({
   name: "section",
   group: "block",
   content: "text*",
+  marks: "",
   defining: true,
   draggable: true,
 
