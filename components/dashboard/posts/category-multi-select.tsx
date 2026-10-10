@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Trash2, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import { Label } from "@/components/shadcn/label";
 import { cn } from "@/lib/utils";
@@ -12,22 +12,20 @@ interface CategoryMultiSelectProps {
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   onCreate: (name: string) => Promise<CategoryOption | null>;
-  onDeleteGlobal: (id: string) => Promise<boolean>;
   busy?: boolean;
 }
 
 /**
  * Chip-based category multi-select (design 2): selected categories render as
  * removable chips; typing filters the options and, with no exact match,
- * creates a new category on Enter. Each option carries a trash icon that
- * deletes the category globally (no confirm, as specified).
+ * creates a new category on Enter. Deleting categories lives on the
+ * Categories page only.
  */
 export default function CategoryMultiSelect({
   options,
   selectedIds,
   onChange,
   onCreate,
-  onDeleteGlobal,
   busy,
 }: CategoryMultiSelectProps) {
   const [query, setQuery] = useState("");
@@ -77,11 +75,6 @@ export default function CategoryMultiSelect({
       setQuery("");
       inputRef.current?.focus();
     }
-  };
-
-  const deleteGlobal = async (id: string) => {
-    const ok = await onDeleteGlobal(id);
-    if (ok) onChange(selectedIds.filter((x) => x !== id));
   };
 
   return (
@@ -163,27 +156,14 @@ export default function CategoryMultiSelect({
                 </button>
               )}
               {filtered.map((opt) => (
-                <span
+                <button
                   key={opt.id}
-                  className="inline-flex items-center gap-1.5 rounded-md border bg-background px-2 py-1 text-sm"
+                  type="button"
+                  className="inline-flex items-center rounded-full border bg-background px-2 py-0.5 text-xs hover:bg-muted"
+                  onClick={() => toggle(opt.id)}
                 >
-                  <button
-                    type="button"
-                    aria-label={`Delete ${opt.name}`}
-                    className="text-muted-foreground hover:text-destructive disabled:opacity-50"
-                    onClick={() => void deleteGlobal(opt.id)}
-                    disabled={busy}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    className="hover:text-foreground"
-                    onClick={() => toggle(opt.id)}
-                  >
-                    {opt.name}
-                  </button>
-                </span>
+                  {opt.name}
+                </button>
               ))}
               {filtered.length === 0 && !normalizedQuery && (
                 <span className="text-sm text-muted-foreground">

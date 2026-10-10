@@ -5,15 +5,14 @@ import { toast } from "sonner";
 
 import { getCategoriesComboboxAction } from "@/actions/category/get-list";
 import { createCategory } from "@/actions/category/create";
-import { deleteCategory } from "@/actions/category/delete";
 
 export interface CategoryOption {
   id: string;
   name: string;
 }
 
-/** Loads all categories once and exposes create / global-delete helpers.
- * Shared by the thumbnail preview (needs names) and the chip multi-select. */
+/** Loads all categories once and exposes a create helper for the chip
+ * multi-select. */
 export function useCategories() {
   const [options, setOptions] = useState<CategoryOption[]>([]);
   const [busy, setBusy] = useState(false);
@@ -48,17 +47,5 @@ export function useCategories() {
     []
   );
 
-  const remove = useCallback(async (id: string): Promise<boolean> => {
-    setBusy(true);
-    const res = await deleteCategory({ id });
-    setBusy(false);
-    if (res?.data || !res?.error) {
-      setOptions((prev) => prev.filter((o) => o.id !== id));
-      return true;
-    }
-    toast.error(res?.error ?? "Failed to delete category");
-    return false;
-  }, []);
-
-  return { options, busy, create, remove };
+  return { options, busy, create };
 }

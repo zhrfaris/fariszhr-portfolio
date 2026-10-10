@@ -97,7 +97,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     options: categoryOptions,
     busy: categoriesBusy,
     create: createCategoryOption,
-    remove: removeCategoryGlobal,
   } = useCategories();
 
   const selectedCategoryObjects = categories
@@ -421,7 +420,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
                   selectedIds={categories}
                   busy={categoriesBusy}
                   onCreate={createCategoryOption}
-                  onDeleteGlobal={removeCategoryGlobal}
                   onChange={(ids) => {
                     setCategories(ids);
                     markDirty();
