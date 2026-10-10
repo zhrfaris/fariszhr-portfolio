@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { plusJakartaSans } from "@/lib/fonts";
 import { Toaster } from "sonner";
 import { SessionProvider } from "next-auth/react";
-import DevAnnotations from "@/components/dev-annotations/dev-annotations";
 
 const metaTitle = "Muhammad Faris Azhar";
 const metaDescription =
@@ -91,7 +90,6 @@ export default function RootLayout({
           <>{children}</>
           <Toaster position="bottom-center" richColors />
         </SessionProvider>
-        {process.env.NODE_ENV === "development" && <DevAnnotations />}
       </body>
     </html>
   );
