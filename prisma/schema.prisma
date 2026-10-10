@@ -46,6 +46,9 @@ model Post {
   thumbnail_gif   Image?
 
   status Status @default(ACTIVE)
+  /// First time the post was saved as Live (ACTIVE). Once set, the slug is
+  /// locked so public links keep working.
+  publishedAt DateTime?
 
   isRestricted         Boolean?
   passwordHashed       String?

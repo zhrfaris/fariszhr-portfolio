@@ -51,6 +51,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
   }
 
   const postsLength = await db.post.count();
+  const finalStatus = status ?? "ACTIVE";
 
   let post;
 
@@ -65,7 +66,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         thumbnail_gif,
         post_sections,
         order: postsLength,
-        status: status ?? "ACTIVE",
+        status: finalStatus,
+        publishedAt: finalStatus === "ACTIVE" ? new Date() : null,
         categories: {
           connect: categoryIds ? categoryIds.map((id) => ({ id })) : [],
         },

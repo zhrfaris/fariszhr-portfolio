@@ -36,7 +36,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   const current = await db.post.findUnique({
     where: { id },
-    select: { slug: true, status: true },
+    select: { slug: true, status: true, publishedAt: true },
   });
   if (!current) {
     return {
@@ -44,14 +44,17 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
-  // A post that is Live (ACTIVE in the DB) keeps its slug so public links
-  // never break. Otherwise the slug follows the title (the field was removed
-  // from the UI); when the derived slug collides with a *different* post,
-  // append -2, -3, … until unique. A collision with this same post keeps it.
-  // There is no "was ever published" field, so a Live post saved back to
-  // Draft keeps its slug on that save, but later Draft saves unlock it.
+  const finalStatus = status ?? "ACTIVE";
+  const wasLive = !!current.publishedAt || current.status === "ACTIVE";
+
+  // A post that has ever been Live keeps its slug so public links never
+  // break, even if it is moved back to Draft. `status === ACTIVE` also counts
+  // for posts published before `publishedAt` existed. Otherwise the slug
+  // follows the title (the field was removed from the UI); when the derived
+  // slug collides with a *different* post, append -2, -3, … until unique.
+  // A collision with this same post keeps it.
   let slug = current.slug;
-  if (current.status !== "ACTIVE") {
+  if (!wasLive) {
     const baseSlug = slugify(title);
     slug = baseSlug;
     let suffix = 2;
@@ -85,7 +88,12 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         thumbnail_image,
         thumbnail_gif,
         post_sections,
-        status: status ?? "ACTIVE",
+        status: finalStatus,
+        // Stamp the first publish; older Live posts get it on their next save.
+        ...(!current.publishedAt &&
+          (current.status === "ACTIVE" || finalStatus === "ACTIVE") && {
+            publishedAt: new Date(),
+          }),
         categories: {
           connect: categoryIds ? categoryIds.map((id) => ({ id })) : [],
         },
