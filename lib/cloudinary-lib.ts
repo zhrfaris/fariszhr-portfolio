@@ -77,7 +77,8 @@ export const initializeCloudinary = () => {
  * @param {string[]} public_ids - List of public IDs of images to delete.
  * @param {Object} [optional] - Optional options.
  * @param {Function} [optional.callback] - Function to call with the result of the deletion.
- * @returns {Promise<any>|void} - Promise with the result of the deletion, or nothing if a callback is provided.
+ * @returns {Promise<unknown>} - Resolves with the deletion result (after the
+ * callback runs); rejects if Cloudinary errors, so callers can await it.
  */
 export const destroyCloudinaryImage = (
   public_ids: string[],
@@ -86,12 +87,15 @@ export const destroyCloudinaryImage = (
   const { callback = (result: unknown) => console.log(result) } =
     optional || {};
 
-  cloudinary.v2.api
+  return cloudinary.v2.api
     .delete_resources(public_ids, {
       type: "upload",
       resource_type: "image",
     })
-    .then((result) => callback(result));
+    .then((result) => {
+      callback(result);
+      return result;
+    });
 };
 
 // https://cloudinary.com/documentation/image_upload_api_reference#upload_response

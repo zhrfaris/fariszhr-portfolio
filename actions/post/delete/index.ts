@@ -6,6 +6,10 @@ import { revalidatePath } from "next/cache";
 import { ReturnType, InputType } from "./types";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { auth } from "@/auth";
+import {
+  destroyCloudinaryImage,
+  initializeCloudinary,
+} from "@/lib/cloudinary-lib";
 
 const handler = async (data: InputType): Promise<ReturnType> => {
   const session = await auth();
@@ -56,17 +60,10 @@ const handler = async (data: InputType): Promise<ReturnType> => {
 
   if (allCoverPublicIds.length > 0) {
     try {
-      const deleteGalleriesTransaction = allCoverPublicIds.map((id) =>
-        fetch(`${process.env.API_BASE_URL}/api/image/delete`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ public_id: id }),
-        })
-      );
-
-      await Promise.all(deleteGalleriesTransaction);
+      // Call Cloudinary directly: a server-side fetch to /api/image/delete
+      // carries no session cookie and would be rejected with 401.
+      initializeCloudinary();
+      await destroyCloudinaryImage(allCoverPublicIds);
     } catch (error) {
       console.log(error);
       return {
