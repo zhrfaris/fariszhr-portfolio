@@ -1,7 +1,12 @@
 import Link from "@tiptap/extension-link";
 
 /** Hosts of the portfolio itself; links to them stay in the same tab. */
-const SITE_HOSTS = ["fariszhr.studio", "www.fariszhr.studio"];
+const SITE_HOSTS = [
+  "fariszhr.studio",
+  "www.fariszhr.studio",
+  "farisazhr.com",
+  "www.farisazhr.com",
+];
 
 /** True for absolute http(s) links to another domain. Relative paths,
  * anchors, mailto and links to this site are internal. */
