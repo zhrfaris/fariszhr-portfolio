@@ -63,8 +63,6 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
             alt=""
             src={post.header_image.img_url}
             fill
-            placeholder="blur"
-            blurDataURL={post.header_image.img_url_placeholder}
             className={COVER_IMAGE}
           />
         </div>

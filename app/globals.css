@@ -6,6 +6,15 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Skeuomorphic surface shared by the case-study card (home.module.css) and
+   the landing page's mode tabs, so both read from one source. */
+:root {
+  --skeuo-radius: 12px;
+  --skeuo-border: 2px solid #f5f5f5;
+  --skeuo-bg: #f5f5f5;
+  --skeuo-inset: 0 2px 4px 0 rgba(0, 0, 0, 0.1) inset;
+}
+
 @layer base {
   :root {
     /* background: hsla(0, 0%, 21%, 1) */
@@ -153,6 +162,28 @@ body {
   margin-top: 0;
 }
 
+/* The divider a section opens with, right under its title. Measured from the
+   text itself, the room above it is the section's 1.5rem gap plus the title's
+   half-leading (18px at 1.35, SECTION_TITLE), and below it only the first
+   paragraph's half-leading (15px at 185%, SECTION_BODY), so it read as an
+   underline of the paragraph. It moves up by half the difference, and the
+   same amount opens up below it, so it sits midway. */
+.section > h3 + div > :first-child > :first-child > #innerHTML.section-richtext > hr:first-child {
+  margin-top: calc(((15px * 1.85 - 15px) / 2 - (1.5rem + (18px * 1.35 - 18px) / 2)) / 2);
+  margin-bottom: 0;
+}
+
+/* The room below is carried by whatever follows (a margin of its own would
+   otherwise collapse into the divider's): that half-difference, plus the
+   paragraph's half-leading less its own, so an h4 (shorter leading) lands
+   its text where a paragraph's would. */
+.section > h3 + div > :first-child > :first-child > #innerHTML.section-richtext > hr:first-child + * {
+  margin-top: calc(
+    ((1.5rem + (18px * 1.35 - 18px) / 2) - (15px * 1.85 - 15px) / 2) / 2 +
+      (15px * 1.85 - 15px) / 2 - (1lh - 1em) / 2
+  );
+}
+
 #innerHTML.section-richtext strong,
 #innerHTML.section-richtext b {
   font-weight: 600 !important;
@@ -187,4 +218,36 @@ body {
   margin-bottom: 0.5rem;
   color: hsl(var(--muted-foreground));
   font-style: italic;
+}
+
+/* Photo works motion (components/landing: the grid's entrance, the zoom
+   into the viewer with the scatter, and the close). Every duration and
+   easing in one place; JS reads them back (photo-motion.ts cssMs). */
+:root {
+  --pw-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --pw-ease-out: cubic-bezier(0.2, 0, 0, 1);
+  /* entrance */
+  --pw-enter: 240ms;
+  --pw-stagger: 12ms;
+  --pw-intro-fade: 360ms;
+  --pw-intro-rise: 480ms;
+  /* viewer */
+  --pw-zoom: 480ms;
+  --pw-close: 300ms;
+  --pw-backdrop-out: 220ms;
+  /* the book appearing under the photo once it has drawn */
+  --pw-handoff: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --pw-enter: 0.01ms;
+    --pw-stagger: 0ms;
+    --pw-intro-fade: 0.01ms;
+    --pw-intro-rise: 0.01ms;
+    --pw-zoom: 0.01ms;
+    --pw-close: 0.01ms;
+    --pw-backdrop-out: 0.01ms;
+    --pw-handoff: 0.01ms;
+  }
 }

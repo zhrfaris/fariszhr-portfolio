@@ -1,0 +1,310 @@
+/* Photo works viewer (Magazine / Gallery), from the mockups: the content sits
+   between the switcher (~38px above it) and the nav (~38px below), all on
+   #353535. Magazine is the home page's zine book (components/home/zine);
+   Gallery is a single white-bordered print. */
+
+.viewer {
+  /* everything except the box: switcher, nav, the gaps and the padding */
+  --reserved: 280px;
+  --gutter: 24px;
+  /* the Gallery print border, also the zine pages' white margin on screen
+     (photo-viewer.tsx reads it to draw the pages) */
+  --print-border: 6px;
+  /* the two views: the book (an open spread is 1.5:1, its own aspect) and the
+     Gallery stage (4:3), each as large as the space between switcher and nav */
+  --book-w: min(100vw - var(--gutter) * 2, (100dvh - var(--reserved)) * 1.5);
+  --stage-w: min(100vw - var(--gutter) * 2, (100dvh - var(--reserved)) * 4 / 3);
+  /* the Gallery / Magazine switch */
+  --switch-time: 450ms;
+  --switch-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 38px;
+  padding: var(--gutter);
+  outline: none;
+  /* the dark area closes the viewer (photo-viewer.tsx, isBackground) */
+  cursor: zoom-out;
+  overscroll-behavior: contain;
+  touch-action: none;
+  /* the zine book's curl room overhangs its paper; never let it scroll */
+  overflow: hidden;
+  /* the zine's paper colour, which it reads from its host page */
+  --paper: #ffffff;
+}
+
+/* The backdrop, unchanged in colour, on its own layer so it can fade in as
+   the photo zooms and out a little faster than it closes (--pw-*,
+   landing.module.css). */
+.viewer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #353535;
+  transition: opacity var(--pw-zoom) var(--pw-ease-in-out);
+}
+
+/* The switcher and nav sit above the zine book's transparent curl room
+   (it overhangs the paper by 40% top and bottom), so they keep their clicks. */
+.viewer > :not(.content) {
+  position: relative;
+  z-index: 3;
+  cursor: auto;
+  transition: opacity var(--pw-zoom) var(--pw-ease-in-out);
+}
+
+/* Opening: backdrop and controls start out, then fade in with the zoom. */
+.viewer[data-phase="start"]::before,
+.viewer[data-phase="start"] > :not(.content):not(.ghost) {
+  opacity: 0;
+}
+
+/* Closing: everything but the photo on its way back fades out. */
+.viewer[data-phase="closing"] {
+  pointer-events: none;
+}
+
+.viewer[data-phase="closing"]::before,
+.viewer[data-phase="closing"] > :not(.content):not(.ghost) {
+  opacity: 0;
+  transition: opacity var(--pw-backdrop-out) var(--pw-ease-out);
+}
+
+/* The book stays out of sight while the copy of the photo flies in and it
+   gets going, then comes up under the copy; on close, the copies take over
+   from it in the same frame. */
+.viewer[data-arriving="wait"] .bookLayer,
+.viewer[data-phase="closing"] .bookLayer {
+  opacity: 0;
+  transition: none;
+}
+
+.viewer[data-arriving="handoff"] .bookLayer {
+  opacity: 1;
+  transition: opacity var(--pw-handoff) var(--pw-ease-out);
+}
+
+/* The flying copy (photo-viewer.tsx): placed by transform from the top-left,
+   clipped to whatever box it is showing the photo in. */
+.viewer > .ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  max-width: none;
+  margin: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+  will-change: transform;
+  transition:
+    transform var(--pw-zoom) var(--pw-ease-in-out),
+    clip-path var(--pw-zoom) var(--pw-ease-in-out);
+}
+
+.viewer[data-phase="closing"] > .ghost {
+  transition-duration: var(--pw-close);
+  transition-timing-function: var(--pw-ease-out);
+}
+
+/* Both views share this box, sized for the larger of the two (the book is
+   the wider, the 4:3 stage can be the taller), so the switcher and nav never
+   move when they swap. Explicit size, never grown by its content. */
+.content {
+  position: relative;
+  flex: none;
+  width: var(--book-w);
+  height: max(var(--book-w) / 1.5, var(--stage-w) * 3 / 4);
+}
+
+/* A view, stacked and centred in the box. Fading and scaling are plain CSS
+   transitions, so a switch back mid-fade turns round from where it is. The
+   hidden state is where a view fades in from and out to: the print sinks
+   back a little (0.96), the book comes forward (1.04). */
+.layer {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity var(--switch-time) var(--switch-ease),
+    transform var(--switch-time) var(--switch-ease);
+  /* Each view on its own compositor layer, from the start: the fade then
+     needs no repaint, and the switcher's thumb moving above the large print
+     doesn't make the print repaint (and resample) with it every frame. */
+  will-change: transform, opacity;
+}
+
+.layer:not([data-on]) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.layer[data-on] {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.bookLayer:not([data-on]) {
+  transform: scale(1.04);
+}
+
+.stage:not([data-on]) {
+  transform: scale(0.96);
+}
+
+.viewer .book {
+  margin: 0;
+  flex: none;
+  width: var(--book-w);
+}
+
+/* the Gallery stage: always 4:3, as large as the screen allows */
+.stage {
+  width: var(--stage-w);
+  height: calc(var(--stage-w) * 3 / 4);
+  user-select: none;
+  /* the print (and the stage around it) isn't the dark area: it doesn't close */
+  cursor: default;
+}
+
+.stage img {
+  display: block;
+  -webkit-user-drag: none;
+}
+
+/* ---- Gallery: one photo as a white-bordered print ---- */
+
+.print {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.print img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  box-sizing: border-box;
+  border: var(--print-border) solid #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* ---- prev / counter / next ---- */
+
+.nav {
+  display: flex;
+  align-items: center;
+  /* 80px / 48px with the full-size arrows, scaled with them */
+  gap: 60px;
+}
+
+/* The arrows, 25% smaller than MainButton's 47px: a uniform scale, the same
+   way the home zine shrinks its own, so the ring, circle, shadow and chevron
+   all come down together. The negative margin takes the 12px the scale frees
+   out of the layout too, so the gap to the counter is measured from what you
+   see; a transparent hit area keeps the tap target ~44px. */
+.navButton {
+  position: relative;
+  scale: 0.75;
+  margin: -6px;
+}
+
+.navButton::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  /* behind the circle (the scale makes the button its own stacking context),
+     so the circle itself still takes the hover */
+  z-index: -1;
+}
+
+/* "Page x/y" and "Photo x/y" in one cell, crossfading with the views */
+.counter {
+  display: grid;
+  min-width: 104px;
+  font-size: 17px;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter span {
+  grid-area: 1 / 1;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--switch-time) var(--switch-ease);
+}
+
+.counter span[data-on] {
+  opacity: 1;
+}
+
+.counter b {
+  font-weight: 600;
+}
+
+/* Reduced motion: a short crossfade, no scaling. */
+@media (prefers-reduced-motion: reduce) {
+  .viewer {
+    --switch-time: 150ms;
+  }
+
+  .layer,
+  .layer[data-on],
+  .bookLayer:not([data-on]),
+  .stage:not([data-on]) {
+    transform: none;
+  }
+
+  .layer {
+    transition: opacity var(--switch-time) var(--switch-ease);
+  }
+}
+
+/* Phones: Gallery only (photo-viewer.tsx renders no switcher), with the
+   arrows and counter in one row at the bottom. The photo is sized to the
+   space above that row, so the row never covers it. */
+@media (max-width: 640px) {
+  .viewer {
+    --gutter: 16px;
+    --print-border: 4px;
+    /* the row's bottom edge, the arrows (35px), and room above them */
+    --row-bottom: calc(30px + env(safe-area-inset-bottom));
+    --row-space: calc(var(--row-bottom) + 35px + 24px);
+    --reserved: calc(var(--gutter) + var(--row-space));
+    padding-bottom: var(--row-space);
+    gap: 28px;
+  }
+
+  .viewer > .nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--row-bottom);
+    justify-content: center;
+    gap: 32px;
+  }
+
+  /* sized to its text, so the 32px is the gap you see */
+  .counter {
+    min-width: 0;
+    font-size: 15px;
+  }
+
+  .counter b {
+    font-weight: 700;
+  }
+}

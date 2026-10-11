@@ -1,7 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { Blocks, BriefcaseBusiness, Globe, User } from "lucide-react";
+import {
+  Blocks,
+  BriefcaseBusiness,
+  Camera,
+  Globe,
+  PanelsTopLeft,
+  User,
+} from "lucide-react";
 
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
@@ -41,6 +48,16 @@ const data = {
     },
   ],
   footer: [
+    {
+      title: "Landing Page",
+      url: "/dashboard/landing",
+      icon: PanelsTopLeft,
+    },
+    {
+      title: "Photo Works",
+      url: "/dashboard/gallery",
+      icon: Camera,
+    },
     {
       title: "Workplaces",
       url: "/dashboard/workplaces",

@@ -248,7 +248,7 @@
 @media (min-width: 768px) {
   .caseStack [data-case-grid] > * {
     height: 240px;
-    border-radius: 12px;
+    border-radius: var(--skeuo-radius);
     /* The 2px border is what holds the skeuomorphic edge together: .card sets
        background-clip: padding-box, so the border paints its own ring and the
        inset depth shadow starts 2px in from the outer edge rather than flush
@@ -260,9 +260,9 @@
        different curve. The outer edge is a true 12px on every tier either way.
        That ~1px variation is the lesser of the two evils; a fractional border
        cannot fix it because border-width snaps to 0.5px. */
-    border: 2px solid #f5f5f5;
-    background: #f5f5f5;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1) inset;
+    border: var(--skeuo-border);
+    background: var(--skeuo-bg);
+    box-shadow: var(--skeuo-inset);
     /* showcase-card.module.scss transitions `all .3s`, which the card falls
        back to once the deck stops driving it. That made hover a 300ms fade on
        the card while its inner wrapper flipped instantly — the light-and-dark

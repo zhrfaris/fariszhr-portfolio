@@ -349,7 +349,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     <div className="flex flex-1 flex-col">
       <div className="flex-1">
         {/* Post metadata */}
-        <div className="bg-muted/40">
+        <div className="border-b border-border bg-sidebar">
           <div className="mx-auto w-full max-w-[742px] space-y-6 px-6 pb-10 pt-16 md:pt-28">
             <ThumbnailUploader
               ref={thumbnailRef}
