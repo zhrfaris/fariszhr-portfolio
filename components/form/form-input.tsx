@@ -18,6 +18,10 @@ interface FormInputProps {
   defaultValue?: string;
   showTogglePassword?: boolean;
   value?: string | number;
+  /** For type="number". */
+  min?: number;
+  max?: number;
+  step?: number;
   onBlur?: () => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
@@ -39,6 +43,9 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
       readonly,
       value,
       showTogglePassword,
+      min,
+      max,
+      step,
     },
     ref
   ) => {
@@ -79,6 +86,9 @@ const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
               disabled={disabled}
               readOnly={readonly}
               value={value}
+              min={min}
+              max={max}
+              step={step}
               className={cn(
                 "px-4 flex items-center bg-muted text-base h-9",
                 className

@@ -139,8 +139,8 @@ function ThumbnailSlot({
         }}
         onClick={showEmpty ? pick : undefined}
         className={cn(
-          "relative aspect-square w-full max-w-[172px] shrink-0 overflow-hidden rounded-lg border bg-muted",
-          showEmpty && "cursor-pointer hover:bg-muted/70",
+          "relative aspect-square w-full max-w-[172px] shrink-0 overflow-hidden rounded-lg border bg-background",
+          showEmpty && "cursor-pointer hover:bg-muted/50",
           dragOver && "border-foreground ring-2 ring-foreground/20"
         )}
       >

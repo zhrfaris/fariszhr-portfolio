@@ -1,20 +1,19 @@
-import { getUser } from "@/actions/user/get";
-import { getPosts } from "@/components/home/hero-section";
-import HomeExperience from "@/components/home/home-experience";
-import HeroIdentity from "@/components/home/hero-identity";
-import ShowcaseSection from "@/components/home/showcase-section";
+import { getLandingPosts, getUser } from "@/components/landing/data";
+import CaseGrid from "@/components/landing/case-grid";
+import LandingIntro, { LandingContent } from "@/components/landing/landing-intro";
+
+// The previous home page (HomeExperience, HeroIdentity, the showcase deck and
+// the zine) is kept in components/home as a backup but no longer rendered.
 
 export default async function Home() {
-  const [user, posts] = await Promise.all([getUser(), getPosts()]);
+  const [user, posts] = await Promise.all([getUser(), getLandingPosts()]);
 
   return (
-    <HomeExperience
-      user={user ?? undefined}
-      identity={<HeroIdentity user={user ?? undefined} />}
-      /* No Suspense boundary here: `posts` is already resolved above, so the
-         boundary only ever deferred hydration of the grid — and the stacked
-         deck writes to those nodes as soon as it mounts. */
-      cases={<ShowcaseSection posts={posts} />}
-    />
+    <>
+      <LandingIntro text={user?.intro_product} />
+      <LandingContent>
+        <CaseGrid posts={posts} />
+      </LandingContent>
+    </>
   );
 }

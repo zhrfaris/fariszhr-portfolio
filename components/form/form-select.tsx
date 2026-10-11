@@ -15,6 +15,8 @@ import { capitalizeEachWord, cn } from "@/lib/utils";
 interface FormSelectProps {
   id: string;
   values: string[];
+  /** Optional display text per value (default: the value, capitalized). */
+  labels?: Record<string, string>;
   label?: string;
   placeholder?: string;
   required?: boolean;
@@ -22,6 +24,9 @@ interface FormSelectProps {
   readonly?: boolean;
   errors?: Record<string, string[] | undefined>;
   defaultValue?: string;
+  /** Optional controlled value (with onValueChange). */
+  value?: string;
+  onValueChange?: (value: string) => void;
   className?: string;
   onBlur?: () => void;
 }
@@ -39,7 +44,10 @@ const FormSelect = forwardRef<HTMLInputElement, FormSelectProps>(
       required,
       readonly,
       values,
+      labels,
       className,
+      value,
+      onValueChange,
     },
     ref
   ) => {
@@ -58,7 +66,9 @@ const FormSelect = forwardRef<HTMLInputElement, FormSelectProps>(
             name={id}
             required={required}
             disabled={disabled}
-            defaultValue={defaultValue}
+            defaultValue={value === undefined ? defaultValue : undefined}
+            value={value}
+            onValueChange={onValueChange}
           >
             <SelectTrigger
               className={cn(
@@ -80,7 +90,7 @@ const FormSelect = forwardRef<HTMLInputElement, FormSelectProps>(
               <SelectGroup>
                 {values.map((v) => (
                   <SelectItem key={v} value={v}>
-                    {capitalizeEachWord(v)}
+                    {labels?.[v] ?? capitalizeEachWord(v)}
                   </SelectItem>
                 ))}
               </SelectGroup>

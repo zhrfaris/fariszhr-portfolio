@@ -28,9 +28,31 @@ model User {
 
   photo Image?
 
-  workplaces Workplace[]
-  posts      Post[]
-  categories Category[]
+  /// Landing page: intro paragraph for each mode, and the two faces of the
+  /// hanging ID card (front = Product design, back = Photo works).
+  intro_product String?
+  intro_photo   String?
+  card_front    Image?
+  card_back     Image?
+  /// The card's lanyard: optional band image and the shared look/physics
+  /// settings (lib/lanyard-settings.ts has the defaults and ranges).
+  band_image    Image?
+  lanyard       LanyardSettings?
+
+  workplaces     Workplace[]
+  posts          Post[]
+  categories     Category[]
+  gallery_photos GalleryPhoto[]
+}
+
+/// One photo in the Photo works grid on /photography.
+model GalleryPhoto {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  order Int
+  image Image
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
 }
 
 model Post {
@@ -127,6 +149,30 @@ enum ContentImageRadius {
 enum Status {
   ACTIVE
   INACTIVE
+}
+
+type LanyardSettings {
+  imageFit     String
+  orientation  String
+  finish       String
+  metal        String
+  cardColor    String
+  plainBand    Boolean
+  bandColor    String
+  cornerRadius Float
+  size         Float
+  bandLength   Float
+  bandWidth    Float
+  anchor       String
+  gravity      Float
+  damping      Float
+  elasticity   Float
+  breeze       Float
+  interactive  Boolean
+  /// Old on/off for the sideways intro, kept in step with `entrance`.
+  intro        Boolean
+  /// "drop" | "swing" | "off". Missing on rows saved before it existed.
+  entrance     String?
 }
 
 type Image {

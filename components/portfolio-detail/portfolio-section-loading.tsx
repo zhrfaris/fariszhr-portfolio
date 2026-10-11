@@ -23,8 +23,6 @@ const PortfolioSectionLoading = () => {
           >
             <Image
               src={content.image.img_url}
-              placeholder="blur"
-              blurDataURL={content.image.img_url_placeholder}
               alt=""
               width={content.image.img_width}
               height={content.image.img_height}

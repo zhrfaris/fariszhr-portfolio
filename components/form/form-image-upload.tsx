@@ -121,7 +121,6 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
               classNameButtons
             )}
             img_url={currentImage?.img_url}
-            img_url_placeholder={currentImage?.img_url_placeholder}
             onEdit={() => selectFile()}
             onDelete={showDeleteButton ? deleteCurrentImage : undefined}
             width={currentImage?.img_width}
@@ -167,7 +166,6 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
                   classNameButtons
                 )}
                 img_url={currentImage?.img_url}
-                img_url_placeholder={currentImage?.img_url_placeholder}
                 onEdit={() => openWidget()}
                 onDelete={showDeleteButton ? deleteCurrentImage : undefined}
                 width={currentImage?.img_width}

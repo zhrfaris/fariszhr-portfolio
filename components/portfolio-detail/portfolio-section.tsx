@@ -26,17 +26,21 @@ interface PortfolioSectionProps {
 }
 
 const InlineImage = ({ image }: { image: ParsedInlineImage }) => {
-  const hasBlur = image.placeholder?.startsWith("data:");
+  // Plain #f5f5f5 while it loads (the box is already its final size, from
+  // width/height); gone once it's in, so a transparent PNG shows as made.
+  const [loaded, setLoaded] = useState(false);
 
   return (
     <div
-      className="w-full min-h-12 border border-[#d9d9d9] overflow-hidden relative"
+      className={cn(
+        "w-full min-h-12 border border-[#d9d9d9] overflow-hidden relative",
+        !loaded && "bg-[#f5f5f5]"
+      )}
       style={{ borderRadius: getRadiusPx(image.radius) }}
     >
       <Image
         src={image.src}
-        placeholder={hasBlur ? "blur" : "empty"}
-        blurDataURL={hasBlur ? image.placeholder : undefined}
+        onLoad={() => setLoaded(true)}
         alt=""
         width={image.width ?? 1200}
         height={image.height ?? 800}

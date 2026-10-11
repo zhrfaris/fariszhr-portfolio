@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { ZINE_PAGES } from "@/content/home";
 import { setZineDragging } from "./drag-state";
 import { FH, FW, PH, PW, R_MAX, R_MIN } from "./page-metrics";
-import { PageTextures } from "./page-textures";
+import { PageTextures, type PageSource } from "./page-textures";
 import {
   BLOCK,
   BLOCK_FRAG,
@@ -27,6 +27,9 @@ import {
 
 /** Twelve page faces read as six spreads, so there are five turns. */
 export const SPREAD_COUNT = Math.ceil(ZINE_PAGES.length / 2);
+
+/* Defaults are the home zine: its twelve pages, looping, with the idle hint. */
+const HOME_PAGES: PageSource[] = ZINE_PAGES;
 
 /**
  * Idle hint. The corner lifts a little way and settles back, so the book says
@@ -71,19 +74,57 @@ export const useZineRenderer = ({
   stageRef,
   canvasRef,
   sheetRef,
+  pages = HOME_PAGES,
+  loop = true,
+  initialSpread = 0,
+  nudge: wantsNudge = true,
+  onReady,
+  paused = false,
 }: {
   stageRef: RefObject<HTMLDivElement>;
   canvasRef: RefObject<HTMLCanvasElement>;
   /** The paper. It carries the drag; the canvas takes no pointer events. */
   sheetRef: RefObject<HTMLDivElement>;
+  /** Page faces in order: 2n is the left of spread n, 2n + 1 its right. */
+  pages?: PageSource[];
+  /** Turn off either end onto the other (home), or stop at the ends. */
+  loop?: boolean;
+  /** Spread to open on (read once, when the book comes up). */
+  initialSpread?: number;
+  /** The idle corner-lift hint. */
+  nudge?: boolean;
+  /** Called once the open spread is on screen with its own artwork (not the
+   * blank placeholder): the frame after it was first drawn. Again if the book
+   * is rebuilt. Without WebGL, as soon as that is known. */
+  onReady?: () => void;
+  /** Stop drawing once the open spread is on screen (the canvas keeps its
+   * last frame): for a book kept ready out of sight. Off by default. */
+  paused?: boolean;
 }) => {
-  const [spread, setSpread] = useState(0);
+  const spreadCount = Math.ceil(pages.length / 2);
+  const first = Math.min(Math.max(0, initialSpread), spreadCount - 1);
+  const [spread, setSpread] = useState(first);
   const [supported, setSupported] = useState<boolean | null>(null);
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  /** Open another spread at once, no turn (set up with the book). */
+  const jumpToRef = useRef<(spread: number) => void>((n) =>
+    setSpread(Math.min(spreadCount - 1, Math.max(0, n))),
+  );
+  useEffect(() => {
+    if (supported === false) onReadyRef.current?.();
+  }, [supported]);
   /* Until (or unless) the scene comes up, turning is plain state — that keeps
      the nav working on a machine with no WebGL, where the fallback below shows
      the spread as two images. */
   const turnToRef = useRef<(dir: 1 | -1) => void>((dir) =>
-    setSpread((s) => (s + dir + SPREAD_COUNT) % SPREAD_COUNT),
+    setSpread((s) =>
+      loop
+        ? (s + dir + spreadCount) % spreadCount
+        : Math.min(spreadCount - 1, Math.max(0, s + dir)),
+    ),
   );
 
   useEffect(() => {
@@ -116,6 +157,8 @@ export const useZineRenderer = ({
         // a page that lands mid-read has to be pushed into whichever slot wants it
         refreshMaps();
       },
+      pages,
+      loop,
     );
 
     /* ---------- geometry ---------- */
@@ -195,7 +238,7 @@ export const useZineRenderer = ({
     book.add(fold);
 
     /* ---------- turn state ---------- */
-    let current = 0;
+    let current = first;
     let turn: Turn | null = null;
     let sim: Sim | null = null;
     let dragging = false;
@@ -230,10 +273,13 @@ export const useZineRenderer = ({
       setSpread(current);
     }
 
-    /* No boundary refusal: PageTextures wraps the indices, so a turn off either
-       end folds exactly like any other turn and lands on the opposite spread. */
+    /* A looping book has no boundary refusal: PageTextures wraps the indices,
+       so a turn off either end folds exactly like any other turn and lands on
+       the opposite spread. A book that doesn't loop refuses to turn past its
+       first or last spread. */
     function begin(d: 1 | -1, gy: number) {
       const k = current;
+      if (!loop && (k + d < 0 || k + d > spreadCount - 1)) return false;
       if (d > 0) {
         leftMat.uniforms.uMap.value = tex.get(2 * k);
         rightMat.uniforms.uMap.value = tex.get(2 * k + 3);
@@ -359,7 +405,7 @@ export const useZineRenderer = ({
 
     function scheduleNudge(delay: number) {
       clearTimeout(idleTimer);
-      if (!wantsMotion || nudgeCount >= NUDGE_LIMIT) return;
+      if (!wantsNudge || !wantsMotion || nudgeCount >= NUDGE_LIMIT) return;
       idleTimer = setTimeout(startNudge, delay);
     }
 
@@ -391,7 +437,7 @@ export const useZineRenderer = ({
       if (!turn) return;
       const d = turn.dir;
       sim = null;
-      if (over) current = (current + d + SPREAD_COUNT) % SPREAD_COUNT;
+      if (over) current = (current + d + spreadCount) % spreadCount;
       rest();
     }
 
@@ -522,9 +568,32 @@ export const useZineRenderer = ({
 
     let raf = 0;
     let last = performance.now();
+    let readySent = false;
+    /** When the open spread was first drawn with its artwork. */
+    let drawnAt: number | null = null;
+    /** Both faces of the open spread have their artwork (a missing right
+     * face, past the end of an odd page count, counts as there). */
+    const spreadDrawn = () =>
+      tex.has(current * 2) && (current * 2 + 1 >= pages.length || tex.has(current * 2 + 1));
+
+    // A jump drops any turn in hand, and reports ready again once the new
+    // spread has been drawn.
+    jumpToRef.current = (n: number) => {
+      const next = Math.min(spreadCount - 1, Math.max(0, n));
+      if (next === current && !turn) return;
+      sim = null;
+      current = next;
+      readySent = false;
+      drawnAt = null;
+      rest();
+    };
     const frame = (now: number) => {
       const dt = Math.min(now - last, 48);
       last = now;
+      if (pausedRef.current && readySent && !turn && !sim && !dragging) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
 
       if (nudge && turn && !dragging && !sim) {
         const t = now - nudge.t0;
@@ -567,6 +636,14 @@ export const useZineRenderer = ({
         }
       }
       renderer.render(scene, camera);
+      if (drawnAt === null && spreadDrawn()) drawnAt = now;
+      // Ready one frame after that first draw: this callback only comes round
+      // once the GPU is through with that frame (shaders, uploads), so
+      // whatever the host starts on ready isn't caught in the stall.
+      if (!readySent && drawnAt !== null && drawnAt < now) {
+        readySent = true;
+        onReadyRef.current?.();
+      }
       raf = requestAnimationFrame(frame);
     };
 
@@ -591,15 +668,30 @@ export const useZineRenderer = ({
       [leftMat, rightMat, foldMat, blockMat].forEach((m) => m.dispose());
       tex.dispose();
       renderer.dispose();
+      // Hand the GL context back now rather than at some later GC: a book
+      // that is mounted again (the photo viewer's Magazine) would otherwise
+      // stack up live contexts, each making the next one slower to start.
+      // Only once the canvas has left the page, though — when this effect
+      // just re-runs (new pages, StrictMode) the same canvas, and so the
+      // same context, is taken straight up again.
+      const gl = renderer.getContext();
+      setTimeout(() => {
+        if (!canvas.isConnected) gl.getExtension("WEBGL_lose_context")?.loseContext();
+      });
     };
-  }, [canvasRef, stageRef, sheetRef]);
+    // The book is rebuilt only if its pages or looping change; the opening
+    // spread is read once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasRef, stageRef, sheetRef, pages, loop]);
 
   const turn = useCallback((dir: 1 | -1) => turnToRef.current(dir), []);
+  const jump = useCallback((spread: number) => jumpToRef.current(spread), []);
 
   return {
     spread,
-    spreadCount: SPREAD_COUNT,
+    spreadCount,
     supported,
     turn,
+    jump,
   };
 };

@@ -9,7 +9,6 @@ import AlertDialogWrapper from "../wrappers/alert-dialog-wrapper";
 
 interface ImagePlaceholderProps {
   img_url?: string | StaticImageData;
-  img_url_placeholder?: string;
   alt?: string;
   className?: string;
   classNameWrapper?: string;
@@ -27,7 +26,6 @@ const ImagePlaceholder = ({
   className,
   classNameWrapper,
   classNameButtons,
-  img_url_placeholder,
   quality = 75,
   width,
   height,
@@ -116,8 +114,6 @@ const ImagePlaceholder = ({
           <Image
             src={img_url}
             alt={alt || ""}
-            blurDataURL={img_url_placeholder}
-            placeholder={img_url_placeholder ? "blur" : undefined}
             fill={!width && !height}
             quality={quality}
             className={cn("object-contain w-full", className)}

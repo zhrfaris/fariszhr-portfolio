@@ -1,0 +1,559 @@
+/* Two-mode landing page (/ and /photography), from the Figma frames:
+   desktop 1440 wide with a 180px card column + 38px gap + 860px content
+   column; mobile stacks the card above the tab switcher. */
+
+.root {
+  --ink: #141414;
+  --muted: #545a5f;
+  --line: #e4e4e4;
+  --surface: #f5f5f5;
+
+  /* card column */
+  /* 180px is the Figma card at the default size; the dashboard's lanyard
+     settings arrive as --card-scale / --card-aspect / --anchor-shift on this
+     element (see landing-shell.tsx). */
+  --card-w: calc(180px * var(--card-scale, 1));
+  /* gap above the first content block; the card sits on the same line */
+  --content-gap: 24px;
+
+  position: relative;
+  min-height: 100svh;
+  background: #ffffff;
+  color: var(--ink);
+  /* the lanyard canvas may reach past the right edge while swinging */
+  overflow-x: clip;
+}
+
+.container {
+  --gutter: 24px;
+  /* card column + gap + an 832px content column: the case-study grid's own
+     max width, so the cards fill the column edge to edge */
+  max-width: calc(var(--card-w) + 38px + 832px + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter) 120px;
+  display: grid;
+  grid-template-columns: var(--card-w) minmax(0, 1fr);
+  /* tabs / intro / content / footer */
+  grid-template-rows: auto auto auto 1fr;
+  column-gap: 38px;
+  align-items: start;
+}
+
+.tabsRow {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+/* The page's own wrapper steps aside so its intro and content are grid items. */
+.page {
+  display: contents;
+}
+
+.intro {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.content {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.footer {
+  grid-column: 2;
+  grid-row: 4;
+}
+
+/* ---------- card column ---------- */
+
+/* Desktop: the card column spans every row (as a subgrid, so it shares the
+   row lines) and the card starts on the content row, level with the first
+   case-study row or the top of the photo grid. The band fills from the top
+   of the page down to the card. */
+.cardCol {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  display: grid;
+  grid-template-rows: subgrid;
+  justify-items: center;
+  align-self: stretch;
+}
+
+/* The strap's run above the card: room only (the 3D lanyard draws it). */
+.bandSpace {
+  grid-row: 1 / 3;
+  align-self: stretch;
+  /* run on through the content gap to the card's top edge */
+  margin-bottom: calc(-1 * var(--content-gap));
+}
+
+/* The card's resting spot: the 3D lanyard measures it to hang the card. */
+.slot {
+  grid-row: 3 / 5;
+  position: relative;
+  width: var(--card-w);
+  aspect-ratio: var(--card-aspect, 0.6316);
+  translate: calc(var(--card-w) * var(--anchor-shift, 0)) 0;
+  margin-top: var(--content-gap);
+}
+
+/* The 3D lanyard stays out of sight until it has drawn a frame with its card
+   faces (onReady); the column is empty till then. */
+.root:not(.ready) .stage {
+  visibility: hidden;
+}
+
+/* ---------- lanyard canvas ---------- */
+
+.stage {
+  position: absolute;
+  top: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+/* ---------- content column ---------- */
+
+.tabsRow {
+  display: flex;
+  margin-top: 104px;
+}
+
+/* Skeuomorphic, like the case-study cards: the box is the card's own surface
+   (shared custom properties in globals.css), and the active style is a more
+   detailed take on the card's dark hover state. The active style lives on one
+   moving thumb (mode-tabs.tsx, React Bits Rubber Segment interaction), never on
+   the tabs themselves, so nothing fades out on the tab being left. */
+.tabs {
+  position: relative;
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--skeuo-radius);
+  border: var(--skeuo-border);
+  background: var(--skeuo-bg);
+  box-shadow: var(--skeuo-inset);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tabs[data-held],
+.tabs[data-held] .tab {
+  cursor: grabbing;
+}
+
+/* The links: always the inactive (grey) look. Every tab has the same box
+   (padding, transparent 3px border, reserved semibold label width), so the
+   thumb can sit on any of them and nothing shifts. */
+.tab {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 8px;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1;
+  color: #8e8e8e;
+  text-decoration: none;
+  -webkit-user-drag: none;
+  /* tabs can also be <button>s (the photo viewer's switcher) */
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab[aria-current] {
+  cursor: grab;
+}
+
+/* The active look, shared by the moving thumb and (until the thumb has been
+   measured on the client) the active tab itself, so the first paint is right. */
+.thumb,
+.tabs:not([data-ready]) .tab[aria-current] {
+  border: 3px solid #505050;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #353535 0%, #505050 100%);
+  box-shadow:
+    0 0 0.225px 0.225px rgba(0, 0, 0, 0.07),
+    0 0 0.225px 0.675px rgba(0, 0, 0, 0.05),
+    0 2.698px 2.923px -1.349px rgba(0, 0, 0, 0.25),
+    0 0.899px 3.598px 0.899px rgba(0, 0, 0, 0.12);
+}
+
+.tabs:not([data-ready]) .tab[aria-current],
+.tabOn {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Over the tabs' content box: the thumb, then a white copy of the labels
+   clipped to the thumb, so text is white exactly where the thumb is. */
+.tabsLayer {
+  position: absolute;
+  inset: 3px;
+  pointer-events: none;
+}
+
+.tabs:not([data-ready]) .tabsLayer {
+  visibility: hidden;
+}
+
+.thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 32px;
+  will-change: transform, width;
+}
+
+.thumbLabels {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.tabLabel {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tabLabel::after {
+  content: attr(data-text);
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: 600;
+  user-select: none;
+  pointer-events: none;
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.tab svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.intro {
+  margin-top: 28px;
+  font-size: 13px;
+  line-height: 24px;
+  letter-spacing: 0.06em;
+  color: #4a4a4a;
+  white-space: pre-line;
+}
+
+.content {
+  min-width: 0;
+  margin-top: var(--content-gap);
+}
+
+/* The case cards inherit their tracking from the page they sit in; the
+   previous home page set this on its root. */
+.cases {
+  letter-spacing: -0.01em;
+}
+
+/* ShowcaseSection's wrapper carries mb-12 for the old home page. Here the
+   footer's margin-top is the one value that sets the gap below the cards. */
+.cases :global(#showcase) {
+  margin-bottom: 0;
+}
+
+.empty {
+  padding: 48px 24px;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---------- photo grid: justified rows ----------
+   Each photo grows from (row height × its aspect ratio) by its aspect ratio,
+   so every row fills the width while each photo keeps its own shape. The
+   ::after spacer soaks up the last row's slack so it isn't stretched. */
+
+.photoGrid {
+  --row: 90px;
+  --gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+.photoGrid::after {
+  content: "";
+  flex-grow: 999999;
+}
+
+.photo {
+  position: relative;
+  flex-grow: var(--ratio);
+  flex-basis: calc(var(--row) * var(--ratio));
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  /* the box while its photo loads */
+  background-color: #f5f5f5;
+  cursor: zoom-in;
+}
+
+.photo > i {
+  display: block;
+  padding-bottom: calc(100% / var(--ratio));
+}
+
+.photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.2s ease;
+}
+
+.photo:hover img {
+  opacity: 0.88;
+}
+
+.photo:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---------- Photo works motion ----------
+   Durations and easings: --pw-* in app/globals.css (the viewer reads them
+   too). */
+
+@keyframes pwFade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pwRise {
+  from {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes pwPhotoIn {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(8px) scale(0.985);
+  }
+}
+
+/* The intro comes up first (both tabs), then each photo as its image lands,
+   rippling in waves of six. Only the start is held (backwards fill), so
+   nothing lingers to fight the scatter later. */
+.intro {
+  animation:
+    pwFade var(--pw-intro-fade) var(--pw-ease-out) backwards,
+    pwRise var(--pw-intro-rise) var(--pw-ease-out) backwards;
+}
+
+.photo:not([data-shown]) {
+  opacity: 0;
+}
+
+/* Product design's case cards (case-entrance.tsx): the photos' entrance,
+   12ms apart by index. Held back with visibility, not opacity: the card's
+   own `transition: all` would otherwise take over the fade. */
+.cases [data-case-grid] > :not([data-shown]) {
+  visibility: hidden;
+}
+
+.cases [data-case-grid] > [data-shown] {
+  animation: pwPhotoIn var(--pw-enter) var(--pw-ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * var(--pw-stagger));
+}
+
+.photo[data-shown] {
+  animation: pwPhotoIn var(--pw-enter) var(--pw-ease-out) backwards;
+  animation-delay: calc(var(--i6, 0) * var(--pw-stagger));
+}
+
+/* Scatter around an opened photo (photo-motion.ts sets the values), and
+   the way back on close. */
+.photoGrid[data-motion] .photo {
+  transition:
+    transform var(--pw-zoom) var(--pw-ease-in-out),
+    opacity var(--pw-zoom) var(--pw-ease-in-out),
+    filter var(--pw-zoom) var(--pw-ease-in-out);
+}
+
+.photoGrid[data-motion="close"] .photo {
+  transition-duration: var(--pw-close);
+  transition-timing-function: var(--pw-ease-out);
+}
+
+/* the viewer's copy stands in for it */
+.photoGrid .photo[data-hidden] {
+  opacity: 0;
+}
+
+/* back in place at once, no fade, so the copy and it never both show */
+.photoGrid .photo[data-handoff] {
+  transition-duration: 0.01ms;
+}
+
+/* ---------- footer ---------- */
+
+.footer {
+  /* the only spacing between the last card / photo row and the footer */
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px 28px;
+}
+
+.footerLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 28px;
+}
+
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer a:hover span {
+  text-decoration: underline;
+}
+
+.footerIcon {
+  width: 1.3em;
+  height: 1.3em;
+  flex: none;
+  background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+/* ---------- mobile: card centered above the tab switcher ---------- */
+
+/* Product design on desktop fits one screen: the root is exactly the window
+   height whenever the content fits (and grows, scrolling, when it doesn't),
+   and the lanyard canvas hanging past the bottom no longer adds height. */
+@media (min-width: 900px) {
+  .root[data-page="product"] {
+    min-height: 100dvh;
+    overflow: clip;
+  }
+
+  .root[data-page="product"] .container {
+    /* breathing room below the footer when the screen is short */
+    padding-bottom: 24px;
+  }
+}
+
+@media (max-width: 899px) {
+  .root {
+    --card-w: calc(clamp(170px, 50vw, 220px) * var(--card-scale, 1));
+  }
+
+  .container {
+    /* the previous home page's gutters, so the case cards come out the
+       same width as before */
+    --gutter: 32px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    padding-bottom: 80px;
+  }
+
+  /* Mobile: one column, card centered above the tab switcher. */
+  .cardCol,
+  .tabsRow,
+  .intro,
+  .content,
+  .footer {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .cardCol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* 60px of visible band in the Figma frame, plus room for the 3D clip */
+  .bandSpace {
+    height: 88px;
+    margin-bottom: 0;
+  }
+
+  .slot {
+    margin-top: 0;
+  }
+
+  .tabsRow {
+    justify-content: center;
+    margin-top: 24px;
+  }
+
+  .tab {
+    font-size: 13px;
+  }
+
+  .intro {
+    margin-top: 24px;
+    font-size: 14px;
+    line-height: 26px;
+  }
+
+  .photoGrid {
+    --row: 96px;
+    --gap: 6px;
+  }
+
+  .footer {
+    border-top: 0;
+    padding-top: 24px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+  }
+
+  .footerLinks {
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .footer a {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    --gutter: 22px;
+  }
+}

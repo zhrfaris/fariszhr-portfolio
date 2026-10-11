@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { UpdateUser } from "./schema";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { ReturnType, InputType } from "./types";
 import { createSafeAction } from "@/lib/create-safe-action";
 import { auth } from "@/auth";
@@ -65,6 +65,8 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     };
   }
 
+  // The public pages read the user through unstable_cache tagged "user".
+  revalidateTag("user");
   revalidatePath("/dashboard/profile");
   return { data: user };
 };
