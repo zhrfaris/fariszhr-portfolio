@@ -626,7 +626,7 @@ function Field({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label htmlFor={id} className="text-sm font-semibold text-foreground">
+        <Label htmlFor={id}>
           {label}
         </Label>
         {counter && (

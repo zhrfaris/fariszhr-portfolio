@@ -194,7 +194,6 @@ const ActionButtons = ({
           <Button
             size="icon"
             variant="outline"
-            className="hover:text-primary-foreground hover:bg-primary"
           >
             <ExternalLink className="h-4 w-4" />
           </Button>
@@ -204,7 +203,6 @@ const ActionButtons = ({
         <Button
           size="icon"
           variant="outline"
-          className="hover:text-primary-foreground hover:bg-primary"
         >
           <Pen className="h-4 w-4" />
         </Button>

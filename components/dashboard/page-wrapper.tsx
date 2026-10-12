@@ -25,20 +25,16 @@ function DbPageWrapper<TData>({
   return (
     <div className="space-y-6 p-4 md:p-8">
       <div className="flex items-center gap-8">
-        <h1 className="font-bold text-3xl">{title}</h1>
+        <h1 className="text-[28px] font-semibold leading-tight tracking-tight">
+          {title}
+        </h1>
         {createButtonUrl && (
-          <Link
-            href={createButtonUrl}
-            className={cn(buttonVariants({ size: "sm" }))}
-          >
+          <Link href={createButtonUrl} className={cn(buttonVariants())}>
             Create New
           </Link>
         )}
         {buttonLink && (
-          <Link
-            href={buttonLink.href}
-            className={cn(buttonVariants({ size: "sm" }))}
-          >
+          <Link href={buttonLink.href} className={cn(buttonVariants())}>
             {buttonLink.children}
           </Link>
         )}
@@ -48,7 +44,7 @@ function DbPageWrapper<TData>({
             title="Create Category"
             FormComponent={CreateFormComponent}
           >
-            <Button size="sm">Create New</Button>
+            <Button>Create New</Button>
           </PopoverForm>
         )}
       </div>

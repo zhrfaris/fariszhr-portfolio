@@ -141,13 +141,13 @@ export const columns: ColumnDef<Payment>[] = [
         <div>
           <div className="w-fit flex items-center justify-center gap-4">
             {status === "success" ? (
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              <CheckCircle2 className="w-4 h-4 text-success" />
             ) : status === "failed" ? (
-              <XCircle className="w-4 h-4 text-red-500" />
+              <XCircle className="w-4 h-4 text-destructive" />
             ) : status === "processing" ? (
-              <Loader className="w-4 h-4 text-amber-500" />
+              <Loader className="w-4 h-4 text-warning" />
             ) : (
-              <AlertCircle className="w-4 h-4 text-amber-500" />
+              <AlertCircle className="w-4 h-4 text-warning" />
             )}
             <p className={cn("font-medium")}>{status}</p>
           </div>

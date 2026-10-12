@@ -55,10 +55,7 @@ const FormSelect = forwardRef<HTMLInputElement, FormSelectProps>(
       <div className="space-y-3">
         <div className="space-y-2">
           {label && (
-            <Label
-              htmlFor={id}
-              className="text-sm font-semibold text-foreground/70"
-            >
+            <Label htmlFor={id}>
               {label}
             </Label>
           )}
@@ -72,7 +69,7 @@ const FormSelect = forwardRef<HTMLInputElement, FormSelectProps>(
           >
             <SelectTrigger
               className={cn(
-                "w-full px-4 flex items-center bg-muted text-base h-9",
+                "w-full px-4 flex items-center h-9",
                 className
               )}
             >

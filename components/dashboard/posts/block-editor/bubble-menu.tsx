@@ -188,7 +188,7 @@ export default function EditorBubbleMenu({ editor }: { editor: Editor }) {
                 }
               }}
               placeholder="Paste or type a link"
-              className="h-8 w-60 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="h-8 w-60 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-focus focus-visible:ring-ring"
             />
             <MenuButton label="Apply link" onClick={applyLink}>
               <Check className="size-4" />

@@ -177,7 +177,7 @@ function ThumbnailSlot({
       </div>
 
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground">{label}</p>
+        <p className="text-[13px] font-medium leading-none text-muted-foreground">{label}</p>
         {caption && (
           <p className="mt-0.5 text-xs text-muted-foreground">{caption}</p>
         )}

@@ -166,10 +166,10 @@ export const postColumns: ColumnDef<NonNullable<Post>>[] = [
         <div className="max-w-[450px]">
           <p
             className={cn(
-              "text-center rounded py-1 px-2 w-fit",
+              "text-center rounded-full py-0.5 px-2 text-xs font-medium w-fit",
               status === Status.Values.ACTIVE
-                ? "text-green-900 bg-green-200"
-                : "text-sky-900 bg-sky-300"
+                ? "bg-success/15 text-success-foreground"
+                : "bg-muted text-muted-foreground"
             )}
           >
             {status === "ACTIVE" ? "Published" : "Draft"}
@@ -458,7 +458,6 @@ const ActionButtons = ({ initialData }: { initialData: NonNullable<Post> }) => {
         <Button
           size="icon"
           variant="outline"
-          className="hover:text-primary-foreground hover:bg-primary"
         >
           <SquareArrowOutUpRight className="h-4 w-4" />
         </Button>
@@ -467,7 +466,6 @@ const ActionButtons = ({ initialData }: { initialData: NonNullable<Post> }) => {
         <Button
           size="icon"
           variant="outline"
-          className="hover:text-primary-foreground hover:bg-primary"
         >
           <Pen className="h-4 w-4" />
         </Button>

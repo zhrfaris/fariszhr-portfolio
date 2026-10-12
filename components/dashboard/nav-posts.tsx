@@ -102,11 +102,7 @@ function PostRow({
     <Link href={href}>
       <SidebarMenuButton
         isActive={active}
-        className={cn(
-          "h-9 justify-between gap-2",
-          active &&
-            "bg-foreground text-background hover:bg-foreground hover:text-background active:bg-foreground active:text-background"
-        )}
+        className="h-9 justify-between gap-2"
       >
         <span className="flex min-w-0 items-center gap-2">
           {leading}
@@ -115,9 +111,9 @@ function PostRow({
         {badge && (
           <span
             className={cn(
-              "shrink-0 rounded px-1.5 py-0.5 text-xs font-medium",
-              active
-                ? "bg-background/20 text-background"
+              "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+              badge === "Live"
+                ? "bg-success/15 text-success-foreground"
                 : "bg-muted text-muted-foreground"
             )}
           >

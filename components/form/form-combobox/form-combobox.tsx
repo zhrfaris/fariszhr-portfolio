@@ -133,7 +133,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
           isFirstLoad || isLoadingData ? "Loading Data..." : placeholder
         }
         onValueChange={(search) => setSearchValue(search)}
-        className="border-none h-9 px-4 bg-muted text-base rounded-none"
+        className="border-none h-9 px-4 bg-background text-base md:text-[15px] rounded-none"
         classNameWrapper={listSelected.length <= 0 ? "border-none" : ""}
       />
     );
@@ -150,7 +150,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
         onClick={openSheet}
         size="icon"
         variant="ghost"
-        className="absolute right-0 inset-y-0 w-fit h-full my-auto flex items-center justify-center px-4 hover:bg-transparent hover:text-black"
+        className="absolute right-0 inset-y-0 w-fit h-full my-auto flex items-center justify-center px-4 hover:bg-transparent hover:text-foreground"
       >
         <PlusCircle className="size-5" />
       </Button>
@@ -162,7 +162,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
 
     return (
       <div className="absolute top-10 inset-x-0 w-full h-fit rounded-lg overflow-hidden z-20">
-        <CommandList className="bg-muted text-base">
+        <CommandList className="bg-popover text-[15px] border rounded-lg shadow-md">
           {!listSelected.some((item) => item.slug === searchValue) &&
             searchValue?.length >= 3 && (
               <CommandEmpty className="p-4 text-sm text-left">
@@ -171,10 +171,10 @@ function FormCombobox<TData extends FormComboboxBaseData>({
                 {searchValue}&quot; as {label}
               </CommandEmpty>
             )}
-          <CommandGroup className="bg-muted text-base">
+          <CommandGroup className="text-[15px]">
             {listOption.map((d) => (
               <CommandItem
-                className="border aria-selected:border-black/10 border-transparent aria-selected:text-foreground text-foreground/60 cursor-pointer"
+                className="border aria-selected:border-border border-transparent aria-selected:text-foreground text-foreground/60 cursor-pointer"
                 key={d.id}
                 value={d.slug}
                 onSelect={() => onSelectHandler(d)}
@@ -198,7 +198,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
   const renderCommandComponent = () => (
     <div className="relative w-full px-2 max-w-[780px]">
       {renderCreateButton()}
-      <Command className="bg-muted">
+      <Command className="bg-background">
         {renderCommandInput()}
         {renderSuggestion()}
       </Command>
@@ -235,7 +235,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
             type="button"
             size="icon"
             variant="ghost"
-            className="w-fit h-fit hover:bg-transparent hover:text-black"
+            className="w-fit h-fit hover:bg-transparent hover:text-foreground"
             onClick={() => onDeleteData(data)}
           >
             <XCircle className="text-foreground cursor-pointer size-5" />
@@ -282,13 +282,13 @@ function FormCombobox<TData extends FormComboboxBaseData>({
   return (
     <div className="space-y-2 @container">
       {label && (
-        <Label className="text-sm font-semibold text-foreground/70">
+        <Label>
           {label}
         </Label>
       )}
       <div
         className={cn(
-          "border border-input rounded-lg bg-muted",
+          "border border-input rounded-md bg-background",
           listSelected.length > 0 && "pt-2",
           selectionType === "single" && listSelected.length > 0 && "pt-0",
           className

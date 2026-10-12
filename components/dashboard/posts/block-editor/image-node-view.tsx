@@ -92,7 +92,7 @@ const RadiusControl = ({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-lg bg-[#eeeeee] px-3 py-1.5 text-sm font-medium text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-foreground focus:outline-none focus-visible:ring-focus focus-visible:ring-ring"
         >
           <span>{getRadiusPx(radius)}px</span>
           <ChevronDown className="h-4 w-4" />
@@ -191,7 +191,7 @@ const ImageNodeView = ({
               type="button"
               size="icon"
               variant="ghost"
-              className="h-8 w-8 text-red-600 hover:text-red-600"
+              className="h-8 w-8 text-destructive hover:text-destructive"
               aria-label="Delete"
               onClick={handleDelete}
             >
@@ -211,7 +211,7 @@ const ImageNodeView = ({
       <div
         className={cn(
           "w-full min-h-12 border overflow-hidden relative transition-shadow",
-          selected ? "border-sky-400 ring-2 ring-sky-400/40" : "border-[#d9d9d9]"
+          selected ? "border-primary ring-focus ring-ring" : "border-input"
         )}
         style={{ borderRadius: getRadiusPx(radius) }}
       >
@@ -245,7 +245,7 @@ const ImageNodeView = ({
         {/* Error overlay */}
         {isError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60 p-4 text-center text-white">
-            <AlertCircle className="h-6 w-6 text-red-400" />
+            <AlertCircle className="h-6 w-6 text-destructive" />
             <p className="max-w-md text-sm">
               {task?.error ?? "Upload failed"}
             </p>
@@ -282,7 +282,7 @@ const ImageNodeView = ({
       {showToolbar && (
         <TooltipProvider delayDuration={200}>
           <div
-            className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-white px-3 py-2 shadow-lg"
+            className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 shadow-lg"
             // Keep the ProseMirror node selected while using the toolbar.
             onMouseDown={(e) => e.preventDefault()}
           >

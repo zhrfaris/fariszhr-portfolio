@@ -47,7 +47,7 @@ const CoverUploader = forwardRef<HTMLDivElement, CoverUploaderProps>(
 
     return (
       <div ref={ref} tabIndex={-1} className="space-y-3 outline-none">
-        <p className="text-sm font-semibold text-foreground">Cover image</p>
+        <p className="text-[13px] font-medium leading-none text-muted-foreground">Cover image</p>
         <div
           onDragOver={(e) => {
             e.preventDefault();

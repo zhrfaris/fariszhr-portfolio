@@ -66,7 +66,7 @@
 }
 
 .block-editor-content .ProseMirror blockquote {
-  border-left: 3px solid hsl(var(--border));
+  border-left: 3px solid hsl(var(--border) / var(--border-alpha, 1));
   padding-left: 1rem;
   color: hsl(var(--muted-foreground));
   font-style: italic;
@@ -74,7 +74,7 @@
 
 .block-editor-content .ProseMirror hr {
   border: none;
-  border-top: 1px solid hsl(var(--border));
+  border-top: 1px solid hsl(var(--border) / var(--border-alpha, 1));
   margin: 1.5rem 0;
 }
 

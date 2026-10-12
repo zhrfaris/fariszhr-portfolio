@@ -438,7 +438,7 @@ const SavedTile = ({
           <Button
             type="button"
             size="icon"
-            className="size-7 rounded-md bg-red-500 text-white hover:bg-red-600"
+            className="size-7 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90"
             aria-label={`Delete photo ${index + 1}`}
           >
             <Trash2 className="size-3.5" />

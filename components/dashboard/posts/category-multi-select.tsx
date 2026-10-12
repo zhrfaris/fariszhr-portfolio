@@ -79,7 +79,7 @@ export default function CategoryMultiSelect({
 
   return (
     <div className="space-y-2" ref={wrapRef}>
-      <Label className="text-sm font-semibold text-foreground">
+      <Label>
         Category
       </Label>
       <div className="relative">

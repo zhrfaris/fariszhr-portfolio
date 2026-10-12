@@ -131,7 +131,7 @@ const HeaderBreadcrumb = () => {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage
-              className={cn("text-primary cursor-default", crumb_max_width)}
+              className={cn("text-foreground cursor-default", crumb_max_width)}
             >
               {label}
             </BreadcrumbPage>
@@ -147,7 +147,7 @@ const HeaderBreadcrumb = () => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink>
-              <Skeleton className="h-4 w-20 bg-black/30" />
+              <Skeleton className="h-4 w-20" />
             </BreadcrumbLink>
           </BreadcrumbItem>
 
@@ -155,7 +155,7 @@ const HeaderBreadcrumb = () => {
 
           <BreadcrumbItem>
             <BreadcrumbLink>
-              <Skeleton className="h-4 w-20 bg-black/30" />
+              <Skeleton className="h-4 w-20" />
             </BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -226,7 +226,7 @@ const HeaderBreadcrumb = () => {
 
             <BreadcrumbItem>
               <BreadcrumbPage
-                className={cn("text-primary cursor-default", crumb_max_width)}
+                className={cn("text-foreground cursor-default", crumb_max_width)}
               >
                 {currentPage.label}
               </BreadcrumbPage>

@@ -70,7 +70,7 @@ export const UploadErrorOverlay = ({
   onRemove: () => void;
 }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60 p-4 text-center text-white">
-    <AlertCircle className="h-6 w-6 text-red-400" />
+    <AlertCircle className="h-6 w-6 text-destructive" />
     <p className="max-w-md text-sm">{message ?? "Upload failed"}</p>
     <div className="flex items-center gap-2">
       <Button

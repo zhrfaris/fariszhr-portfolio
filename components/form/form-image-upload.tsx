@@ -182,7 +182,7 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
     return (
       <div className="w-full space-y-2">
         {label && (
-          <Label className="text-sm font-semibold text-foreground/70">
+          <Label>
             {label}
           </Label>
         )}

@@ -30,7 +30,8 @@ const DashboardLayout = async ({ children }: { children: React.ReactNode }) => {
   }));
 
   return (
-    <SidebarProvider>
+    // `.dashboard-theme` switches on the dashboard tokens (app/globals.css).
+    <SidebarProvider className="dashboard-theme">
       <AppSidebar session={session} posts={sidebarPosts} />
       <SidebarInset>
         <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-2 border-b bg-background transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">

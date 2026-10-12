@@ -48,7 +48,7 @@ const DropdownMenuWrapper = ({
     showAlert,
   }: DropdownMenuItem) => {
     const className = cn(
-      color === "danger" && "text-red-500 focus:text-red-500 focus:bg-red-50"
+      color === "danger" && "text-destructive focus:text-destructive focus:bg-destructive/10"
     );
 
     if (href) {

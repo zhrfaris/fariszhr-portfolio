@@ -93,7 +93,7 @@ const WorkplacePicker = forwardRef<HTMLButtonElement, WorkplacePickerProps>(
 
     return (
       <div className="space-y-2">
-        <Label className="text-sm font-semibold text-foreground">Company</Label>
+        <Label>Company</Label>
         <div className="relative" ref={wrapRef}>
           <button
             ref={ref}

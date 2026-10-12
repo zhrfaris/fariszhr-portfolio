@@ -53,12 +53,7 @@ const FormSwitch = forwardRef<HTMLButtonElement, FormSwitchProps>(
             tabIndex={readonly ? -1 : undefined}
             className={cn(className)}
           />
-          <Label
-            htmlFor={id}
-            className="text-sm font-semibold text-foreground/70"
-          >
-            {label}
-          </Label>
+          <Label htmlFor={id}>{label}</Label>
         </div>
         <FormErrors id={id} errors={errors} />
       </div>
