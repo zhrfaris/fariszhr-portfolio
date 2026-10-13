@@ -48,14 +48,14 @@ const SlashMenu = forwardRef<SlashMenuRef, SuggestionProps<SlashCommandItem>>(
 
     if (props.items.length === 0) {
       return (
-        <div className="rounded-md border border-border bg-popover px-3 py-2 text-sm text-muted-foreground shadow-md">
+        <div className="rounded-lg border border-border bg-popover px-3 py-2 text-sm text-muted-foreground shadow-float">
           No results
         </div>
       );
     }
 
     return (
-      <div className="z-50 max-h-80 w-64 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-md">
+      <div className="z-50 max-h-80 w-64 overflow-y-auto rounded-lg border border-border bg-popover p-1 shadow-float">
         {props.items.map((item, index) => {
           const Icon = item.icon;
           return (
@@ -69,7 +69,7 @@ const SlashMenu = forwardRef<SlashMenuRef, SuggestionProps<SlashCommandItem>>(
               }}
               className={cn(
                 "flex w-full items-center gap-3 rounded px-2 py-1.5 text-left text-sm transition-colors",
-                index === selectedIndex ? "bg-muted" : "hover:bg-muted/60"
+                index === selectedIndex ? "bg-secondary" : "hover:bg-secondary"
               )}
             >
               <span className="flex h-8 w-8 items-center justify-center rounded border border-border bg-background">

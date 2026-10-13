@@ -2,7 +2,12 @@
 
 import { changePassword } from "@/actions/user/change-password";
 import FormInput from "@/components/form/form-input";
-import FormWrapper from "@/components/form/form-wrapper";
+import { SectionCard } from "@/components/dashboard/section-card";
+import {
+  PAGE_SHELL,
+  PageColumn,
+  StickyActionBar,
+} from "@/components/dashboard/page-layout";
 import { Button } from "@/components/shadcn/button";
 import { useAction } from "@/hooks/use-action";
 import React from "react";
@@ -38,40 +43,49 @@ const ChangePasswordForm = () => {
   };
 
   return (
-    <form action={formAction} className="flex-1 space-y-6 @container">
-      <FormWrapper>
-        <FormInput
-          label="Old Password"
-          id="old_password"
-          type="password"
-          showTogglePassword={true}
-          required={true}
-          errors={fieldErrors}
-        />
-      </FormWrapper>
-      <FormWrapper>
-        <FormInput
-          label="New Password"
-          id="new_password"
-          type="password"
-          showTogglePassword={true}
-          required={true}
-          errors={fieldErrors}
-        />
-      </FormWrapper>
-      <FormWrapper>
-        <FormInput
-          label="Coinfirm New Password"
-          id="confirm_new_password"
-          type="password"
-          showTogglePassword={true}
-          required={true}
-          errors={fieldErrors}
-        />
-      </FormWrapper>
-      <Button type="submit" disabled={isLoading}>
-        Change Password
-      </Button>
+    <form action={formAction} className={PAGE_SHELL}>
+      <PageColumn>
+        <SectionCard
+          icon="changePassword"
+          title="Change password"
+          description="Enter your current password, then choose a new one."
+        >
+          <FormInput
+            label="Current password"
+            id="old_password"
+            type="password"
+            showTogglePassword={true}
+            required={true}
+            errors={fieldErrors}
+          />
+          <FormInput
+            label="New password"
+            id="new_password"
+            type="password"
+            showTogglePassword={true}
+            required={true}
+            errors={fieldErrors}
+          />
+          <FormInput
+            label="Confirm new password"
+            id="confirm_new_password"
+            type="password"
+            showTogglePassword={true}
+            required={true}
+            errors={fieldErrors}
+          />
+        </SectionCard>
+      </PageColumn>
+
+      <StickyActionBar>
+        {/* Reset clears the three fields. */}
+        <Button type="reset" variant="ghost" disabled={isLoading}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          Update password
+        </Button>
+      </StickyActionBar>
     </form>
   );
 };

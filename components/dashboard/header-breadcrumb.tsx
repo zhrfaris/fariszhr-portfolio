@@ -21,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "../shadcn/dropdown-menu";
 import { usePostForm } from "@/hooks/use-post-form";
+import { Status } from "@prisma/client";
+import StatusBadge from "./status-badge";
 
 const crumb_max_width = "max-w-[200px] line-clamp-[1]";
 
@@ -29,7 +31,12 @@ type Crumb = {
   link: string;
 };
 
-const HeaderBreadcrumb = () => {
+const HeaderBreadcrumb = ({
+  posts,
+}: {
+  /** For the post editor's status pill (the saved status). */
+  posts: { slug: string; status: Status }[];
+}) => {
   const params = usePathname();
   const postTitle = usePostForm((state) => state.title);
   const [crumbs, setCrumbs] = useState<string[]>([]);
@@ -107,16 +114,22 @@ const HeaderBreadcrumb = () => {
     setCrumbs(newCrumbs);
   }, [params, resetCrumbs]);
 
-  // On the post editor's edit route the final crumb is the post title (not the
-  // slug + "edit"), matching the design: Dashboard > Posts > <title>.
+  // Post editor (create / edit): Dashboard > Posts > <title> [status]. The
+  // title gets all the room there is and only truncates when it can't fit; a
+  // new post reads "Draft" until it is saved.
   const editMatch = params.match(/^\/dashboard\/posts\/([^/]+)\/edit$/);
-  if (editMatch) {
-    const label =
-      postTitle?.trim() ||
-      capitalizeEachWord(editMatch[1].split("-").join(" "));
+  const isCreate = params === "/dashboard/posts/create";
+  if (editMatch || isCreate) {
+    const label = editMatch
+      ? postTitle?.trim() ||
+        capitalizeEachWord(editMatch[1].split("-").join(" "))
+      : "Create";
+    const status = editMatch
+      ? posts.find((p) => p.slug === editMatch[1])?.status
+      : undefined;
     return (
-      <Breadcrumb>
-        <BreadcrumbList>
+      <Breadcrumb className="min-w-0">
+        <BreadcrumbList className="flex-nowrap">
           <BreadcrumbItem>
             <BreadcrumbLink asChild className={cn(crumb_max_width)}>
               <Link href="/dashboard">Dashboard</Link>
@@ -129,12 +142,11 @@ const HeaderBreadcrumb = () => {
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage
-              className={cn("text-primary cursor-default", crumb_max_width)}
-            >
+          <BreadcrumbItem className="min-w-0 gap-2">
+            <BreadcrumbPage className="block min-w-0 cursor-default truncate text-foreground">
               {label}
             </BreadcrumbPage>
+            <StatusBadge live={status === Status.ACTIVE} />
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -147,7 +159,7 @@ const HeaderBreadcrumb = () => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink>
-              <Skeleton className="h-4 w-20 bg-black/30" />
+              <Skeleton className="h-4 w-20" />
             </BreadcrumbLink>
           </BreadcrumbItem>
 
@@ -155,7 +167,7 @@ const HeaderBreadcrumb = () => {
 
           <BreadcrumbItem>
             <BreadcrumbLink>
-              <Skeleton className="h-4 w-20 bg-black/30" />
+              <Skeleton className="h-4 w-20" />
             </BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -226,7 +238,7 @@ const HeaderBreadcrumb = () => {
 
             <BreadcrumbItem>
               <BreadcrumbPage
-                className={cn("text-primary cursor-default", crumb_max_width)}
+                className={cn("text-foreground cursor-default", crumb_max_width)}
               >
                 {currentPage.label}
               </BreadcrumbPage>

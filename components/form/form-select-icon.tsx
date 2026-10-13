@@ -40,12 +40,9 @@ const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
       <div className="space-y-2">
         <div className="space-y-2">
           {label && (
-            <Label
-              htmlFor={id}
-              className="text-sm font-semibold text-foreground/70"
-            >
+            <Label htmlFor={id}>
               <span>{label}</span>
-              {required && <span className="text-red-600"> *</span>}
+              {required && <span className="text-destructive"> *</span>}
             </Label>
           )}
           <PopoverWrapper
@@ -55,7 +52,7 @@ const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
             contentSide="bottom"
             triggerComponent={
               selectedIcon ? (
-                <div className="cursor-pointer hover:bg-muted border rounded-md border-input h-9 flex items-center justify-center ">
+                <div className="cursor-pointer hover:bg-secondary border rounded-md border-input h-9 flex items-center justify-center ">
                   <SectionIcon
                     size={24}
                     iconId={iconTypeChecker(selectedIcon)}
@@ -63,7 +60,7 @@ const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
                   />
                 </div>
               ) : (
-                <div className="p-2 text-sm border rounded-md cursor-pointer border-input px-4 flex items-center bg-muted">
+                <div className="p-2 text-sm border rounded-md cursor-pointer border-input px-4 flex items-center bg-background">
                   Select an icon for the section
                 </div>
               )
@@ -75,7 +72,7 @@ const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
                   <div
                     key={id}
                     onClick={() => selectIconHandler(icon)}
-                    className="p-3 transition duration-300 cursor-pointer hover:bg-muted"
+                    className="p-3 transition duration-300 cursor-pointer hover:bg-secondary"
                   >
                     <SectionIcon
                       size={35}
@@ -88,7 +85,7 @@ const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
               <div className="flex items-center justify-end">
                 <Button
                   variant="ghost"
-                  className="font-bold text-red-700"
+                  className="font-semibold text-destructive"
                   onClick={() => setPopoverOpen(false)}
                   type="button"
                 >

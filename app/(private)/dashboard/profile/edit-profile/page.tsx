@@ -15,7 +15,7 @@ const EditProfilePage = async () => {
   const user = await getUserById(session?.user?.id);
 
   return (
-    <DbPageWrapper title="Edit Profile">
+    <DbPageWrapper title="Profile" bare>
       <ProfileForm user={user} />
     </DbPageWrapper>
   );

@@ -8,14 +8,22 @@ import { toast } from "sonner";
 import { User } from "@/actions/user/get/type";
 import { updateLanding } from "@/actions/user/update-landing";
 import FormTextarea from "@/components/form/form-textarea";
-import FormWrapper from "@/components/form/form-wrapper";
 import { Button } from "@/components/shadcn/button";
-import { Separator } from "@/components/shadcn/separator";
 import { useAction } from "@/hooks/use-action";
 import { useActiveUploadCount } from "@/components/dashboard/posts/block-editor/upload-manager";
 import { deleteCloudinaryImage } from "@/components/dashboard/posts/block-editor/upload";
 import CardPhotoSlot from "./card-photo-slot";
 import LanyardSettingsSection from "./lanyard-settings-section";
+import {
+  CardDivider,
+  FieldHint,
+  SectionCard,
+} from "@/components/dashboard/section-card";
+import {
+  PAGE_SHELL,
+  PageColumn,
+  StickyActionBar,
+} from "@/components/dashboard/page-layout";
 import { LanyardSettings, resolveLanyard } from "@/lib/lanyard-settings";
 
 const LandingForm = ({ user }: { user: User }) => {
@@ -36,10 +44,7 @@ const LandingForm = ({ user }: { user: User }) => {
   // only after the save commits, same as the post editor.
   const orphanPublicIds = useRef<Set<string>>(new Set());
   const replace =
-    (
-      current: ImageType | null,
-      set: (image: ImageType | null) => void
-    ) =>
+    (current: ImageType | null, set: (image: ImageType | null) => void) =>
     (next: ImageType | null) => {
       if (current?.public_id && current.public_id !== next?.public_id) {
         orphanPublicIds.current.add(current.public_id);
@@ -86,16 +91,24 @@ const LandingForm = ({ user }: { user: User }) => {
     });
   };
 
+  // Cancel: back to what is saved. Photos replaced this session go back too,
+  // so they are no longer queued for deletion.
+  const resetToSaved = () => {
+    setCardFront(user?.card_front ?? null);
+    setCardBack(user?.card_back ?? null);
+    setBandImage(user?.band_image ?? null);
+    setLanyard(resolveLanyard(user?.lanyard));
+    orphanPublicIds.current.clear();
+  };
+
   return (
-    <form action={formAction} className="max-w-4xl space-y-8 @container">
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold">Intro text</h2>
-          <p className="text-sm text-muted-foreground">
-            The paragraph under the Product design / Photo works switcher.
-          </p>
-        </div>
-        <FormWrapper>
+    <form action={formAction} className={PAGE_SHELL}>
+      <PageColumn>
+        <SectionCard
+          icon="intro"
+          title="Intro"
+          description="The first thing visitors see when they open your portfolio."
+        >
           <FormTextarea
             label="Product design intro (/)"
             id="intro_product"
@@ -112,65 +125,69 @@ const LandingForm = ({ user }: { user: User }) => {
             className="h-auto min-h-40 py-3 leading-relaxed"
             errors={fieldErrors}
           />
-        </FormWrapper>
-      </section>
+          <FieldHint>
+            The paragraph under the Product design / Photo works switcher.
+          </FieldHint>
+        </SectionCard>
 
-      <Separator />
-
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold">ID card photos</h2>
-          <p className="text-sm text-muted-foreground">
-            The hanging card flips between these two when the mode changes.
-          </p>
-        </div>
-        <div className="grid gap-6 @md:grid-cols-2">
+        <SectionCard
+          icon="idCardPhotos"
+          title="ID card photos"
+          description="Front and back photos for the ID card. Each mode has its own pair."
+        >
           <CardPhotoSlot
             label="Front · Product design"
             description="Shown on / and while the 3D card loads."
             image={cardFront}
             onChange={replace(cardFront, setCardFront)}
           />
+          <CardDivider />
           <CardPhotoSlot
             label="Back · Photo works"
             description="Shown on /photography."
             image={cardBack}
             onChange={replace(cardBack, setCardBack)}
           />
-        </div>
-      </section>
+        </SectionCard>
 
-      <Separator />
+        <LanyardSettingsSection
+          value={lanyard}
+          onChange={setLanyard}
+          bandImage={bandImage}
+          onBandImageChange={replace(bandImage, setBandImage)}
+          errors={fieldErrors}
+        />
 
-      <LanyardSettingsSection
-        value={lanyard}
-        onChange={setLanyard}
-        bandImage={bandImage}
-        onBandImageChange={replace(bandImage, setBandImage)}
-        errors={fieldErrors}
-      />
+        <p className="px-1 text-[13px] text-muted-foreground">
+          Case studies come from{" "}
+          <Link href="/dashboard/posts" className="underline">
+            All case studies
+          </Link>
+          , the photo grid from{" "}
+          <Link href="/dashboard/gallery" className="underline">
+            Photo Works
+          </Link>
+          , and the footer&apos;s email, LinkedIn and CV from{" "}
+          <Link href="/dashboard/profile/edit-profile" className="underline">
+            Profile
+          </Link>
+          .
+        </p>
+      </PageColumn>
 
-      <Separator />
-
-      <p className="text-sm text-muted-foreground">
-        Case studies come from{" "}
-        <Link href="/dashboard/posts" className="underline">
-          Posts
-        </Link>
-        , the photo grid from{" "}
-        <Link href="/dashboard/gallery" className="underline">
-          Photo Works
-        </Link>
-        , and the footer&apos;s email, LinkedIn and CV from{" "}
-        <Link href="/dashboard/profile/edit-profile" className="underline">
-          Profile
-        </Link>
-        .
-      </p>
-
-      <Button type="submit" disabled={isLoading || uploadsInProgress}>
-        {uploadsInProgress ? "Uploading…" : "Save"}
-      </Button>
+      <StickyActionBar>
+        <Button
+          type="reset"
+          variant="ghost"
+          disabled={isLoading}
+          onClick={resetToSaved}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading || uploadsInProgress}>
+          {uploadsInProgress ? "Uploading…" : "Save changes"}
+        </Button>
+      </StickyActionBar>
     </form>
   );
 };

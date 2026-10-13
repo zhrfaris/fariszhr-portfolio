@@ -44,7 +44,7 @@ export const UploadProgressBadge = ({
   status?: string;
   progress: number;
 }) => (
-  <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white">
+  <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-sm bg-black/70 px-3 py-1.5 text-xs font-medium text-white">
     {status === "processing" ? (
       <>
         <Loader2 className="h-4 w-4 animate-spin" />
@@ -70,25 +70,24 @@ export const UploadErrorOverlay = ({
   onRemove: () => void;
 }) => (
   <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60 p-4 text-center text-white">
-    <AlertCircle className="h-6 w-6 text-red-400" />
+    <AlertCircle className="h-6 w-6 text-destructive" />
     <p className="max-w-md text-sm">{message ?? "Upload failed"}</p>
     <div className="flex items-center gap-2">
       <Button
         type="button"
-        size="sm"
         variant="secondary"
         onClick={onRetry}
       >
-        <RotateCw className="mr-1 h-4 w-4" />
+        <RotateCw />
         Retry
       </Button>
       <Button
         type="button"
-        size="sm"
-        variant="destructive"
+        variant="secondary"
+        className="text-destructive hover:text-destructive"
         onClick={onRemove}
       >
-        <X className="mr-1 h-4 w-4" />
+        <X />
         Remove
       </Button>
     </div>

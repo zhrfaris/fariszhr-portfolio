@@ -4,7 +4,7 @@ import React from "react";
 
 const ChangePasswordPage = () => {
   return (
-    <DbPageWrapper title="Change Password">
+    <DbPageWrapper title="Password" bare>
       <ChangePasswordForm />
     </DbPageWrapper>
   );

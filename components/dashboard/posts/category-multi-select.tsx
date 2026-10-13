@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 
 import { Label } from "@/components/shadcn/label";
 import { cn } from "@/lib/utils";
 import { CategoryOption } from "./use-categories";
+import { fieldDropdown } from "./field-dropdown";
 
 interface CategoryMultiSelectProps {
   options: CategoryOption[];
@@ -79,14 +80,15 @@ export default function CategoryMultiSelect({
 
   return (
     <div className="space-y-2" ref={wrapRef}>
-      <Label className="text-sm font-semibold text-foreground">
+      <Label>
         Category
       </Label>
       <div className="relative">
         <div
           className={cn(
-            "flex min-h-9 cursor-text flex-wrap items-center gap-1.5 rounded-md border border-input bg-background px-2 py-1 shadow-sm",
-            open && "rounded-b-none border-foreground/80 bg-muted/40"
+            fieldDropdown.trigger,
+            "cursor-text flex-wrap gap-1 py-0.5 pl-2 pr-10",
+            open && fieldDropdown.open
           )}
           onClick={() => {
             setOpen(true);
@@ -96,7 +98,7 @@ export default function CategoryMultiSelect({
           {selected.map((opt) => (
             <span
               key={opt.id}
-              className="inline-flex items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-xs"
+              className="inline-flex items-center gap-1 rounded-sm bg-secondary py-0.5 pl-2 pr-1.5 text-[13px] text-foreground"
             >
               {opt.name}
               <button
@@ -135,22 +137,27 @@ export default function CategoryMultiSelect({
               }
             }}
             placeholder={selected.length ? "" : "Select category"}
-            className="min-w-[4rem] flex-1 bg-transparent px-1 py-0.5 text-sm outline-none placeholder:text-muted-foreground"
+            className={cn(fieldDropdown.input, "px-1")}
           />
         </div>
 
+        <ChevronDown
+          aria-hidden
+          className={cn(fieldDropdown.chevron, "absolute right-[13px] top-2.5")}
+        />
+
         {open && (
-          <div className="absolute inset-x-0 top-full z-30 -mt-px rounded-b-md border border-foreground/80 bg-popover p-3 shadow-lg">
-            <p className="mb-2 text-xs text-muted-foreground">
+          <div className={cn(fieldDropdown.panel, "p-3")}>
+            <p className={cn(fieldDropdown.hint, "mb-2")}>
               Select available option or type to create one
             </p>
-            <div className="flex max-h-56 flex-col items-start gap-1.5 overflow-auto">
+            <div className="flex max-h-56 flex-col items-start gap-2 overflow-auto">
               {normalizedQuery && !exactExists && (
                 <button
                   type="button"
                   onClick={() => void create()}
                   disabled={busy}
-                  className="inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 text-xs hover:bg-muted disabled:opacity-50"
+                  className="inline-flex items-center gap-1 rounded-sm border border-dashed border-input px-2 py-0.5 text-[13px] hover:bg-secondary disabled:opacity-50"
                 >
                   Create &quot;{query.trim()}&quot;
                 </button>
@@ -159,7 +166,7 @@ export default function CategoryMultiSelect({
                 <button
                   key={opt.id}
                   type="button"
-                  className="inline-flex items-center rounded-full border bg-background px-2 py-0.5 text-xs hover:bg-muted"
+                  className="inline-flex items-center rounded-sm bg-secondary px-2 py-0.5 text-[13px] hover:bg-secondary-hover"
                   onClick={() => toggle(opt.id)}
                 >
                   {opt.name}

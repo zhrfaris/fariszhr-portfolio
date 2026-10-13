@@ -1,8 +1,8 @@
 import React, { forwardRef } from "react";
-import { Label } from "../shadcn/label";
 import { cn } from "@/lib/utils";
 import FormErrors from "./form-errors";
 import { Switch } from "../shadcn/switch";
+import { ControlRow } from "@/components/dashboard/section-card";
 
 interface FormSwitchProps {
   id: string;
@@ -16,6 +16,7 @@ interface FormSwitchProps {
   value?: boolean;
   onBlur?: () => void;
   onCheckedChange?: (checked: boolean) => void;
+  hint?: React.ReactNode;
 }
 
 const FormSwitch = forwardRef<HTMLButtonElement, FormSwitchProps>(
@@ -32,12 +33,14 @@ const FormSwitch = forwardRef<HTMLButtonElement, FormSwitchProps>(
       readonly,
       onCheckedChange,
       value,
+      hint,
     },
-    ref,
+    ref
   ) => {
+    // A settings row: label (and hint) left, switch right.
     return (
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
+      <div className={cn("space-y-2", className)}>
+        <ControlRow id={id} label={label} hint={hint}>
           <Switch
             id={id}
             ref={ref}
@@ -51,19 +54,12 @@ const FormSwitch = forwardRef<HTMLButtonElement, FormSwitchProps>(
             aria-describedby={`${id}-error`}
             aria-hidden={readonly}
             tabIndex={readonly ? -1 : undefined}
-            className={cn(className)}
           />
-          <Label
-            htmlFor={id}
-            className="text-sm font-semibold text-foreground/70"
-          >
-            {label}
-          </Label>
-        </div>
+        </ControlRow>
         <FormErrors id={id} errors={errors} />
       </div>
     );
-  },
+  }
 );
 
 FormSwitch.displayName = "FormSwitch";

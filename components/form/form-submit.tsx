@@ -33,7 +33,6 @@ const FormSubmit = ({
       type="submit"
       disabled={disabled}
       variant={variant}
-      size="sm"
       className={cn(className)}
       form={formId}
       onClick={onClick}

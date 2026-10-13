@@ -1,14 +1,11 @@
 "use client";
 
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef } from "react";
 import { Image as ImageType } from "@prisma/client";
-import { ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/shadcn/button";
-import { cn } from "@/lib/utils";
 import { deriveStaticFromGif, useMediaUpload } from "./use-media-upload";
-import { UploadErrorOverlay, UploadProgressBadge } from "./upload-overlay";
+import MediaSlot from "./media-slot";
 
 export interface ThumbnailValue {
   image: ImageType | null;
@@ -53,11 +50,13 @@ const ThumbnailUploader = forwardRef<HTMLDivElement, ThumbnailUploaderProps>(
 
     return (
       <div ref={ref} tabIndex={-1} className="outline-none">
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="flex flex-wrap items-start gap-4">
           <ThumbnailSlot
-            label="Thumbnail Image"
+            label="Thumbnail image"
             caption={autoFrame ? "Auto from GIF" : undefined}
             image={value.image}
+            emptyRatio={ratioOf(value.gif)}
+            invalid={!!error}
             accept=".png,.jpg,.jpeg,.gif,.svg,image/*"
             onUploaded={(image) => commit({ ...value, image })}
             onDelete={() => commit({ ...value, image: null })}
@@ -65,6 +64,7 @@ const ThumbnailUploader = forwardRef<HTMLDivElement, ThumbnailUploaderProps>(
           <ThumbnailSlot
             label="Thumbnail GIF"
             image={value.gif}
+            emptyRatio={ratioOf(value.image)}
             accept=".gif,image/gif"
             gifOnly
             onUploaded={(gif) =>
@@ -88,12 +88,21 @@ const ThumbnailUploader = forwardRef<HTMLDivElement, ThumbnailUploaderProps>(
   }
 );
 
+/** An empty slot copies the other slot's shape; with both empty, square (the
+ * shape every thumbnail so far has: 400×400 → 180×180). */
+const ratioOf = (image: ImageType | null) =>
+  image && image.img_width > 0 && image.img_height > 0
+    ? image.img_width / image.img_height
+    : 1;
+
 function ThumbnailSlot({
   label,
   caption,
   image,
   accept,
   gifOnly,
+  invalid,
+  emptyRatio,
   onUploaded,
   onDelete,
 }: {
@@ -102,18 +111,14 @@ function ThumbnailSlot({
   image: ImageType | null;
   accept: string;
   gifOnly?: boolean;
+  invalid?: boolean;
+  emptyRatio: number;
   onUploaded: (image: ImageType) => void;
   onDelete: () => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [dragOver, setDragOver] = useState(false);
   const upload = useMediaUpload((img) => onUploaded(img));
 
-  const pick = () => inputRef.current?.click();
-
-  const handleFiles = (files: FileList | null) => {
-    const file = files?.[0];
-    if (!file) return;
+  const handleFile = (file: File) => {
     if (gifOnly && file.type !== "image/gif") {
       toast.error("Thumbnail GIF must be a .gif file");
       return;
@@ -121,115 +126,23 @@ function ThumbnailSlot({
     upload.start(file);
   };
 
-  const busy = upload.isUploading || upload.isError;
-  const showEmpty = !image && !busy;
-
   return (
-    <div className="flex gap-3">
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragOver(true);
-        }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragOver(false);
-          handleFiles(e.dataTransfer.files);
-        }}
-        onClick={showEmpty ? pick : undefined}
-        className={cn(
-          "relative aspect-square w-full max-w-[172px] shrink-0 overflow-hidden rounded-lg border bg-background",
-          showEmpty && "cursor-pointer hover:bg-muted/50",
-          dragOver && "border-foreground ring-2 ring-foreground/20"
-        )}
-      >
-        {busy ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={upload.previewUrl}
-              alt=""
-              className="size-full object-cover opacity-70"
-            />
-            {upload.isUploading && (
-              <UploadProgressBadge
-                status={upload.status}
-                progress={upload.progress}
-              />
-            )}
-            {upload.isError && (
-              <UploadErrorOverlay
-                message={upload.task?.error}
-                onRetry={upload.retry}
-                onRemove={upload.cancel}
-              />
-            )}
-          </>
-        ) : image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image.img_url} alt="" className="size-full object-cover" />
-        ) : (
-          <div className="flex size-full items-center justify-center text-muted-foreground/40">
-            <ImageIcon className="size-7" />
-          </div>
-        )}
-      </div>
-
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-foreground">{label}</p>
-        {caption && (
-          <p className="mt-0.5 text-xs text-muted-foreground">{caption}</p>
-        )}
-        {!busy && (
-          <div className="mt-2 flex flex-col items-start gap-2">
-            {image ? (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-[126px] bg-background"
-                  onClick={pick}
-                >
-                  <Pencil className="size-4" />
-                  Edit
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="w-[126px]"
-                  onClick={onDelete}
-                >
-                  <Trash2 className="size-4" />
-                  Delete
-                </Button>
-              </>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-[126px] bg-background"
-                onClick={pick}
-              >
-                <Plus className="size-4" />
-                Add image
-              </Button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <input
-        ref={inputRef}
-        type="file"
-        accept={accept}
-        className="hidden"
-        onChange={(e) => {
-          handleFiles(e.target.files);
-          e.target.value = "";
-        }}
-      />
-    </div>
+    <MediaSlot
+      label={label}
+      aside={caption}
+      image={image}
+      upload={upload}
+      accept={accept}
+      onFile={handleFile}
+      onRemove={onDelete}
+      invalid={invalid}
+      // Both slots 180px tall and top-aligned; the width follows the image
+      // (empty: the other slot's shape, else square), up to 360.
+      emptyRatio={emptyRatio}
+      fixedHeight={180}
+      maxWidth={360}
+      className="max-w-full"
+    />
   );
 }
 

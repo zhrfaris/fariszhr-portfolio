@@ -29,13 +29,23 @@ import {
 } from "@/lib/section-content";
 import { usePostForm } from "@/hooks/use-post-form";
 import { useRouter } from "next/navigation";
-import FormSwitch from "@/components/form/form-switch";
+import { Switch } from "@/components/shadcn/switch";
 import { cn } from "@/lib/utils";
 import ThumbnailUploader, { ThumbnailValue } from "./thumbnail-uploader";
 import CategoryMultiSelect from "./category-multi-select";
 import { useCategories } from "./use-categories";
 import CoverUploader from "./cover-uploader";
 import WorkplacePicker from "./workplace-picker";
+import {
+  CardDivider,
+  ControlRow,
+  SectionCard,
+} from "@/components/dashboard/section-card";
+import {
+  PageColumn,
+  PageShell,
+  StickyActionBar,
+} from "@/components/dashboard/page-layout";
 import { WorkplacePickerItem } from "@/actions/workplace/get-with-image";
 
 /** Max lengths for the Title / Description fields. Final values, with enough
@@ -346,116 +356,132 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   };
 
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="flex-1">
-        {/* Post metadata */}
-        <div className="border-b border-border bg-sidebar">
-          <div className="mx-auto w-full max-w-[742px] space-y-6 px-6 pb-10 pt-16 md:pt-28">
-            <ThumbnailUploader
-              ref={thumbnailRef}
-              value={thumbnail}
-              error={errors.thumbnail}
-              onOrphan={collectOrphans}
-              onChange={(next) => {
-                setThumbnail(next);
-                if (next.image) clearError("thumbnail");
-                markDirty();
-              }}
-            />
+    // Shared dashboard layout: section cards in the 760px column, sticky
+    // action bar along the bottom.
+    <PageShell>
+      <PageColumn>
+        <SectionCard
+          icon="coverThumbnails"
+          title="Cover & Thumbnails"
+          description="Images that represent this case study on your portfolio and in shared links."
+        >
+          <ThumbnailUploader
+            ref={thumbnailRef}
+            value={thumbnail}
+            error={errors.thumbnail}
+            onOrphan={collectOrphans}
+            onChange={(next) => {
+              setThumbnail(next);
+              if (next.image) clearError("thumbnail");
+              markDirty();
+            }}
+          />
 
-            <CoverUploader
-              ref={coverRef}
-              value={cover}
-              error={errors.header}
-              onOrphan={collectOrphans}
-              onChange={(next) => {
-                setCover(next);
-                if (next) clearError("header");
-                markDirty();
-              }}
-            />
+          <CardDivider />
 
-            <Field
+          <CoverUploader
+            ref={coverRef}
+            value={cover}
+            error={errors.header}
+            onOrphan={collectOrphans}
+            onChange={(next) => {
+              setCover(next);
+              if (next) clearError("header");
+              markDirty();
+            }}
+          />
+        </SectionCard>
+
+        <SectionCard
+          icon="overview"
+          title="Overview"
+          description="The title, summary, category, and company visitors see before opening the case study."
+        >
+          <Field
+            id="post-title"
+            label="Title"
+            counter={`${title.length}/${TITLE_MAX}`}
+            error={errors.title}
+          >
+            <Input
               id="post-title"
-              label="Title"
-              counter={`${title.length}/${TITLE_MAX}`}
-              error={errors.title}
-            >
-              <Input
-                id="post-title"
-                ref={titleRef}
-                value={title}
-                maxLength={TITLE_MAX}
-                placeholder="Title here"
-                aria-invalid={!!errors.title}
-                className={cn(
-                  "bg-background",
-                  errors.title && "border-destructive"
-                )}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  clearError("title");
-                  markDirty();
-                }}
-              />
-            </Field>
+              ref={titleRef}
+              value={title}
+              maxLength={TITLE_MAX}
+              placeholder="Title here"
+              aria-invalid={!!errors.title}
+              className={cn(errors.title && "border-destructive")}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                clearError("title");
+                markDirty();
+              }}
+            />
+          </Field>
 
-            <Field
+          <Field
+            id="post-excerpt"
+            label="Description"
+            counter={`${excerpt.length}/${DESCRIPTION_MAX}`}
+            error={errors.excerpt}
+          >
+            <Textarea
               id="post-excerpt"
-              label="Description"
-              counter={`${excerpt.length}/${DESCRIPTION_MAX}`}
-              error={errors.excerpt}
-            >
-              <Textarea
-                id="post-excerpt"
-                ref={descRef}
-                value={excerpt}
-                rows={1}
-                maxLength={DESCRIPTION_MAX}
-                placeholder="Description here"
-                aria-invalid={!!errors.excerpt}
-                className={cn(
-                  "min-h-9 resize-none overflow-hidden bg-background",
-                  errors.excerpt && "border-destructive"
-                )}
-                onChange={(e) => {
-                  setExcerpt(e.target.value);
-                  clearError("excerpt");
-                  markDirty();
-                }}
-              />
-            </Field>
+              ref={descRef}
+              value={excerpt}
+              rows={1}
+              maxLength={DESCRIPTION_MAX}
+              placeholder="Description here"
+              aria-invalid={!!errors.excerpt}
+              className={cn(
+                "min-h-9 resize-none overflow-hidden",
+                errors.excerpt && "border-destructive"
+              )}
+              onChange={(e) => {
+                setExcerpt(e.target.value);
+                clearError("excerpt");
+                markDirty();
+              }}
+            />
+          </Field>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <CategoryMultiSelect
-                options={categoryOptions}
-                selectedIds={categories}
-                busy={categoriesBusy}
-                onCreate={createCategoryOption}
-                onChange={(ids) => {
-                  setCategories(ids);
-                  markDirty();
-                }}
-              />
+          <div className="space-y-5">
+            <CategoryMultiSelect
+              options={categoryOptions}
+              selectedIds={categories}
+              busy={categoriesBusy}
+              onCreate={createCategoryOption}
+              onChange={(ids) => {
+                setCategories(ids);
+                markDirty();
+              }}
+            />
 
-              <WorkplacePicker
-                ref={workplaceRef}
-                value={workplace}
-                error={errors.workplace}
-                onChange={(wp) => {
-                  setWorkplace(wp);
-                  if (wp) clearError("workplace");
-                  markDirty();
-                }}
-              />
-            </div>
+            <WorkplacePicker
+              ref={workplaceRef}
+              value={workplace}
+              error={errors.workplace}
+              onChange={(wp) => {
+                setWorkplace(wp);
+                if (wp) clearError("workplace");
+                markDirty();
+              }}
+            />
+          </div>
+        </SectionCard>
 
-            <hr className="border-border" />
-
-            <FormSwitch
-              label="Restrict post?"
+        {/* The toggle sits in the header; the fields (and the divider) only
+            show while the post is restricted. */}
+        <SectionCard
+          icon="restrictPost"
+          title="Restrict post"
+          description="Keep it public, or lock it with a password and choose how many sections visitors can preview first."
+          action={
+            <Switch
               id="isRestricted"
-              value={isRestricted === null ? false : isRestricted}
+              name="isRestricted"
+              aria-label="Restrict post"
+              checked={isRestricted === null ? false : isRestricted}
               onCheckedChange={(bool) => {
                 setIsRestricted(bool);
                 if (bool && !previewSectionAmount) setPreviewSectionAmount(1);
@@ -463,80 +489,88 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
                 markDirty();
               }}
             />
-
-            {isRestricted && (
-              <div className="grid gap-6 md:grid-cols-2">
-                <Field
-                  id="post-password"
-                  label="Password"
-                  error={errors.password}
-                >
-                  <div className="relative">
-                    <Input
-                      id="post-password"
-                      ref={passwordRef}
-                      type={showPassword ? "text" : "password"}
-                      // Keep the browser from autofilling the admin's own login.
-                      autoComplete="new-password"
-                      value={password ?? ""}
-                      placeholder="Password to unlock the post"
-                      aria-invalid={!!errors.password}
-                      className={cn(
-                        "bg-background pr-10",
-                        errors.password && "border-destructive"
-                      )}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        clearError("password");
-                        markDirty();
-                      }}
-                    />
-                    <button
-                      type="button"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
-                    </button>
-                  </div>
-                </Field>
-
-                <Field id="post-preview-amount" label="Preview section amount">
+          }
+        >
+          {isRestricted && (
+            <>
+              <Field
+                id="post-password"
+                label="Password"
+                error={errors.password}
+              >
+                <div className="relative">
                   <Input
-                    id="post-preview-amount"
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={maxPreviewSections}
-                    step={1}
-                    value={previewInput ?? previewSectionAmount ?? 1}
-                    className="bg-background"
+                    id="post-password"
+                    ref={passwordRef}
+                    type={showPassword ? "text" : "password"}
+                    // Keep the browser from autofilling the admin's own login.
+                    autoComplete="new-password"
+                    value={password ?? ""}
+                    placeholder="Password to unlock the post"
+                    aria-invalid={!!errors.password}
+                    className={cn(
+                      "pr-10",
+                      errors.password && "border-destructive"
+                    )}
                     onChange={(e) => {
-                      setPreviewInput(e.target.value);
-                      const n = parseInt(e.target.value, 10);
-                      if (Number.isNaN(n)) return;
-                      setPreviewSectionAmount(
-                        Math.min(Math.max(n, 1), maxPreviewSections)
-                      );
+                      setPassword(e.target.value);
+                      clearError("password");
                       markDirty();
                     }}
-                    onBlur={() => setPreviewInput(null)}
                   />
-                </Field>
-              </div>
-            )}
-          </div>
-        </div>
+                  <button
+                    type="button"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="size-4" />
+                    ) : (
+                      <Eye className="size-4" />
+                    )}
+                  </button>
+                </div>
+              </Field>
 
-        {/* Body — the block editor, in the same column as the form */}
-        <div className="mx-auto w-full max-w-[742px] px-6 pb-24 pt-8">
+              <ControlRow
+                id="post-preview-amount"
+                label="Preview section amount"
+              >
+                <Input
+                  id="post-preview-amount"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={maxPreviewSections}
+                  step={1}
+                  value={previewInput ?? previewSectionAmount ?? 1}
+                  onChange={(e) => {
+                    setPreviewInput(e.target.value);
+                    const n = parseInt(e.target.value, 10);
+                    if (Number.isNaN(n)) return;
+                    setPreviewSectionAmount(
+                      Math.min(Math.max(n, 1), maxPreviewSections)
+                    );
+                    markDirty();
+                  }}
+                  onBlur={() => setPreviewInput(null)}
+                  className="w-16 shrink-0 text-right"
+                />
+              </ControlRow>
+            </>
+          )}
+        </SectionCard>
+
+        {/* Body — the block editor itself is unchanged, only framed */}
+        <SectionCard
+          icon="content"
+          title="Content"
+          description="Write the full story. Add headings and images, and drag blocks to reorder them."
+          className="min-h-48"
+        >
           <BlockEditor
             initialHTML={initialBodyHtml}
             onChange={(html) => {
@@ -551,11 +585,10 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
             }}
             placeholder="Press '/' for commands"
           />
-        </div>
-      </div>
+        </SectionCard>
+      </PageColumn>
 
-      {/* Sticky bottom action bar */}
-      <div className="sticky bottom-0 z-10 flex items-center justify-end gap-3 border-t bg-background px-12 py-3">
+      <StickyActionBar>
         <Button
           type="button"
           variant="ghost"
@@ -570,7 +603,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
               <span tabIndex={uploadsInProgress ? 0 : undefined}>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => handleSave(true)}
                   disabled={isLoading || uploadsInProgress}
                 >
@@ -603,8 +636,8 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
             )}
           </Tooltip>
         </TooltipProvider>
-      </div>
-    </div>
+      </StickyActionBar>
+    </PageShell>
   );
 };
 
@@ -626,11 +659,11 @@ function Field({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label htmlFor={id} className="text-sm font-semibold text-foreground">
-          {label}
-        </Label>
+        <Label htmlFor={id}>{label}</Label>
         {counter && (
-          <span className="text-xs text-muted-foreground">{counter}</span>
+          <span className="text-[13px] leading-none text-tertiary-foreground">
+            {counter}
+          </span>
         )}
       </div>
       {children}
