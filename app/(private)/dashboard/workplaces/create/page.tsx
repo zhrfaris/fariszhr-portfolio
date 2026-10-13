@@ -4,7 +4,7 @@ import React from "react";
 
 const CreateWorkplacePage = () => {
   return (
-    <DbPageWrapper title="Create Workplace">
+    <DbPageWrapper title="Create workplace" bare>
       <WorkplaceForm />
     </DbPageWrapper>
   );

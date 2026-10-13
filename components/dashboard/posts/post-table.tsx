@@ -1,368 +1,103 @@
 "use client";
 
-import { z } from "zod";
-import { toast } from "sonner";
-import { Status } from "@/actions/types";
-import { useAction } from "@/hooks/use-action";
-import { Post } from "@/actions/post/get/types";
-import { ColumnDef } from "@tanstack/react-table";
-import { deletePost } from "@/actions/post/delete";
-import { Button } from "@/components/shadcn/button";
-import { capitalizeEachWord, cn } from "@/lib/utils";
-import { Category } from "@/actions/category/get/types";
-import { Checkbox } from "@/components/shadcn/checkbox";
-import { Workplace } from "@/actions/workplace/get/types";
-import { DataTable } from "@/components/table/data-table";
-import { deleteManyPosts } from "@/actions/post/delete-many";
-import {
-  ArrowUpDown,
-  MoveDown,
-  MoveUp,
-  Pen,
-  SquareArrowOutUpRight,
-  Trash,
-} from "lucide-react";
-
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
-import { usePostList } from "@/hooks/use-post-list";
-import { useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Eye, GripVertical, Pen, Plus, Trash } from "lucide-react";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  KeyboardSensor,
+  Modifier,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+import { Post } from "@/actions/post/get/types";
+import { deletePost } from "@/actions/post/delete";
 import { reorderPost } from "@/actions/post/reorder";
-import { ReorderPost } from "@/actions/post/reorder/schema";
+import { Status } from "@/actions/types";
+import { IconAction } from "@/components/dashboard/icon-action";
+import { buttonVariants } from "@/components/shadcn/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/shadcn/tooltip";
+import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
+import { useAction } from "@/hooks/use-action";
+import { capitalizeEachWord, cn } from "@/lib/utils";
+import StatusBadge from "../status-badge";
 
-export const postColumns: ColumnDef<NonNullable<Post>>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "title",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Title
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const title = row.getValue("title") as string;
+type Row = NonNullable<Post>;
 
-      return <div className="max-w-[450px] line-clamp-2">{title}</div>;
-    },
-  },
-  {
-    accessorKey: "excerpt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Excerpt
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const excerpt = row.getValue("excerpt") as string;
+/** [handle] Title · Categories · Workplace · Status · Actions. Title gets the
+ * most room; Status and Actions are fixed. The header, each row and the lifted
+ * copy are separate grids on this template, so no track may size to its
+ * content: that keeps every header over its column. */
+const GRID =
+  "grid grid-cols-[24px_minmax(0,2.2fr)_minmax(0,1.3fr)_minmax(0,1fr)_56px_108px] gap-x-3 px-2";
 
-      return (
-        <div className="max-w-[450px]">
-          <p>{excerpt}</p>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "categories",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Categories
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const categories = row.getValue("categories") as NonNullable<Category>[];
+/** Rows only move up and down. */
+const restrictToVerticalAxis: Modifier = ({ transform }) => ({
+  ...transform,
+  x: 0,
+});
 
-      return (
-        <div className="max-w-[450px]">
-          <p>{categories?.map((c) => c.name).join(", ")}</p>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "workplace",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Workplace
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const workplace = row.getValue("workplace") as NonNullable<Workplace>;
+/**
+ * All case studies: a short list (a handful of posts), so no paging, sorting,
+ * filtering or selection. Rows are dragged by their handle (or moved with the
+ * keyboard: Space, arrows, Space / Esc) to set the order the public portfolio
+ * uses; clicking a row opens the editor.
+ */
+export const PostTable = ({ data }: { data: Row[] }) => {
+  const router = useRouter();
+  const [posts, setPosts] = useState<Row[]>(data);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-      return (
-        <div className="max-w-[450px]">
-          <p>{capitalizeEachWord(workplace?.name)}</p>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Status
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const status = row.getValue("status") as z.infer<typeof Status>;
+  // `order` as last saved, per post: what a save is compared against.
+  const savedOrder = useRef<Map<string, number | null>>(new Map());
+  // The list to restore if a reorder fails.
+  const rollback = useRef<Row[] | null>(null);
 
-      return (
-        <div className="max-w-[450px]">
-          <p
-            className={cn(
-              "text-center rounded-full py-0.5 px-2 text-xs font-medium w-fit",
-              status === Status.Values.ACTIVE
-                ? "bg-success/15 text-success-foreground"
-                : "bg-muted text-muted-foreground"
-            )}
-          >
-            {status === "ACTIVE" ? "Published" : "Draft"}
-          </p>
-        </div>
-      );
-    },
-  },
-  {
-    id: "action",
-    header: () => {
-      return (
-        <Button variant="link" className="p-0">
-          Actions
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const data = row.original;
-
-      if (!data) return null;
-
-      return <ActionButtons initialData={data} />;
-    },
-  },
-];
-
-export const PostTable = ({ data }: { data: NonNullable<Post>[] }) => {
-  const {
-    posts,
-    isReordering,
-    postsToReorderAfterDelete,
-    setPosts,
-    setIsReordering,
-    setPostsToReorderAfterDelete,
-  } = usePostList((state) => state);
-
-  const { execute: executeDeleteMany } = useAction(deleteManyPosts, {
-    onProceed: () => {
-      toast.loading("Deleting selected posts...", {
-        id: "loading-delete-posts",
-      });
-    },
-    onSuccess: () => {
-      toast.success(`Selected posts deleted!`);
-    },
-    onError: (error) => {
-      toast.error(error);
-    },
-    onComplete() {
-      toast.dismiss("loading-delete-posts");
-    },
-  });
+  useEffect(() => {
+    setPosts(data);
+    savedOrder.current = new Map(data.map((p) => [p.id, p.order]));
+  }, [data]);
 
   const { execute: executeReorder } = useAction(reorderPost, {
-    onProceed: () => {
-      toast.loading("Saving current order of posts...", {
-        id: "loading-reorder-posts",
-      });
-    },
-    onSuccess: () => {
-      toast.success(`current order of posts saved!`);
+    onSuccess: (saved) => {
+      saved.forEach((p) => savedOrder.current.set(p.id, p.order));
+      rollback.current = null;
+      toast.success("Order saved");
     },
     onError: (error) => {
-      toast.error(error);
-    },
-    onComplete() {
-      toast.dismiss("loading-reorder-posts");
+      if (rollback.current) setPosts(rollback.current);
+      rollback.current = null;
+      toast.error(error || "Couldn't save the order");
     },
   });
-
-  const onDeleteManyData = (data: NonNullable<Post>[]) => {
-    const deleted_ids: string[] = [];
-    let isSomeSkipped = false;
-
-    for (const d of data) {
-      if (!d?.id) {
-        isSomeSkipped = true;
-        continue;
-      }
-
-      deleted_ids.push(d?.id);
-    }
-
-    if (isSomeSkipped) {
-      toast.error("Failed to delete some selected posts");
-    }
-
-    // console.log({ deleted_ids });
-
-    const updatedPosts = [...posts];
-
-    for (const id of deleted_ids) {
-      const index = updatedPosts.findIndex((p) => p.id === id);
-      if (index === -1) continue;
-
-      updatedPosts.splice(index, 1);
-    }
-
-    // Update order of the remaining items
-    updatedPosts.forEach((c, index) => (c.order = index));
-
-    setPosts(updatedPosts);
-    setPostsToReorderAfterDelete(updatedPosts);
-
-    executeDeleteMany({ ids: deleted_ids });
-  };
-
-  const getChangedOrderPosts = useCallback(
-    (postToReorder: NonNullable<Post>[]) => {
-      const changedOrderPosts: NonNullable<Post>[] = [];
-
-      for (const post of postToReorder) {
-        const initialPost = data.find((d) => d.id === post.id);
-
-        if (!initialPost) continue;
-
-        if (initialPost.order === null) continue;
-
-        if (initialPost.order !== post.order) {
-          changedOrderPosts.push(post);
-        }
-      }
-
-      return changedOrderPosts.map((p) => ({ id: p.id, order: p.order }));
-    },
-    [data]
-  );
-
-  const confirmReorder = useCallback(
-    (postToReorder: NonNullable<Post>[]) => {
-      const changedOrderPosts: z.infer<typeof ReorderPost> =
-        getChangedOrderPosts(postToReorder);
-
-      if (changedOrderPosts.length > 0) {
-        executeReorder(changedOrderPosts);
-        // console.log({ changedOrderPosts });
-      }
-    },
-    [executeReorder, getChangedOrderPosts]
-  );
-
-  const toggleReorder = () => {
-    if (isReordering) {
-      confirmReorder(posts);
-    }
-
-    setIsReordering(!isReordering);
-  };
-
-  // set initial data post list to posts state
-  useEffect(() => {
-    // console.log({
-    //   data: data.map((p) => ({ id: p.id, order: p.order, title: p.title })),
-    // });
-    setPosts(JSON.parse(JSON.stringify(data)));
-  }, [data, setPosts]);
-
-  // Reorder posts after deleting some posts
-  useEffect(() => {
-    if (postsToReorderAfterDelete.length === 0) return;
-
-    // console.log(postsToReorderAfterDelete);
-    confirmReorder(postsToReorderAfterDelete);
-    setPostsToReorderAfterDelete([]);
-  }, [confirmReorder, postsToReorderAfterDelete, setPostsToReorderAfterDelete]);
-
-  return (
-    <DataTable
-      title="post"
-      columns={postColumns}
-      data={posts.length <= 0 ? data : posts}
-      filterPlaceholder="Filter post..."
-      filterKey="title"
-      onDeleteManyData={onDeleteManyData}
-      isReordering={isReordering}
-      onReorderData={toggleReorder}
-    />
-  );
-};
-
-const ActionButtons = ({ initialData }: { initialData: NonNullable<Post> }) => {
-  const { posts, isReordering, setPosts, setPostsToReorderAfterDelete } =
-    usePostList((state) => state);
 
   const { execute: executeDelete } = useAction(deletePost, {
     onProceed: () => {
-      toast.loading("Deleting post...", {
-        id: "loading-delete-post",
-      });
+      toast.loading("Deleting post...", { id: "loading-delete-post" });
     },
     onSuccess: () => {
-      toast.success(`post deleted!`);
+      toast.success("Post deleted!");
     },
     onError: (error) => {
       toast.error(error);
@@ -372,117 +107,305 @@ const ActionButtons = ({ initialData }: { initialData: NonNullable<Post> }) => {
     },
   });
 
-  const onDeleteData = (data: NonNullable<Post>) => {
-    if (!data?.id) {
-      toast.error("Failed to delete post");
-      return;
-    }
-
-    const updatedPosts = posts.filter((c) => c.id !== data.id);
-
-    // Update order of the remaining items
-    updatedPosts.forEach((c, index) => (c.order = index));
-
-    setPosts(updatedPosts);
-    setPostsToReorderAfterDelete(updatedPosts);
-
-    executeDelete({ id: data?.id });
+  /** Positions become `order` (0…n-1). Only posts whose order changed are
+   * sent, through the same reorder action the old Reorder mode used. */
+  const saveOrder = (next: Row[], previous: Row[]) => {
+    const indexed = next.map((p, index) => ({ ...p, order: index }));
+    const changed = indexed
+      .filter((p) => savedOrder.current.get(p.id) !== p.order)
+      .map((p) => ({ id: p.id, order: p.order }));
+    setPosts(indexed);
+    if (changed.length === 0) return;
+    rollback.current = previous;
+    void executeReorder(changed);
   };
 
-  const moveItemUp = (order: number) => {
-    if (order === 0) return; // Cannot move first item up
-
-    const updatedPosts = [...posts];
-
-    // Update order of the items being swapped
-    updatedPosts[order - 1].order = order;
-    updatedPosts[order].order = order - 1;
-
-    // Swap the items in the array
-    [updatedPosts[order - 1], updatedPosts[order]] = [
-      updatedPosts[order],
-      updatedPosts[order - 1],
-    ];
-
-    setPosts([...updatedPosts]);
+  // As before: the remaining posts close the gap (re-indexed and saved).
+  const onDelete = (post: Row) => {
+    const remaining = posts.filter((p) => p.id !== post.id);
+    saveOrder(remaining, posts);
+    void executeDelete({ id: post.id });
   };
 
-  const moveItemDown = (order: number) => {
-    if (order === posts.length - 1) return; // Cannot move last item down
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
-    const udpatedPosts = [...posts];
+  const onDragStart = ({ active }: DragStartEvent) =>
+    setActiveId(String(active.id));
 
-    // Update order of the items being swapped
-    udpatedPosts[order].order = order + 1;
-    udpatedPosts[order + 1].order = order;
-
-    // Swap the items in the array
-    [udpatedPosts[order], udpatedPosts[order + 1]] = [
-      udpatedPosts[order + 1],
-      udpatedPosts[order],
-    ];
-
-    setPosts([...udpatedPosts]);
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    setActiveId(null);
+    if (!over || active.id === over.id) return;
+    const from = posts.findIndex((p) => p.id === active.id);
+    const to = posts.findIndex((p) => p.id === over.id);
+    saveOrder(arrayMove(posts, from, to), posts);
   };
 
-  if (isReordering) {
+  if (posts.length === 0) {
     return (
-      <div className="flex gap-4 items-center">
-        <Button
-          size="icon"
-          variant="outline"
-          onClick={() =>
-            moveItemUp(posts.findIndex((p) => p.id === initialData.id))
-          }
-          disabled={posts.indexOf(initialData) === 0}
-        >
-          <MoveUp className="h-4 w-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="outline"
-          onClick={() =>
-            moveItemDown(posts.findIndex((p) => p.id === initialData.id))
-          }
-          disabled={posts.indexOf(initialData) === posts.length - 1}
-        >
-          <MoveDown className="h-4 w-4" />
-        </Button>
+      <div className="flex flex-col items-center gap-4 py-8 text-center">
+        <p className="text-sm text-muted-foreground">No case studies yet.</p>
+        <Link href="/dashboard/posts/create" className={buttonVariants()}>
+          <Plus />
+          New case study
+        </Link>
       </div>
     );
   }
 
+  const activePost = posts.find((p) => p.id === activeId);
+
   return (
-    <div className="flex gap-4 items-center">
-      <Link href={`/dashboard/posts/${initialData?.slug}`}>
-        <Button
-          size="icon"
-          variant="outline"
+    <TooltipProvider delayDuration={200}>
+      <div role="table" aria-label="Case studies" className="-mx-2">
+        <div role="rowgroup">
+          <div
+            role="row"
+            className={cn(
+              GRID,
+              "h-10 items-center text-[13px] font-medium text-muted-foreground"
+            )}
+          >
+            <span role="columnheader">
+              <span className="sr-only">Reorder</span>
+            </span>
+            <span role="columnheader">Title</span>
+            <span role="columnheader">Categories</span>
+            <span role="columnheader">Workplace</span>
+            <span role="columnheader">Status</span>
+            <span role="columnheader" className="w-[108px]">
+              Actions
+            </span>
+          </div>
+        </div>
+
+        <DndContext
+          // Fixed id: dnd-kit's generated one differs between server and
+          // client renders (hydration mismatch on aria-describedby).
+          id="case-studies-order"
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToVerticalAxis]}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => setActiveId(null)}
         >
-          <SquareArrowOutUpRight className="h-4 w-4" />
-        </Button>
-      </Link>
-      <Link href={`/dashboard/posts/${initialData?.slug}/edit`}>
-        <Button
-          size="icon"
-          variant="outline"
-        >
-          <Pen className="h-4 w-4" />
-        </Button>
-      </Link>
-      <AlertDialogWrapper
-        header={`Delete Post?`}
-        description={`You will permanently delete the selected Post, this action can not be undone!`}
-        proceedHandler={() => onDeleteData(initialData)}
-      >
-        <Button
-          size="icon"
-          variant="outline"
-          className="hover:text-destructive-foreground hover:bg-destructive"
-        >
-          <Trash className="h-4 w-4" />
-        </Button>
-      </AlertDialogWrapper>
-    </div>
+          <SortableContext
+            items={posts.map((p) => p.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div role="rowgroup">
+              {posts.map((post) => (
+                <SortableRow
+                  key={post.id}
+                  post={post}
+                  onOpen={() =>
+                    router.push(`/dashboard/posts/${post.slug}/edit`)
+                  }
+                  onDelete={() => onDelete(post)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+
+          {/* The lifted row follows the pointer; its slot in the list (with
+              the accent line) shows where it will land. */}
+          <DragOverlay>
+            {activePost ? (
+              <div className="rounded-md border bg-background shadow-float">
+                <RowCells post={activePost} />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </div>
+    </TooltipProvider>
   );
 };
+
+function SortableRow({
+  post,
+  onOpen,
+  onDelete,
+}: {
+  post: Row;
+  onOpen: () => void;
+  onDelete: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: post.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      role="row"
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      onClick={(e) => {
+        // Only clicks on the row itself: the handle and actions stop
+        // propagation, and dialogs portaled out of the row don't count.
+        if (!e.currentTarget.contains(e.target as Node)) return;
+        onOpen();
+      }}
+      className={cn(
+        "relative cursor-pointer border-b last:border-b-0 hover:bg-muted",
+        isDragging && "cursor-grabbing hover:bg-transparent"
+      )}
+    >
+      {isDragging ? (
+        // Drop position: the row's slot, marked with a 2px accent line.
+        <div className="relative" aria-hidden>
+          <div className="invisible">
+            <RowCells post={post} />
+          </div>
+          <div className="absolute inset-x-2 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-primary" />
+        </div>
+      ) : (
+        <RowCells
+          post={post}
+          handle={
+            <button
+              type="button"
+              ref={setActivatorNodeRef}
+              {...attributes}
+              {...listeners}
+              aria-label={`Reorder ${post.title}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex size-6 cursor-grab touch-none items-center justify-center rounded-sm text-tertiary-foreground outline-none hover:text-muted-foreground focus-visible:ring-focus focus-visible:ring-ring active:cursor-grabbing"
+            >
+              <GripVertical className="size-4" />
+            </button>
+          }
+          actions={<RowActions post={post} onDelete={onDelete} />}
+        />
+      )}
+    </div>
+  );
+}
+
+/** One row's cells; also used for the lifted copy while dragging. */
+function RowCells({
+  post,
+  handle,
+  actions,
+}: {
+  post: Row;
+  handle?: React.ReactNode;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className={cn(GRID, "items-start py-3 text-sm")}>
+      <div role="cell" className="flex h-8 items-center">
+        {handle ?? (
+          <span className="flex size-6 items-center justify-center text-tertiary-foreground">
+            <GripVertical className="size-4" />
+          </span>
+        )}
+      </div>
+      <div role="cell" className="flex min-h-8 min-w-0 items-center">
+        <Link
+          href={`/dashboard/posts/${post.slug}/edit`}
+          onClick={(e) => e.stopPropagation()}
+          className="break-words rounded-sm font-medium text-foreground outline-none focus-visible:ring-focus focus-visible:ring-ring"
+        >
+          {post.title}
+        </Link>
+      </div>
+      <div
+        role="cell"
+        className="flex min-h-8 min-w-0 items-center break-words text-muted-foreground"
+      >
+        {post.categories?.map((c) => c.name).join(", ") || "—"}
+      </div>
+      <div
+        role="cell"
+        className="flex min-h-8 min-w-0 items-center break-words text-muted-foreground"
+      >
+        {post.workplace?.name ? capitalizeEachWord(post.workplace.name) : "—"}
+      </div>
+      <div role="cell" className="flex h-8 items-center">
+        <StatusBadge live={post.status === Status.Values.ACTIVE} />
+      </div>
+      <div role="cell" className="flex h-8 w-[108px] items-center">
+        {actions}
+      </div>
+    </div>
+  );
+}
+
+function RowActions({ post, onDelete }: { post: Row; onDelete: () => void }) {
+  const live = post.status === Status.Values.ACTIVE;
+
+  return (
+    <div
+      className="flex items-center gap-1.5"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {live ? (
+            <IconAction aria-label="View live" asChild>
+              <Link
+                href={`/portfolios/${post.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Eye />
+              </Link>
+            </IconAction>
+          ) : (
+            // Disabled buttons get no pointer events, so the tooltip hangs on
+            // a focusable wrapper.
+            <span
+              tabIndex={0}
+              className="rounded-md outline-none focus-visible:ring-focus focus-visible:ring-ring"
+            >
+              <IconAction aria-label="View live" disabled>
+                <Eye />
+              </IconAction>
+            </span>
+          )}
+        </TooltipTrigger>
+        <TooltipContent>
+          {live ? "View live" : "Not published yet"}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <IconAction aria-label="Edit" asChild>
+            <Link href={`/dashboard/posts/${post.slug}/edit`}>
+              <Pen />
+            </Link>
+          </IconAction>
+        </TooltipTrigger>
+        <TooltipContent>Edit</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <AlertDialogWrapper
+          header="Delete Post?"
+          description="You will permanently delete the selected Post, this action can not be undone!"
+          proceedHandler={onDelete}
+        >
+          <TooltipTrigger asChild>
+            <IconAction aria-label="Delete" destructive>
+              <Trash />
+            </IconAction>
+          </TooltipTrigger>
+        </AlertDialogWrapper>
+        <TooltipContent>Delete</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}

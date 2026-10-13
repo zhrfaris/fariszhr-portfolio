@@ -52,7 +52,7 @@ const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
             contentSide="bottom"
             triggerComponent={
               selectedIcon ? (
-                <div className="cursor-pointer hover:bg-muted border rounded-md border-input h-9 flex items-center justify-center ">
+                <div className="cursor-pointer hover:bg-secondary border rounded-md border-input h-9 flex items-center justify-center ">
                   <SectionIcon
                     size={24}
                     iconId={iconTypeChecker(selectedIcon)}
@@ -72,7 +72,7 @@ const FormSelectIcon = forwardRef<HTMLInputElement, FormSelectIconProps>(
                   <div
                     key={id}
                     onClick={() => selectIconHandler(icon)}
-                    className="p-3 transition duration-300 cursor-pointer hover:bg-muted"
+                    className="p-3 transition duration-300 cursor-pointer hover:bg-secondary"
                   >
                     <SectionIcon
                       size={35}

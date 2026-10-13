@@ -162,7 +162,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
 
     return (
       <div className="absolute top-10 inset-x-0 w-full h-fit rounded-lg overflow-hidden z-20">
-        <CommandList className="bg-popover text-[15px] border rounded-lg shadow-md">
+        <CommandList className="bg-popover text-[15px] border rounded-lg shadow-float">
           {!listSelected.some((item) => item.slug === searchValue) &&
             searchValue?.length >= 3 && (
               <CommandEmpty className="p-4 text-sm text-left">
@@ -174,7 +174,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
           <CommandGroup className="text-[15px]">
             {listOption.map((d) => (
               <CommandItem
-                className="border aria-selected:border-border border-transparent aria-selected:text-foreground text-foreground/60 cursor-pointer"
+                className="border aria-selected:border-border border-transparent aria-selected:text-foreground text-muted-foreground cursor-pointer"
                 key={d.id}
                 value={d.slug}
                 onSelect={() => onSelectHandler(d)}
@@ -218,7 +218,7 @@ function FormCombobox<TData extends FormComboboxBaseData>({
         <li
           key={data.id}
           className={cn(
-            "flex items-start justify-between gap-4 bg-background rounded-lg py-2 px-3 border border-foreground/30",
+            "flex items-start justify-between gap-4 bg-background rounded-lg py-2 px-3 border border-input",
             selectedChipMode === "chip" && "w-fit",
             selectedChipMode === "list" && "w-full"
           )}

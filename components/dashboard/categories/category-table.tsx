@@ -1,157 +1,65 @@
 "use client";
-import { Button } from "@/components/shadcn/button";
-import { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/shadcn/checkbox";
-import { DataTable } from "@/components/table/data-table";
-import { ArrowUpDown, Pen, Trash } from "lucide-react";
 
 import { toast } from "sonner";
-import { useAction } from "@/hooks/use-action";
-import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
+import { Pen, Plus, Trash } from "lucide-react";
 
 import { Category } from "@/actions/category/get/types";
 import { deleteCategory } from "@/actions/category/delete";
+import { IconAction } from "@/components/dashboard/icon-action";
+import { SimpleTable } from "@/components/dashboard/simple-table";
 import PopoverForm from "@/components/form/popover-form";
+import { Button } from "@/components/shadcn/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/shadcn/tooltip";
+import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
+import { useAction } from "@/hooks/use-action";
 import CategoryForm from "./category-form";
-import { deleteManyCategories } from "@/actions/category/delete-many";
 
-export const categoryColumns: ColumnDef<NonNullable<Category>>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const name = row.getValue("name") as string;
+type Row = NonNullable<Category>;
 
-      return <div className="max-w-[450px] line-clamp-2">{name}</div>;
-    },
-  },
-  {
-    accessorKey: "slug",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Slug
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const slug = row.getValue("slug") as string;
-
-      return <div className="max-w-[450px] line-clamp-2">{slug}</div>;
-    },
-  },
-  {
-    id: "action",
-    header: () => {
-      return (
-        <Button variant="link" className="p-0">
-          Actions
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const data = row.original;
-
-      if (!data) return null;
-
-      return <ActionButtons initialData={data} />;
-    },
-  },
-];
-
-export const CategoryTable = ({ data }: { data: NonNullable<Category>[] }) => {
-  const { execute: executeDeleteMany } = useAction(deleteManyCategories, {
-    onProceed: () => {
-      toast.loading("Deleting selected categories...", {
-        id: "loading-delete-categories",
-      });
-    },
-    onSuccess: () => {
-      toast.success(`Selected categories deleted!`);
-    },
-    onError: (error) => {
-      toast.error(error);
-    },
-    onComplete() {
-      toast.dismiss("loading-delete-categories");
-    },
-  });
-
-  const onDeleteManyData = (data: NonNullable<Category>[]) => {
-    const deleted_ids: string[] = [];
-    let isSomeSkipped = false;
-
-    for (const d of data) {
-      if (!d?.id) {
-        isSomeSkipped = true;
-        continue;
-      }
-
-      deleted_ids.push(d?.id);
-    }
-
-    if (isSomeSkipped) {
-      toast.error("Failed to delete some selected categories");
-    }
-
-    executeDeleteMany({ ids: deleted_ids });
-  };
+/** Categories: Name · Slug · Actions. A short list, nothing to sort, filter
+ * or page through; the order isn't used on the live site, so no reordering. */
+export const CategoryTable = ({ data }: { data: Row[] }) => {
+  if (data.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-8 text-center">
+        <p className="text-sm text-muted-foreground">No categories yet.</p>
+        <PopoverForm title="New category" FormComponent={CategoryForm}>
+          <Button>
+            <Plus />
+            New category
+          </Button>
+        </PopoverForm>
+      </div>
+    );
+  }
 
   return (
-    <DataTable
-      title="category"
-      columns={categoryColumns}
-      data={data}
-      filterPlaceholder="Filter category..."
-      filterKey="name"
-      onDeleteManyData={onDeleteManyData}
+    <SimpleTable
+      label="Categories"
+      rows={data}
+      rowKey={(c) => c.id}
+      template="minmax(0,1.4fr) minmax(0,1fr) 70px"
+      columns={[
+        {
+          header: "Name",
+          cell: (c) => <span className="font-medium">{c.name}</span>,
+        },
+        {
+          header: "Slug",
+          cell: (c) => c.slug,
+          className: "text-muted-foreground",
+        },
+        { header: "Actions", cell: (c) => <ActionButtons category={c} /> },
+      ]}
     />
   );
 };
 
-const ActionButtons = ({
-  initialData,
-}: {
-  initialData: NonNullable<Category>;
-}) => {
+const ActionButtons = ({ category }: { category: Row }) => {
   const { execute: executeDelete } = useAction(deleteCategory, {
     onProceed: () => {
       toast.loading("Deleting category...", {
@@ -169,43 +77,46 @@ const ActionButtons = ({
     },
   });
 
-  const onDeleteData = (data: NonNullable<Category>) => {
-    if (!data?.id) {
-      toast.error("Failed to delete workplace");
+  const onDelete = () => {
+    if (!category?.id) {
+      toast.error("Failed to delete category");
       return;
     }
-
-    executeDelete({ id: data?.id });
+    executeDelete({ id: category.id });
   };
 
   return (
-    <div className="flex gap-4 items-center">
-      <PopoverForm
-        align="end"
-        title="Edit Category"
-        FormComponent={CategoryForm}
-        initialData={initialData}
-      >
-        <Button
-          size="icon"
-          variant="outline"
+    <div className="flex w-[70px] items-center gap-1.5">
+      {/* Popover and tooltip share the button (both triggers asChild). */}
+      <Tooltip>
+        <PopoverForm
+          align="end"
+          title="Edit category"
+          FormComponent={CategoryForm}
+          initialData={category}
         >
-          <Pen className="h-4 w-4" />
-        </Button>
-      </PopoverForm>
-      <AlertDialogWrapper
-        header={`Delete Workplace?`}
-        description={`You will permanently delete the selected Workplace, this action can not be undone!`}
-        proceedHandler={() => onDeleteData(initialData)}
-      >
-        <Button
-          size="icon"
-          variant="outline"
-          className="hover:text-destructive-foreground hover:bg-destructive"
+          <TooltipTrigger asChild>
+            <IconAction aria-label="Edit">
+              <Pen />
+            </IconAction>
+          </TooltipTrigger>
+        </PopoverForm>
+        <TooltipContent>Edit</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <AlertDialogWrapper
+          header={`Delete Category?`}
+          description={`You will permanently delete the selected Category, this action can not be undone!`}
+          proceedHandler={onDelete}
         >
-          <Trash className="h-4 w-4" />
-        </Button>
-      </AlertDialogWrapper>
+          <TooltipTrigger asChild>
+            <IconAction aria-label="Delete" destructive>
+              <Trash />
+            </IconAction>
+          </TooltipTrigger>
+        </AlertDialogWrapper>
+        <TooltipContent>Delete</TooltipContent>
+      </Tooltip>
     </div>
   );
 };

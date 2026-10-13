@@ -111,15 +111,8 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
       return (
         <>
           <ImagePlaceholder
-            classNameWrapper={cn(
-              "rounded-sm",
-              currentImage?.img_url && "h-fit",
-              classNameWidgetWrapper
-            )}
-            classNameButtons={cn(
-              "h-8 w-fit rounded-sm bottom-auto left-auto top-4 right-4",
-              classNameButtons
-            )}
+            classNameWrapper={classNameWidgetWrapper}
+            classNameButtons={classNameButtons}
             img_url={currentImage?.img_url}
             onEdit={() => selectFile()}
             onDelete={showDeleteButton ? deleteCurrentImage : undefined}
@@ -156,15 +149,8 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
 
             return (
               <ImagePlaceholder
-                classNameWrapper={cn(
-                  "rounded-sm",
-                  currentImage?.img_url && "h-fit",
-                  classNameWidgetWrapper
-                )}
-                classNameButtons={cn(
-                  "h-8 w-fit rounded-sm bottom-auto left-auto top-4 right-4",
-                  classNameButtons
-                )}
+                classNameWrapper={classNameWidgetWrapper}
+                classNameButtons={classNameButtons}
                 img_url={currentImage?.img_url}
                 onEdit={() => openWidget()}
                 onDelete={showDeleteButton ? deleteCurrentImage : undefined}
@@ -181,15 +167,14 @@ const FormImageUpload = forwardRef<FormImageUploadHandle, FormImageUploadProps>(
 
     return (
       <div className="w-full space-y-2">
-        {label && (
-          <Label>
-            {label}
-          </Label>
-        )}
+        {label && <Label>{label}</Label>}
+        {/* Image slot look: dashed dropzone while empty, framed once set */}
         <div
           className={cn(
-            "w-full bg-muted rounded-md border border-input",
-            currentImage?.img_url ? "min-h-72" : "h-72",
+            "relative h-72 w-full overflow-hidden rounded-md bg-muted",
+            currentImage?.img_url
+              ? "border"
+              : "border border-dashed border-input",
             className
           )}
         >

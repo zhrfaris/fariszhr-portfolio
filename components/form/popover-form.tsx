@@ -74,13 +74,13 @@ function PopoverForm<TData>({
         side={side}
         sideOffset={sideOffset}
       >
-        <div className="text-sm font-medium text-center text-foreground/60 pb-4">
+        <div className="pb-4 pr-8 text-[15px] font-medium text-foreground">
           {title}
         </div>
         <PopoverClose ref={closeRef} asChild>
           <Button
             variant="ghost"
-            className="h-auto w-auto p-2 absolute top-2 right-2 text-foreground/60"
+            className="h-auto w-auto p-2 absolute top-2 right-2 text-muted-foreground"
           >
             <XIcon className="h-4 w-4" />
           </Button>

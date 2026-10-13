@@ -1,166 +1,73 @@
 "use client";
-import { Button } from "@/components/shadcn/button";
-import { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/shadcn/checkbox";
-import { DataTable } from "@/components/table/data-table";
-import { ArrowUpDown, ExternalLink, Pen, Trash } from "lucide-react";
 
-import { toast } from "sonner";
-import { useAction } from "@/hooks/use-action";
+import Image from "next/image";
 import Link from "next/link";
-import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
+import { toast } from "sonner";
+import { ExternalLink, Pen, Plus, Trash } from "lucide-react";
 
 import { Workplace } from "@/actions/workplace/get/types";
-import { deleteManyWorkplaces } from "@/actions/workplace/delete-many";
 import { deleteWorkplace } from "@/actions/workplace/delete";
-import Image from "next/image";
+import { ActionTooltip, IconAction } from "@/components/dashboard/icon-action";
+import { SimpleTable } from "@/components/dashboard/simple-table";
+import { buttonVariants } from "@/components/shadcn/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/shadcn/tooltip";
+import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
+import { useAction } from "@/hooks/use-action";
 
-export const workplaceColumns: ColumnDef<NonNullable<Workplace>>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const name = row.getValue("name") as string;
+type Row = NonNullable<Workplace>;
 
-      return <div className="max-w-[450px] line-clamp-2">{name}</div>;
-    },
-  },
-  {
-    id: "image",
-    accessorKey: "image.img_url_thumbnail",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="link"
-          className="p-0"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Image
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const image = row.getValue("image") as string;
-
-      return (
-        <div className="max-w-[450px]">
-          <Image src={image} alt="" width={100} height={100} />
-        </div>
-      );
-    },
-  },
-  {
-    id: "action",
-    header: () => {
-      return (
-        <Button variant="link" className="p-0">
-          Actions
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const data = row.original;
-
-      if (!data) return null;
-
-      return <ActionButtons initialData={data} />;
-    },
-  },
-];
-
-export const WorkplaceTable = ({
-  data,
-}: {
-  data: NonNullable<Workplace>[];
-}) => {
-  const { execute: executeDeleteMany } = useAction(deleteManyWorkplaces, {
-    onProceed: () => {
-      toast.loading("Deleting selected workplaces...", {
-        id: "loading-delete-workplaces",
-      });
-    },
-    onSuccess: () => {
-      toast.success(`Selected workplaces deleted!`);
-    },
-    onError: (error) => {
-      toast.error(error);
-    },
-    onComplete() {
-      toast.dismiss("loading-delete-workplaces");
-    },
-  });
-
-  const onDeleteManyData = (data: NonNullable<Workplace>[]) => {
-    const deleted_ids: string[] = [];
-    let isSomeSkipped = false;
-
-    for (const d of data) {
-      if (!d?.id) {
-        isSomeSkipped = true;
-        continue;
-      }
-
-      deleted_ids.push(d?.id);
-    }
-
-    if (isSomeSkipped) {
-      toast.error("Failed to delete some selected workplaces");
-    }
-
-    executeDeleteMany({ ids: deleted_ids });
-  };
+/** Workplaces: Name · Logo · Actions. A short list, nothing to sort, filter
+ * or page through; the order isn't used on the live site, so no reordering. */
+export const WorkplaceTable = ({ data }: { data: Row[] }) => {
+  if (data.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-8 text-center">
+        <p className="text-sm text-muted-foreground">No workplaces yet.</p>
+        <Link href="/dashboard/workplaces/create" className={buttonVariants()}>
+          <Plus />
+          New workplace
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <DataTable
-      title="workplace"
-      columns={workplaceColumns}
-      data={data}
-      filterPlaceholder="Filter workplace..."
-      filterKey="name"
-      onDeleteManyData={onDeleteManyData}
+    <SimpleTable
+      label="Workplaces"
+      rows={data}
+      rowKey={(w) => w.id}
+      template="minmax(0,2fr) minmax(0,1fr) 108px"
+      columns={[
+        {
+          header: "Name",
+          cell: (w) => <span className="font-medium">{w.name}</span>,
+        },
+        {
+          header: "Logo",
+          cell: (w) =>
+            w.image?.img_url_thumbnail ? (
+              <Image
+                src={w.image.img_url_thumbnail}
+                alt=""
+                width={100}
+                height={100}
+                className="h-6 w-auto max-w-[100px] object-contain"
+              />
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            ),
+        },
+        { header: "Actions", cell: (w) => <ActionButtons workplace={w} /> },
+      ]}
     />
   );
 };
 
-const ActionButtons = ({
-  initialData,
-}: {
-  initialData: NonNullable<Workplace>;
-}) => {
+const ActionButtons = ({ workplace }: { workplace: Row }) => {
   const { execute: executeDelete } = useAction(deleteWorkplace, {
     onProceed: () => {
       toast.loading("Deleting workplace...", {
@@ -178,48 +85,46 @@ const ActionButtons = ({
     },
   });
 
-  const onDeleteData = (data: NonNullable<Workplace>) => {
-    if (!data?.id) {
+  const onDelete = () => {
+    if (!workplace?.id) {
       toast.error("Failed to delete workplace");
       return;
     }
-
-    executeDelete({ id: data?.id });
+    executeDelete({ id: workplace.id });
   };
 
   return (
-    <div className="flex gap-4 items-center">
-      {initialData?.url && (
-        <Link href={initialData?.url} target="_blank">
-          <Button
-            size="icon"
-            variant="outline"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-        </Link>
+    <div className="flex w-[108px] items-center gap-1.5">
+      {workplace.url && (
+        <ActionTooltip label="Open website">
+          <IconAction aria-label="Open website" asChild>
+            <Link href={workplace.url} target="_blank">
+              <ExternalLink />
+            </Link>
+          </IconAction>
+        </ActionTooltip>
       )}
-      <Link href={`/dashboard/workplaces/${initialData?.slug}/edit`}>
-        <Button
-          size="icon"
-          variant="outline"
+      <ActionTooltip label="Edit">
+        <IconAction aria-label="Edit" asChild>
+          <Link href={`/dashboard/workplaces/${workplace.slug}/edit`}>
+            <Pen />
+          </Link>
+        </IconAction>
+      </ActionTooltip>
+      <Tooltip>
+        <AlertDialogWrapper
+          header={`Delete Workplace?`}
+          description={`You will permanently delete the selected Workplace, this action can not be undone!`}
+          proceedHandler={onDelete}
         >
-          <Pen className="h-4 w-4" />
-        </Button>
-      </Link>
-      <AlertDialogWrapper
-        header={`Delete Workplace?`}
-        description={`You will permanently delete the selected Workplace, this action can not be undone!`}
-        proceedHandler={() => onDeleteData(initialData)}
-      >
-        <Button
-          size="icon"
-          variant="outline"
-          className="hover:text-destructive-foreground hover:bg-destructive"
-        >
-          <Trash className="h-4 w-4" />
-        </Button>
-      </AlertDialogWrapper>
+          <TooltipTrigger asChild>
+            <IconAction aria-label="Delete" destructive>
+              <Trash />
+            </IconAction>
+          </TooltipTrigger>
+        </AlertDialogWrapper>
+        <TooltipContent>Delete</TooltipContent>
+      </Tooltip>
     </div>
   );
 };

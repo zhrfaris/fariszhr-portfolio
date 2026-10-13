@@ -1,55 +1,27 @@
-import { cn } from "@/lib/utils";
-import Link from "next/link";
 import React from "react";
-import { Button, buttonVariants } from "../shadcn/button";
-import PopoverForm, { BasicFormProps } from "../form/popover-form";
 
-type ButtonLink = {
-  href: string;
-  children: React.ReactNode;
-};
+import { PageColumn, PageShell } from "./page-layout";
 
-function DbPageWrapper<TData>({
+/**
+ * Every dashboard page: the #F5F5F7 page with its centered column of section
+ * cards. The page title lives in the breadcrumb; here it is only the (visually
+ * hidden) heading. Form pages pass `bare` and lay out their own <form> with
+ * PageColumn + StickyActionBar, so the bar's submit button is in the form.
+ */
+function DbPageWrapper({
   title,
+  bare,
   children,
-  buttonLink,
-  createButtonUrl,
-  CreateFormComponent,
 }: {
   title: string;
+  bare?: boolean;
   children: React.ReactNode;
-  createButtonUrl?: string;
-  buttonLink?: ButtonLink;
-  CreateFormComponent?: React.ComponentType<BasicFormProps<TData>>;
 }) {
   return (
-    <div className="space-y-6 p-4 md:p-8">
-      <div className="flex items-center gap-8">
-        <h1 className="text-[28px] font-semibold leading-tight tracking-tight">
-          {title}
-        </h1>
-        {createButtonUrl && (
-          <Link href={createButtonUrl} className={cn(buttonVariants())}>
-            Create New
-          </Link>
-        )}
-        {buttonLink && (
-          <Link href={buttonLink.href} className={cn(buttonVariants())}>
-            {buttonLink.children}
-          </Link>
-        )}
-        {CreateFormComponent && (
-          <PopoverForm
-            align="start"
-            title="Create Category"
-            FormComponent={CreateFormComponent}
-          >
-            <Button>Create New</Button>
-          </PopoverForm>
-        )}
-      </div>
-      {children}
-    </div>
+    <PageShell>
+      <h1 className="sr-only">{title}</h1>
+      {bare ? children : <PageColumn>{children}</PageColumn>}
+    </PageShell>
   );
 }
 

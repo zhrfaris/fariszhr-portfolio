@@ -70,7 +70,7 @@ const CategoryForm = ({
   };
 
   return (
-    <form action={formAction} className="flex-1 space-y-6 @container">
+    <form action={formAction} className="flex-1 space-y-4 @container">
       <FormInput
         label="Name"
         id="name"
@@ -78,9 +78,11 @@ const CategoryForm = ({
         required={true}
         errors={initialData?.id ? updateFieldErrors : createFieldErrors}
       />
-      <Button type="submit" disabled={createIsLoading || updateIsLoading}>
-        Save
-      </Button>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={createIsLoading || updateIsLoading}>
+          Save
+        </Button>
+      </div>
     </form>
   );
 };

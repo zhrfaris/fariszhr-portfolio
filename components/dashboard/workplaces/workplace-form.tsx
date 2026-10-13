@@ -2,12 +2,18 @@
 
 import { Workplace } from "@/actions/workplace/get/types";
 import FormInput from "@/components/form/form-input";
-import FormWrapper from "@/components/form/form-wrapper";
 import React, { useRef } from "react";
 import { useAction } from "@/hooks/use-action";
 import { createWorkplace } from "@/actions/workplace/create";
 import { toast } from "sonner";
-import { Button } from "@/components/shadcn/button";
+import { Button, buttonVariants } from "@/components/shadcn/button";
+import Link from "next/link";
+import { SectionCard } from "@/components/dashboard/section-card";
+import {
+  PAGE_SHELL,
+  PageColumn,
+  StickyActionBar,
+} from "@/components/dashboard/page-layout";
 import { useRouter } from "next/navigation";
 import { updateWorkplace } from "@/actions/workplace/update";
 import { FormCreateComponentOnComboboxProps } from "@/components/form/form-combobox/form-combobox";
@@ -105,20 +111,20 @@ const WorkplaceForm = ({
   };
 
   return (
-    <div className="flex flex-col @md:flex-row gap-4 @md:gap-8 @md:items-start">
-      <form action={formAction} className="flex-1 space-y-6 @container">
-        <FormWrapper>
+    <form action={formAction} className={PAGE_SHELL}>
+      <PageColumn>
+        <SectionCard
+          icon="workplace"
+          title="Workplace"
+          description="The company's logo, name, and website. Case studies you tag with it show its logo."
+        >
           <FormImageUpload
             ref={workplaceImageRef}
-            label="Workplace Logo"
+            label="Logo"
             initialImage={workplace?.image || undefined}
-            className="h-fit min-h-0 p-4 max-w-40"
-            classNameWidgetWrapper="overflow-visible"
-            classNameButtons="-top-4 -right-16 flex"
+            className="h-36 w-72 max-w-full p-4"
             uploadWIthAPI={essential}
           />
-        </FormWrapper>
-        <FormWrapper>
           <FormInput
             label="Name"
             id="name"
@@ -126,20 +132,27 @@ const WorkplaceForm = ({
             required={true}
             errors={workplace?.id ? createFieldErrors : updateFieldErrors}
           />
-        </FormWrapper>
-        <FormWrapper>
           <FormInput
-            label="Workplace Website / Social URL"
+            label="Website or social link"
             id="url"
             defaultValue={workplace?.url || ""}
             errors={workplace?.id ? createFieldErrors : updateFieldErrors}
           />
-        </FormWrapper>
+        </SectionCard>
+      </PageColumn>
+
+      <StickyActionBar>
+        <Link
+          href="/dashboard/workplaces"
+          className={buttonVariants({ variant: "ghost" })}
+        >
+          Cancel
+        </Link>
         <Button type="submit" disabled={createIsLoading || updateIsLoading}>
-          Save
+          {workplace?.id ? "Save changes" : "Create workplace"}
         </Button>
-      </form>
-    </div>
+      </StickyActionBar>
+    </form>
   );
 };
 

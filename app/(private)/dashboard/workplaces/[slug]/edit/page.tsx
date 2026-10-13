@@ -12,7 +12,7 @@ const EditWorkplacePage = async ({
   const workplace = await getWorkplaceBySlug(slug);
 
   return (
-    <DbPageWrapper title="Edit Workplace">
+    <DbPageWrapper title="Edit workplace" bare>
       <WorkplaceForm workplace={workplace} />
     </DbPageWrapper>
   );

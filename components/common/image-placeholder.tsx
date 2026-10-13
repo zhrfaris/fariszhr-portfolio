@@ -2,10 +2,11 @@
 
 import { Button } from "@/components/shadcn/button";
 import { cn } from "@/lib/utils";
-import { ImageIcon, Pen, Trash2 } from "lucide-react";
+import { ImagePlus, RefreshCw, Trash2 } from "lucide-react";
 import Image, { StaticImageData } from "next/image";
 import React, { useEffect, useState } from "react";
 import AlertDialogWrapper from "../wrappers/alert-dialog-wrapper";
+import { IconAction } from "../dashboard/icon-action";
 
 interface ImagePlaceholderProps {
   img_url?: string | StaticImageData;
@@ -47,25 +48,23 @@ const ImagePlaceholder = ({
     }
 
     return (
+      // Same as the post form's image slots: icon buttons stacked top-right.
       <div
         className={cn(
-          "absolute top-2 right-2 group-hover:flex gap-4 hidden",
+          "absolute right-2 top-2 z-10 flex flex-col gap-1.5",
           classNameButtons
         )}
       >
         {onEdit && (
-          <Button
-            size="icon"
+          <IconAction
+            aria-label="Replace image"
             onClick={(e) => {
               e.preventDefault();
               onEdit();
             }}
-            className={cn(
-              "bg-black text-white border border-white rounded-md hover:bg-black hover:text-white"
-            )}
           >
-            <Pen className="h-4 w-4" />
-          </Button>
+            <RefreshCw />
+          </IconAction>
         )}
         {onDelete && img_url && (
           <>
@@ -76,14 +75,9 @@ const ImagePlaceholder = ({
                 deleteImageButtonRef?.current?.click();
               }}
             >
-              <Button
-                size="icon"
-                className={cn(
-                  "bg-red-500 text-white rounded-md hover:bg-bg-red-500 hover:text-white"
-                )}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <IconAction aria-label="Remove image" destructive>
+                <Trash2 />
+              </IconAction>
             </AlertDialogWrapper>
             <Button
               ref={deleteImageButtonRef}
@@ -105,7 +99,7 @@ const ImagePlaceholder = ({
   return (
     <div
       className={cn(
-        "w-full h-full bg-foreground/30 rounded-full relative group overflow-hidden",
+        "relative size-full overflow-hidden rounded-md bg-muted",
         classNameWrapper
       )}
     >
@@ -116,7 +110,7 @@ const ImagePlaceholder = ({
             alt={alt || ""}
             fill={!width && !height}
             quality={quality}
-            className={cn("object-contain w-full", className)}
+            className={cn("size-full object-contain", className)}
             {...(width && height && { width, height })}
           />
           <Buttons />
@@ -125,8 +119,8 @@ const ImagePlaceholder = ({
         <>
           <div
             className={cn(
-              "size-full flex items-center justify-center",
-              !!onEdit && "cursor-pointer"
+              "flex size-full flex-col items-center justify-center gap-2 text-muted-foreground",
+              !!onEdit && "cursor-pointer hover:bg-secondary"
             )}
             onClick={() => {
               if (!!onEdit && isMounted) {
@@ -134,9 +128,9 @@ const ImagePlaceholder = ({
               }
             }}
           >
-            <ImageIcon className="text-white size-12" />
+            <ImagePlus className="size-5" />
+            <span className="text-[13px]">Add image</span>
           </div>
-          <Buttons />
         </>
       )}
     </div>

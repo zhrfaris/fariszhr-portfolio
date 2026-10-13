@@ -15,7 +15,7 @@ const LandingPage = async () => {
   const user = await getUserById(session?.user?.id);
 
   return (
-    <DbPageWrapper title="Landing Page">
+    <DbPageWrapper title="Landing Page" bare>
       <LandingForm user={user} />
     </DbPageWrapper>
   );
