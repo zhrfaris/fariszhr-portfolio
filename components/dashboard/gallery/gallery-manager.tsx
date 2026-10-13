@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Image as ImageType } from "@prisma/client";
-import { GripVertical, ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { GalleryPhoto } from "@/actions/gallery/get/types";
@@ -10,10 +10,10 @@ import { createGalleryPhotos } from "@/actions/gallery/create-many";
 import { deleteGalleryPhotos } from "@/actions/gallery/delete-many";
 import { reorderGalleryPhotos } from "@/actions/gallery/reorder";
 import { Button } from "@/components/shadcn/button";
-import AlertDialogWrapper from "@/components/wrappers/alert-dialog-wrapper";
+import { Label } from "@/components/shadcn/label";
+import { FieldHint, SectionCard } from "@/components/dashboard/section-card";
 import { useAction } from "@/hooks/use-action";
 import { cn } from "@/lib/utils";
-import { cldUrl } from "@/lib/landing";
 import { isAcceptedImage } from "@/components/dashboard/posts/block-editor/upload";
 import {
   createUploadTask,
@@ -27,6 +27,7 @@ import {
   UploadProgressBadge,
 } from "@/components/dashboard/posts/upload-overlay";
 import { shrinkImage } from "./shrink-image";
+import LivePhotoGrid from "./live-photo-grid";
 
 /** Uploads running at once; the rest wait in line. */
 const CONCURRENCY = 3;
@@ -42,11 +43,14 @@ type Pending = {
   taskId: string | null;
 };
 
-const GalleryManager = ({ initialPhotos }: { initialPhotos: GalleryPhoto[] }) => {
+const GalleryManager = ({
+  initialPhotos,
+}: {
+  initialPhotos: GalleryPhoto[];
+}) => {
   const [photos, setPhotos] = useState<GalleryPhoto[]>(initialPhotos);
   const [pending, setPending] = useState<Pending[]>([]);
   const [dropActive, setDropActive] = useState(false);
-  const [dragId, setDragId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // What the database currently holds, to send only the moved photos.
@@ -158,37 +162,41 @@ const GalleryManager = ({ initialPhotos }: { initialPhotos: GalleryPhoto[] }) =>
 
   /* ---------- reorder (drag) ---------- */
 
+  // The list (and saved orders) to restore if a save fails.
+  const rollback = useRef<{
+    photos: GalleryPhoto[];
+    saved: Map<string, number>;
+  } | null>(null);
+
   const { execute: executeReorder } = useAction(reorderGalleryPhotos, {
-    onProceed: () => {
-      toast.loading("Saving order...", { id: "loading-reorder-gallery" });
-    },
     onSuccess: () => {
-      toast.success("Order saved!");
+      rollback.current = null;
+      toast.success("Order saved");
     },
-    onError: (error) => toast.error(error),
-    onComplete: () => toast.dismiss("loading-reorder-gallery"),
+    onError: (error) => {
+      if (rollback.current) {
+        setPhotos(rollback.current.photos);
+        savedOrder.current = rollback.current.saved;
+      }
+      rollback.current = null;
+      toast.error(error || "Couldn't save the order");
+    },
   });
 
-  const moveTo = (id: string, overId: string) => {
-    if (id === overId) return;
-    setPhotos((prev) => {
-      const from = prev.findIndex((p) => p.id === id);
-      const to = prev.findIndex((p) => p.id === overId);
-      if (from < 0 || to < 0) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
-    });
-  };
-
-  const persistOrder = () => {
-    const changed = photos
-      .map((p, index) => ({ id: p.id, order: index }))
-      .filter((p) => savedOrder.current.get(p.id) !== p.order);
+  /** Positions become `order`; only photos whose order changed are sent,
+   * through the same reorder action as before. */
+  const saveOrder = (next: GalleryPhoto[], previous: GalleryPhoto[]) => {
+    const indexed = next.map((p, index) => ({ ...p, order: index }));
+    const changed = indexed
+      .filter((p) => savedOrder.current.get(p.id) !== p.order)
+      .map((p) => ({ id: p.id, order: p.order }));
+    setPhotos(indexed);
     if (!changed.length) return;
+    rollback.current = {
+      photos: previous,
+      saved: new Map(savedOrder.current),
+    };
     changed.forEach((p) => savedOrder.current.set(p.id, p.order));
-    setPhotos((prev) => prev.map((p, index) => ({ ...p, order: index })));
     void executeReorder(changed);
   };
 
@@ -214,7 +222,29 @@ const GalleryManager = ({ initialPhotos }: { initialPhotos: GalleryPhoto[] }) =>
   const queued = pending.filter((p) => !p.taskId).length;
 
   return (
-    <div className="space-y-6">
+    <SectionCard
+      icon="photos"
+      title="Photos"
+      description="Photos shown on your Photography page. Add, reorder, or remove them here."
+      hint="Arranged exactly as it appears on your Photography page."
+      action={
+        <Button type="button" onClick={() => inputRef.current?.click()}>
+          <Plus />
+          Add photos
+        </Button>
+      }
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept=".png,.jpg,.jpeg,.webp,image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          addFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
       <div
         onDragOver={(e) => {
           if (!e.dataTransfer.types.includes("Files")) return;
@@ -229,44 +259,23 @@ const GalleryManager = ({ initialPhotos }: { initialPhotos: GalleryPhoto[] }) =>
           addFiles(e.dataTransfer.files);
         }}
         className={cn(
-          "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/40 px-6 py-10 text-center",
-          dropActive && "border-foreground bg-muted"
+          "flex flex-col items-center justify-center gap-2 rounded-md border border-dashed border-input bg-muted px-6 py-8 text-center",
+          dropActive && "border-primary bg-primary-tint"
         )}
       >
-        <ImagePlus className="size-8 text-muted-foreground" />
-        <div>
-          <p className="text-sm font-semibold">
-            Drop photos here, or pick several at once
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            JPG, PNG or WebP. Each photo keeps its own aspect ratio. Large files
-            are scaled to 2560px on the long edge before uploading.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="bg-background"
-          onClick={() => inputRef.current?.click()}
-        >
-          Upload photos
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          accept=".png,.jpg,.jpeg,.webp,image/jpeg,image/png,image/webp"
-          className="hidden"
-          onChange={(e) => {
-            addFiles(e.target.files);
-            e.target.value = "";
-          }}
-        />
+        <ImagePlus className="size-5 text-muted-foreground" />
+        <p className="text-[13px] text-muted-foreground">
+          Drop photos here, or use Add photos to pick several at once.
+        </p>
+        <FieldHint>
+          JPG, PNG or WebP. Each photo keeps its own aspect ratio. Large files
+          are scaled to 2560px on the long edge before uploading.
+        </FieldHint>
       </div>
 
       {busy && (
         <div className="space-y-3">
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <p className="flex items-center gap-2 text-[13px] text-muted-foreground">
             <Loader2 className="size-4 animate-spin" />
             Uploading {pending.length} photo{pending.length > 1 ? "s" : ""}
             {queued > 0 && ` (${queued} waiting)`}. Keep this tab open.
@@ -285,46 +294,29 @@ const GalleryManager = ({ initialPhotos }: { initialPhotos: GalleryPhoto[] }) =>
       )}
 
       <div className="space-y-3">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 className="text-lg font-semibold">
-            Photos{" "}
-            <span className="text-sm font-normal text-muted-foreground">
-              ({photos.length})
-            </span>
-          </h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <Label>
+            {photos.length} photo{photos.length === 1 ? "" : "s"}
+          </Label>
           {photos.length > 1 && (
-            <p className="text-xs text-muted-foreground">
-              Drag to reorder. The order here is the order on /photography.
-            </p>
+            <FieldHint>Drag a photo, or focus it and press Space.</FieldHint>
           )}
         </div>
 
         {photos.length === 0 ? (
-          <p className="rounded-xl border bg-muted/40 px-6 py-10 text-center text-sm text-muted-foreground">
+          <p className="py-4 text-center text-sm text-muted-foreground">
             No photos yet. The Photo works page shows an empty state until you
             add some.
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {photos.map((photo, index) => (
-              <SavedTile
-                key={photo.id}
-                photo={photo}
-                index={index}
-                dragging={dragId === photo.id}
-                onDragStart={() => setDragId(photo.id)}
-                onDragOver={() => dragId && moveTo(dragId, photo.id)}
-                onDragEnd={() => {
-                  setDragId(null);
-                  persistOrder();
-                }}
-                onDelete={() => removePhoto(photo)}
-              />
-            ))}
-          </div>
+          <LivePhotoGrid
+            photos={photos}
+            onReorder={saveOrder}
+            onDelete={(photo) => void removePhoto(photo)}
+          />
         )}
       </div>
-    </div>
+    </SectionCard>
   );
 };
 
@@ -356,7 +348,7 @@ const PendingTile = ({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={preview} alt="" className="size-full object-cover opacity-60" />
       {!task && (
-        <span className="absolute bottom-2 right-2 rounded-full bg-black/70 px-2 py-1 text-[11px] text-white">
+        <span className="absolute bottom-2 right-2 rounded-sm bg-black/70 px-2 py-1 text-[11px] text-white">
           {item.started ? "Preparing…" : "Waiting"}
         </span>
       )}
@@ -372,79 +364,6 @@ const PendingTile = ({
           onRemove={() => onRemove(item.key, item.taskId)}
         />
       )}
-    </div>
-  );
-};
-
-const SavedTile = ({
-  photo,
-  index,
-  dragging,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
-  onDelete,
-}: {
-  photo: GalleryPhoto;
-  index: number;
-  dragging: boolean;
-  onDragStart: () => void;
-  onDragOver: () => void;
-  onDragEnd: () => void;
-  onDelete: () => Promise<void>;
-}) => {
-  const { img_width, img_height, img_url } = photo.image;
-  const ratio = img_width && img_height ? img_width / img_height : 1;
-
-  return (
-    <div
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", photo.id);
-        onDragStart();
-      }}
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        onDragOver();
-      }}
-      onDrop={(e) => e.preventDefault()}
-      onDragEnd={onDragEnd}
-      className={cn(
-        "group relative cursor-grab overflow-hidden rounded-md border bg-muted active:cursor-grabbing",
-        dragging && "opacity-40 ring-2 ring-foreground"
-      )}
-      style={{ height: TILE_HEIGHT, width: Math.round(TILE_HEIGHT * ratio) }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={cldUrl(img_url, "h_280,c_limit,q_auto,f_auto")}
-        alt=""
-        loading="lazy"
-        draggable={false}
-        className="size-full object-cover"
-      />
-      <span className="absolute left-1.5 top-1.5 flex items-center gap-0.5 rounded bg-black/60 px-1 py-0.5 text-[10px] font-medium text-white">
-        <GripVertical className="size-3" />
-        {index + 1}
-      </span>
-      <div className="absolute right-1.5 top-1.5 hidden group-hover:block group-focus-within:block">
-        <AlertDialogWrapper
-          header="Delete photo?"
-          description="It will be removed from the Photo works grid and from storage. This can't be undone."
-          proceedHandler={() => void onDelete()}
-        >
-          <Button
-            type="button"
-            size="icon"
-            className="size-7 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            aria-label={`Delete photo ${index + 1}`}
-          >
-            <Trash2 className="size-3.5" />
-          </Button>
-        </AlertDialogWrapper>
-      </div>
     </div>
   );
 };
