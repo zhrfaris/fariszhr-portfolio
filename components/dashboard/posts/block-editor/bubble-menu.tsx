@@ -169,7 +169,7 @@ export default function EditorBubbleMenu({ editor }: { editor: Editor }) {
         onMouseDown={(e) => {
           if (!(e.target as HTMLElement).closest("input")) e.preventDefault();
         }}
-        className="relative flex items-center gap-0.5 rounded-lg border bg-popover p-1 text-sm text-popover-foreground shadow-md"
+        className="relative flex items-center gap-0.5 rounded-lg border bg-popover p-1 text-sm text-popover-foreground shadow-float"
       >
         {linkOpen ? (
           <div className="flex items-center gap-1">
@@ -188,7 +188,7 @@ export default function EditorBubbleMenu({ editor }: { editor: Editor }) {
                 }
               }}
               placeholder="Paste or type a link"
-              className="h-8 w-60 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-focus focus-visible:ring-ring"
+              className="h-9 w-60 rounded-md border border-input bg-background px-2 text-sm outline-none placeholder:text-tertiary-foreground focus-visible:ring-field-focus focus-visible:ring-ring"
             />
             <MenuButton label="Apply link" onClick={applyLink}>
               <Check className="size-4" />
@@ -206,10 +206,10 @@ export default function EditorBubbleMenu({ editor }: { editor: Editor }) {
               aria-haspopup="menu"
               aria-expanded={typeMenuOpen}
               onClick={() => setTypeMenuOpen((o) => !o)}
-              className="flex h-8 items-center gap-1 rounded-md px-2 font-medium hover:bg-muted"
+              className="flex h-9 items-center gap-2 rounded-md px-3 font-medium hover:bg-secondary"
             >
               {activeLabel}
-              <ChevronDown className="size-3.5 text-muted-foreground" />
+              <ChevronDown className="size-4 text-muted-foreground" />
             </button>
 
             <span className="mx-0.5 h-5 w-px bg-border" />
@@ -271,7 +271,7 @@ export default function EditorBubbleMenu({ editor }: { editor: Editor }) {
         {typeMenuOpen && !linkOpen && (
           <div
             role="menu"
-            className="absolute left-0 top-full z-10 mt-1 w-48 rounded-lg border bg-popover p-1 shadow-lg"
+            className="absolute left-0 top-full z-10 mt-1 w-48 rounded-lg border bg-popover p-1 shadow-float"
           >
             <p className="px-2 py-1 text-xs text-muted-foreground">Turn into</p>
             {BLOCK_TYPES.map(({ type, label, icon: Icon }) => (
@@ -284,7 +284,7 @@ export default function EditorBubbleMenu({ editor }: { editor: Editor }) {
                   turnInto(editor, type);
                   setTypeMenuOpen(false);
                 }}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-secondary"
               >
                 <Icon className="size-4 text-muted-foreground" />
                 <span className="flex-1">{label}</span>
@@ -320,8 +320,8 @@ function MenuButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "flex size-8 items-center justify-center rounded-md hover:bg-muted disabled:pointer-events-none disabled:opacity-40",
-        active && "bg-muted text-foreground"
+        "flex size-9 items-center justify-center rounded-md hover:bg-secondary disabled:pointer-events-none disabled:opacity-40",
+        active && "bg-secondary text-foreground"
       )}
     >
       {children}

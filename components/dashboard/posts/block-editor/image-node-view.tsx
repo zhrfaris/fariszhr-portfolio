@@ -92,7 +92,7 @@ const RadiusControl = ({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-sm font-medium text-foreground focus:outline-none focus-visible:ring-focus focus-visible:ring-ring"
+          className="flex h-9 items-center gap-2 rounded-md bg-secondary px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary-hover focus:outline-none focus-visible:ring-focus focus-visible:ring-ring"
         >
           <span>{getRadiusPx(radius)}px</span>
           <ChevronDown className="h-4 w-4" />
@@ -101,7 +101,7 @@ const RadiusControl = ({
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="min-w-[7rem] rounded-xl p-1 shadow-lg"
+        className="min-w-[7rem] rounded-lg p-1"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         {SELECTABLE_RADII.map((r) => (
@@ -110,7 +110,7 @@ const RadiusControl = ({
             onSelect={() => onSelect(r)}
             className={cn(
               "cursor-pointer rounded-md px-3 py-2 text-sm",
-              radius === r && "bg-muted focus:bg-muted"
+              radius === r && "bg-secondary focus:bg-secondary"
             )}
           >
             {RADIUS_PX[r]}px
@@ -191,11 +191,11 @@ const ImageNodeView = ({
               type="button"
               size="icon"
               variant="ghost"
-              className="h-8 w-8 text-destructive hover:text-destructive"
+              className="text-destructive hover:text-destructive"
               aria-label="Delete"
               onClick={handleDelete}
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Delete</TooltipContent>
@@ -227,7 +227,7 @@ const ImageNodeView = ({
 
         {/* Upload progress / processing indicator (bottom-right) */}
         {isUploading && (
-          <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1.5 text-xs font-medium text-white">
+          <div className="absolute bottom-3 right-3 flex items-center gap-2 rounded-sm bg-black/70 px-3 py-1.5 text-xs font-medium text-white">
             {task?.status === "processing" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -252,26 +252,25 @@ const ImageNodeView = ({
             <div className="flex items-center gap-2">
               <Button
                 type="button"
-                size="sm"
                 variant="secondary"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   if (uploadId) retryUploadTask(uploadId);
                 }}
               >
-                <RotateCw className="mr-1 h-4 w-4" />
+                <RotateCw />
                 Retry
               </Button>
               <Button
                 type="button"
-                size="sm"
-                variant="destructive"
+                variant="secondary"
+                className="text-destructive hover:text-destructive"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   handleDelete();
                 }}
               >
-                <X className="mr-1 h-4 w-4" />
+                <X />
                 Remove
               </Button>
             </div>
@@ -282,7 +281,7 @@ const ImageNodeView = ({
       {showToolbar && (
         <TooltipProvider delayDuration={200}>
           <div
-            className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 shadow-lg"
+            className="absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 shadow-float"
             // Keep the ProseMirror node selected while using the toolbar.
             onMouseDown={(e) => e.preventDefault()}
           >

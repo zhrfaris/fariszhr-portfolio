@@ -2,7 +2,7 @@
 
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { Image as ImageType } from "@prisma/client";
-import { ImageIcon, Loader2, Plus, X } from "lucide-react";
+import { Check, ChevronDown, ImageIcon, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -16,6 +16,7 @@ import { Label } from "@/components/shadcn/label";
 import { cn } from "@/lib/utils";
 import { useMediaUpload } from "./use-media-upload";
 import { UploadProgressBadge } from "./upload-overlay";
+import { fieldDropdown } from "./field-dropdown";
 
 interface WorkplacePickerProps {
   value: WorkplacePickerItem | null;
@@ -95,70 +96,93 @@ const WorkplacePicker = forwardRef<HTMLButtonElement, WorkplacePickerProps>(
       <div className="space-y-2">
         <Label>Company</Label>
         <div className="relative" ref={wrapRef}>
-          <button
-            ref={ref}
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            className={cn(
-              "flex h-9 w-full items-center justify-between gap-3 rounded-md border border-input bg-background px-3 text-left text-sm shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring",
-              error && "border-destructive"
-            )}
-          >
-            {value ? (
-              <>
-                <span className="truncate text-xs">{value.name}</span>
-                <WorkplaceLogo workplace={value} />
-              </>
-            ) : (
-              <span className="text-muted-foreground">Select company</span>
-            )}
-          </button>
+          {/* Same field + attached panel as Category: while open, the field
+              itself takes the search text. */}
+          {open && !creating ? (
+            <div
+              className={cn(fieldDropdown.trigger, fieldDropdown.open, "px-3")}
+            >
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setOpen(false);
+                  if (e.key === "Enter" && filtered.length === 1) {
+                    e.preventDefault();
+                    select(filtered[0]);
+                  }
+                }}
+                placeholder={value?.name ?? "Search company"}
+                aria-label="Search company"
+                className={fieldDropdown.input}
+              />
+              <ChevronDown aria-hidden className={fieldDropdown.chevron} />
+            </div>
+          ) : (
+            <button
+              ref={ref}
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              className={cn(
+                fieldDropdown.trigger,
+                "px-3",
+                open && fieldDropdown.open,
+                error && "border-destructive"
+              )}
+            >
+              {value ? (
+                <span className="flex min-w-0 flex-1 items-center justify-between gap-3">
+                  <span className="truncate">{value.name}</span>
+                  <WorkplaceLogo workplace={value} />
+                </span>
+              ) : (
+                <span className={cn("flex-1", fieldDropdown.placeholder)}>
+                  Select company
+                </span>
+              )}
+              <ChevronDown aria-hidden className={fieldDropdown.chevron} />
+            </button>
+          )}
 
           {open && (
-            <div className="absolute inset-x-0 top-0 z-30 overflow-hidden rounded-md border border-foreground/80 bg-popover shadow-lg">
+            <div className={fieldDropdown.panel}>
               {!creating ? (
                 <>
-                  <input
-                    autoFocus
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") setOpen(false);
-                      if (e.key === "Enter" && filtered.length === 1) {
-                        e.preventDefault();
-                        select(filtered[0]);
-                      }
-                    }}
-                    placeholder="Search company"
-                    className="h-[27px] w-full border-b bg-muted/40 px-3 text-sm outline-none"
-                  />
                   <div className="max-h-56 overflow-auto py-1">
                     {filtered.map((w) => (
                       <button
                         key={w.id}
                         type="button"
                         onClick={() => select(w)}
-                        className={cn(
-                          "flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-xs hover:bg-muted",
-                          value?.id === w.id && "bg-muted"
-                        )}
+                        className={fieldDropdown.item}
                       >
                         <span className="truncate">{w.name}</span>
-                        <WorkplaceLogo workplace={w} />
+                        <span className="flex shrink-0 items-center gap-3">
+                          <WorkplaceLogo workplace={w} />
+                          <Check
+                            aria-hidden
+                            className={cn(
+                              "size-4 text-primary",
+                              value?.id !== w.id && "invisible"
+                            )}
+                          />
+                        </span>
                       </button>
                     ))}
                     {filtered.length === 0 && (
-                      <p className="px-3 py-2 text-xs text-muted-foreground">
+                      <p className={cn(fieldDropdown.hint, "px-3 py-2")}>
                         No companies found.
                       </p>
                     )}
                   </div>
-                  <div className="border-t p-2">
-                    <Button
+                  <div className="border-t p-1">
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="w-full"
+                      className={cn(
+                        fieldDropdown.item,
+                        "justify-start gap-2 rounded-sm text-primary"
+                      )}
                       onClick={() => {
                         setCreating(true);
                         setNewName(query);
@@ -166,7 +190,7 @@ const WorkplacePicker = forwardRef<HTMLButtonElement, WorkplacePickerProps>(
                     >
                       <Plus className="size-4" />
                       Create new workplace
-                    </Button>
+                    </button>
                   </div>
                 </>
               ) : (
@@ -186,14 +210,12 @@ const WorkplacePicker = forwardRef<HTMLButtonElement, WorkplacePickerProps>(
                     <Button
                       type="button"
                       variant="ghost"
-                      size="sm"
                       onClick={() => setCreating(false)}
                     >
                       Cancel
                     </Button>
                     <Button
                       type="button"
-                      size="sm"
                       disabled={!newName.trim() || !newLogo || saving}
                       onClick={() => void create()}
                     >
@@ -237,12 +259,15 @@ function LogoDropzone({
     <div
       onClick={() => !logo && inputRef.current?.click()}
       className={cn(
-        "relative flex h-24 items-center justify-center rounded-md border border-dashed bg-muted/40 text-xs text-muted-foreground",
-        !logo && "cursor-pointer hover:bg-muted"
+        "relative flex h-24 items-center justify-center rounded-md border border-dashed bg-muted text-xs text-muted-foreground",
+        !logo && "cursor-pointer hover:bg-secondary"
       )}
     >
       {upload.isUploading ? (
-        <UploadProgressBadge status={upload.status} progress={upload.progress} />
+        <UploadProgressBadge
+          status={upload.status}
+          progress={upload.progress}
+        />
       ) : logo ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -258,7 +283,7 @@ function LogoDropzone({
               e.stopPropagation();
               onClear();
             }}
-            className="absolute right-1 top-1 rounded-full border bg-background p-0.5 hover:text-destructive"
+            className="absolute right-1 top-1 rounded-sm border bg-background p-0.5 hover:text-destructive"
           >
             <X className="size-3.5" />
           </button>
