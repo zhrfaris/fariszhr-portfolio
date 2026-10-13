@@ -1,5 +1,17 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// Custom theme keys from tailwind.config.ts. Unregistered, `ring-focus` reads
+// as a ring colour (so `ring-ring` dropped it) and `shadow-float` as a shadow
+// colour.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      "ring-w": [{ ring: ["focus", "field-focus"] }],
+      shadow: [{ shadow: ["float"] }],
+    },
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

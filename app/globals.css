@@ -54,6 +54,14 @@ body {
     /* Added for the dashboard theme; the public site does not use them. */
     --primary-hover: 222.2 47.4% 16%;
     --primary-active: 222.2 47.4% 20%;
+    --secondary-hover: 210 40% 92%;
+    --secondary-active: 210 40% 88%;
+    --secondary-disabled: 210 40% 98%;
+    --tertiary-foreground: 207 6% 35%; /* = muted-foreground: placeholders off the dashboard look as before */
+    --primary-tint: 210 40% 98%;
+    --destructive-hover: 0 84.2% 55%;
+    --destructive-tint: 0 86% 97%;
+    --success-tint: 141 84% 93%;
     --success: 142 71% 45%;
     --success-foreground: 142 72% 29%;
     --warning: 38 92% 50%;
@@ -67,55 +75,80 @@ body {
      the colour plus an *-alpha that tailwind.config.ts multiplies in.
      Dark mode later: add `.dark:has(.dashboard-theme)` with the same keys. */
   :root:has(.dashboard-theme) {
-    --background: 0 0% 100%; /* #FFFFFF */
-    --foreground: 240 3.3% 11.8%; /* #1D1D1F */
-    --card: 0 0% 100%;
-    --card-foreground: 240 3.3% 11.8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 3.3% 11.8%;
-    --primary: 211.3 100% 50%; /* #007AFF */
+    /* One neutral scale; every gray in the dashboard comes from here, solid
+       (no opacity fills, no rgba borders):
+         surface-1 #FFFFFF  page, cards, inputs     -> background / card / popover
+         surface-2 #F5F5F7  dropzones, sidebar rows -> muted, sidebar-accent
+         fill      #EBEBED  every gray control      -> secondary, accent
+         fill-hover #E0E0E3 / fill-pressed #D6D6D9
+         border    #E5E5E7  cards, dividers         -> border, sidebar-border
+         input     #D2D2D7  input + dropzone border -> input
+         text      #1D1D1F / #6E6E73 / #AEAEB2      -> foreground / muted- / tertiary-
+       Blue (#007AFF) only for primary buttons, links, focus, switch-on,
+       checkbox-on and selection; green / red / orange only for status. */
+    --background: 0 0% 100%; /* #FFFFFF, surface-1 */
+    --foreground: 240 3.3% 11.8%; /* #1D1D1F, text-primary */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 240 3.3% 11.8%; /* #1D1D1F */
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 240 3.3% 11.8%; /* #1D1D1F */
+    --primary: 211.3 100% 50%; /* #007AFF, accent */
     --primary-hover: 211.2 100% 40%; /* #0062CC */
     --primary-active: 211.1 100% 32.9%; /* #0051A8 */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 23.8% 95.9%; /* #F2F2F7 */
-    --secondary-foreground: 240 3.3% 11.8%;
-    --muted: 240 23.8% 95.9%; /* #F2F2F7 */
-    --muted-foreground: 240 2.2% 44.1%; /* #6E6E73 */
-    --accent: 240 23.8% 95.9%;
-    --accent-foreground: 240 3.3% 11.8%;
+    --primary-foreground: 0 0% 100%; /* #FFFFFF */
+    --primary-tint: 212.3 100% 97.5%; /* #F2F8FF, selection / drop target */
+    --secondary: 240 5.3% 92.5%; /* #EBEBED, fill */
+    --secondary-hover: 240 5.1% 88.4%; /* #E0E0E3, fill-hover */
+    --secondary-active: 240 3.8% 84.5%; /* #D6D6D9, fill-pressed */
+    --secondary-disabled: 240 11.1% 96.5%; /* #F5F5F7, surface-2 */
+    --secondary-foreground: 240 3.3% 11.8%; /* #1D1D1F */
+    --muted: 240 11.1% 96.5%; /* #F5F5F7, surface-2 */
+    --muted-foreground: 240 2.2% 44.1%; /* #6E6E73, text-secondary */
+    --tertiary-foreground: 240 2.5% 69%; /* #AEAEB2, text-tertiary */
+    --accent: 240 5.3% 92.5%; /* #EBEBED, fill: menu / ghost hover */
+    --accent-foreground: 240 3.3% 11.8%; /* #1D1D1F */
     --destructive: 3.2 100% 59.4%; /* #FF3B30 */
-    --destructive-foreground: 0 0% 100%;
+    --destructive-hover: 3.2 78.9% 53.5%; /* #E6352B */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF */
+    --destructive-tint: 2.9 100% 95.9%; /* #FFEBEA, solid red tint */
     --success: 135.1 58.6% 49.2%; /* #34C759 */
     --success-foreground: 134.7 58.6% 34.1%; /* #248A3D, text on the green tint */
+    --success-tint: 134.1 54.8% 93.9%; /* #E7F8EB, #34C759 at ~12% on white */
     --warning: 35.1 100% 50%; /* #FF9500 */
-    --border: 0 0% 0%;
-    --border-alpha: 0.08; /* rgba(0,0,0,0.08) */
-    --input: 0 0% 0%;
-    --input-alpha: 0.12; /* rgba(0,0,0,0.12) */
-    --ring: 211.3 100% 50%;
-    --ring-alpha: 0.35; /* rgba(0,122,255,0.35) */
-    --focus-ring-width: 3px;
-    --skeleton: 0 0% 0%;
-    --skeleton-alpha: 0.06;
-    --radius: 12px; /* lg = 12 (cards, popovers), md = 10 (inputs, buttons) */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    /* Floating layers (menus, popovers, dialogs, toasts) */
-    --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.06);
-    --shadow-xl: var(--shadow-lg);
-    --shadow-2xl: var(--shadow-lg);
-    --sidebar-background: 240 11.1% 96.5%; /* #F5F5F7 */
-    --sidebar-foreground: 240 3.3% 11.8%;
-    --sidebar-primary: 211.3 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 0%; /* active / hover pill: rgba(0,0,0,0.05) */
-    --sidebar-accent-alpha: 0.05;
-    --sidebar-accent-foreground: 240 3.3% 11.8%;
-    --sidebar-border: 0 0% 0%;
-    --sidebar-border-alpha: 0.08;
-    --sidebar-ring: 211.3 100% 50%;
-    --sidebar-ring-alpha: 0.35;
+    --border: 240 4% 90.2%; /* #E5E5E7 */
+    --border-alpha: 1;
+    --input: 240 5.9% 83.3%; /* #D2D2D7 */
+    --input-alpha: 1;
+    --ring: 211.3 100% 50%; /* #007AFF */
+    --ring-alpha: 0.5; /* the kit's soft-blue focus ring */
+    --focus-ring-width: 4px; /* buttons, toggles, checkboxes, links (keyboard) */
+    --field-focus-ring-width: 0px; /* text fields: no focus change at all */
+    --ghost-foreground: hsl(var(--muted-foreground));
+    --skeleton: 240 5.3% 92.5%; /* #EBEBED, fill */
+    --skeleton-alpha: 1;
+    --radius: 8px; /* lg = 8 (cards, popovers), md = 6 (inputs, buttons, slots), sm = 4 (chips, pills) */
+    /* Controls and cards are flat. Only floating layers (menus, popovers,
+       dialogs, toasts, the action card) get `shadow-float`, on top of their
+       1px border. Transparent rather than `none`, because Tailwind joins
+       these into one box-shadow list with the focus ring. */
+    --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 0 #0000;
+    --shadow: 0 0 #0000;
+    --shadow-md: 0 0 #0000;
+    --shadow-lg: 0 0 #0000;
+    --shadow-xl: 0 0 #0000;
+    --shadow-2xl: 0 0 #0000;
+    --sidebar-background: 0 0% 100%; /* #FFFFFF, surface-1 (sidebar design) */
+    --sidebar-foreground: 240 3.3% 11.8%; /* #1D1D1F */
+    --sidebar-primary: 211.3 100% 50%; /* #007AFF */
+    --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
+    --sidebar-accent: 240 11.1% 96.5%; /* #F5F5F7, surface-2: active / hover row */
+    --sidebar-accent-alpha: 1;
+    --sidebar-accent-foreground: 240 3.3% 11.8%; /* #1D1D1F */
+    --sidebar-border: 240 4% 90.2%; /* #E5E5E7 */
+    --sidebar-border-alpha: 1;
+    --sidebar-ring: 211.3 100% 50%; /* #007AFF */
+    --sidebar-ring-alpha: 0.5;
   }
 
   .dark {
@@ -166,28 +199,28 @@ body {
 
 /* Toasts: sonner mounts its <Toaster> in the root layout, so the dashboard
    palette reaches it the same way the tokens do. Soft tints of the system
-   colours, 12px corners, and the dashboard's soft floating shadow. */
+   colours, 12px corners, a 1px border and the floating-layer shadow. */
 :root:has(.dashboard-theme) [data-sonner-toaster][data-theme="light"] {
-  --border-radius: 12px;
+  --border-radius: 8px;
   --normal-bg: hsl(var(--popover));
   --normal-text: hsl(var(--popover-foreground));
-  --normal-border: hsl(var(--border) / var(--border-alpha));
-  --success-bg: hsl(var(--success) / 0.1);
-  --success-border: hsl(var(--success) / 0.25);
+  --normal-border: hsl(var(--border));
+  --success-bg: hsl(var(--success-tint));
+  --success-border: hsl(var(--success-tint));
   --success-text: hsl(var(--success-foreground));
-  --info-bg: hsl(var(--primary) / 0.08);
-  --info-border: hsl(var(--primary) / 0.25);
+  --info-bg: hsl(var(--primary-tint));
+  --info-border: hsl(var(--primary-tint));
   --info-text: hsl(var(--primary-active));
-  --warning-bg: hsl(var(--warning) / 0.1);
-  --warning-border: hsl(var(--warning) / 0.3);
+  --warning-bg: hsl(36 100% 94%);
+  --warning-border: hsl(36 100% 94%);
   --warning-text: hsl(30 100% 32%);
-  --error-bg: hsl(var(--destructive) / 0.08);
-  --error-border: hsl(var(--destructive) / 0.25);
+  --error-bg: hsl(var(--destructive-tint));
+  --error-border: hsl(var(--destructive-tint));
   --error-text: hsl(3 80% 45%);
 }
 
 :root:has(.dashboard-theme) [data-sonner-toaster] [data-sonner-toast] {
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-float);
 }
 
 @keyframes wiggle {

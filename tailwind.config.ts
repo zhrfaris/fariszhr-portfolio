@@ -25,10 +25,14 @@ export default {
           DEFAULT: "hsl(var(--primary) / <alpha-value>)",
           hover: "hsl(var(--primary-hover) / <alpha-value>)",
           active: "hsl(var(--primary-active) / <alpha-value>)",
+          tint: "hsl(var(--primary-tint) / <alpha-value>)",
           foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary) / <alpha-value>)",
+          hover: "hsl(var(--secondary-hover) / <alpha-value>)",
+          active: "hsl(var(--secondary-active) / <alpha-value>)",
+          disabled: "hsl(var(--secondary-disabled) / <alpha-value>)",
           foreground: "hsl(var(--secondary-foreground) / <alpha-value>)",
         },
         muted: {
@@ -41,12 +45,18 @@ export default {
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
+          hover: "hsl(var(--destructive-hover) / <alpha-value>)",
+          tint: "hsl(var(--destructive-tint) / <alpha-value>)",
           foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+        },
+        tertiary: {
+          foreground: "hsl(var(--tertiary-foreground) / <alpha-value>)",
         },
         success: {
           DEFAULT: "hsl(var(--success) / <alpha-value>)",
           // Readable text on a soft success tint (e.g. the "Live" badge)
           foreground: "hsl(var(--success-foreground) / <alpha-value>)",
+          tint: "hsl(var(--success-tint) / <alpha-value>)",
         },
         // Public site: primary at 10% (unchanged); the dashboard overrides it.
         skeleton:
@@ -88,9 +98,14 @@ export default {
         lg: "var(--shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1))",
         xl: "var(--shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1))",
         "2xl": "var(--shadow-2xl, 0 25px 50px -12px rgb(0 0 0 / 0.25))",
+        // Menus, popovers, dialogs, toasts, floating bars
+        float: "var(--shadow-float, 0 8px 24px rgb(0 0 0 / 0.08))",
       },
       ringWidth: {
         focus: "var(--focus-ring-width, 1px)",
+        // Text fields (inputs, textarea, selects). The dashboard sets it to 0:
+        // typing shows only the caret.
+        "field-focus": "var(--field-focus-ring-width, 1px)",
       },
       keyframes: {
         shake: {

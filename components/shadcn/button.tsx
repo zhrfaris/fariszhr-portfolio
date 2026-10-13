@@ -12,12 +12,15 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground shadow hover:bg-primary-hover active:bg-primary-active",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive-hover",
         outline:
           "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary-hover active:bg-secondary-active disabled:bg-secondary-disabled disabled:text-tertiary-foreground disabled:opacity-100",
+        // Text colour is inherited unless a page sets --ghost-foreground (the
+        // dashboard: muted, Apple's plain button).
+        ghost:
+          "text-[color:var(--ghost-foreground,currentColor)] hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
