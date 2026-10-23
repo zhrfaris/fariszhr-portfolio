@@ -118,6 +118,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   const [thumbnail, setThumbnail] = useState<ThumbnailValue>({
     image: initialData?.thumbnail_image ?? null,
     gif: initialData?.thumbnail_gif ?? null,
+    mobile: initialData?.thumbnail_mobile ?? null,
   });
   const [cover, setCover] = useState<ImageType | null>(
     initialData?.header_image ?? null
@@ -215,7 +216,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     setPreviewSectionAmount(null);
     setDirty(false);
     bodyHtmlRef.current = "";
-    setThumbnail({ image: null, gif: null });
+    setThumbnail({ image: null, gif: null, mobile: null });
     setCover(null);
     setWorkplace(null);
     setSectionCount(0);
@@ -320,6 +321,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     const headerImage = cover!;
     const thumbnailImage = thumbnail.image!;
     const thumbnailGif = thumbnail.gif;
+    const thumbnailMobile = thumbnail.mobile;
 
     const post_sections = documentHtmlToSections(bodyHtmlRef.current);
 
@@ -331,6 +333,9 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       thumbnail_image: { ...thumbnailImage, img_type: thumbnailImage.img_type },
       thumbnail_gif: thumbnailGif
         ? { ...thumbnailGif, img_type: thumbnailGif.img_type }
+        : null,
+      thumbnail_mobile: thumbnailMobile
+        ? { ...thumbnailMobile, img_type: thumbnailMobile.img_type }
         : null,
       post_sections,
       categoryIds: categories,

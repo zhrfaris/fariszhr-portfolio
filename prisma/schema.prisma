@@ -63,11 +63,13 @@ model Post {
 
   order Int?
 
-  header_image    Image
-  thumbnail_image Image
-  thumbnail_gif   Image?
+  header_image     Image
+  thumbnail_image  Image
+  thumbnail_gif    Image?
+  /// 3:2 crop for the homepage cards on mobile; empty → thumbnail_image.
+  thumbnail_mobile Image?
 
-  status Status @default(ACTIVE)
+  status      Status    @default(ACTIVE)
   /// First time the post was saved as Live (ACTIVE). Once set, the slug is
   /// locked so public links keep working.
   publishedAt DateTime?

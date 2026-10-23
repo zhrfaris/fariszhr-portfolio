@@ -5,6 +5,7 @@ import {
   Camera,
   CircleUser,
   CreditCard,
+  Eye,
   Files,
   Hand,
   IdCard,
@@ -142,6 +143,7 @@ export const SECTION_ICONS = {
   idCardPhotos: IdCardPhotosIcon,
   card: CreditCard, // placeholder
   lanyardBand: LanyardBandIcon,
+  preview: Eye, // placeholder
   sizeMotion: Move, // placeholder
   behavior: Hand, // placeholder
   // Photo Works

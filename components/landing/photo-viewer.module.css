@@ -47,7 +47,14 @@
   inset: 0;
   z-index: -1;
   background: #353535;
+  /* eases back to full while the print is dragged down (swipe to close) */
+  opacity: var(--drag-backdrop, 1);
   transition: opacity var(--pw-zoom) var(--pw-ease-in-out);
+}
+
+/* While the print is being dragged the backdrop follows the finger. */
+.viewer[data-dragging]::before {
+  transition: none;
 }
 
 /* The switcher and nav sit above the zine book's transparent curl room
@@ -166,18 +173,23 @@
   width: var(--book-w);
 }
 
-/* the Gallery stage: always 4:3, as large as the screen allows */
+/* the Gallery stage: the 4:3 width, and the content box's full height. A
+   photo is contained in it by its own ratio (.print img), so a landscape
+   one is held by the width as before and a portrait one by the height. The
+   box is sized by the screen alone, so moving between photos never moves
+   anything around them. */
 .stage {
   width: var(--stage-w);
-  height: calc(var(--stage-w) * 3 / 4);
+  height: 100%;
   user-select: none;
-  /* the print (and the stage around it) isn't the dark area: it doesn't close */
-  cursor: default;
 }
 
+/* The room around the print is background (a tap there closes); the print
+   itself isn't. */
 .stage img {
   display: block;
   -webkit-user-drag: none;
+  cursor: default;
 }
 
 /* ---- Gallery: one photo as a white-bordered print ---- */
@@ -228,6 +240,31 @@
   /* behind the circle (the scale makes the button its own stacking context),
      so the circle itself still takes the hover */
   z-index: -1;
+}
+
+/* Close: top right, clear of the notch, in the arrows' style. Scaled from
+   its top-right corner, so the circle you see is 16px from both edges. */
+.viewer > .close {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top));
+  right: calc(16px + env(safe-area-inset-right));
+  margin: 0;
+  transform-origin: top right;
+}
+
+/* Touch: no hover (MainButton only hovers with a mouse), just a short press
+   that lets go with the finger. */
+@media (hover: none), (pointer: coarse) {
+  .navButton > span {
+    transition:
+      transform 80ms ease-out,
+      filter 80ms ease-out;
+  }
+
+  .navButton:active > span {
+    transform: scale(0.94);
+    filter: brightness(0.92);
+  }
 }
 
 /* "Page x/y" and "Photo x/y" in one cell, crossfading with the views */
@@ -284,9 +321,20 @@
     /* the row's bottom edge, the arrows (35px), and room above them */
     --row-bottom: calc(30px + env(safe-area-inset-bottom));
     --row-space: calc(var(--row-bottom) + 35px + 24px);
-    --reserved: calc(var(--gutter) + var(--row-space));
+    /* the close button's row at the top: its edge, the 35px circle and the
+       same room under it, so the photo never runs under it */
+    --top-space: calc(16px + env(safe-area-inset-top) + 35px + 12px);
+    --reserved: calc(var(--top-space) + var(--row-space));
+    padding-top: var(--top-space);
     padding-bottom: var(--row-space);
     gap: 28px;
+  }
+
+  /* Gallery only here, so the box is the whole space between the top edge
+     and the arrow row (vh first, for browsers without dvh). */
+  .content {
+    height: calc(100vh - var(--reserved));
+    height: calc(100dvh - var(--reserved));
   }
 
   .viewer > .nav {

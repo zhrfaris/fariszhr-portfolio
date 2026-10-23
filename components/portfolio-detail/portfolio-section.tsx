@@ -23,6 +23,7 @@ import {
 interface PortfolioSectionProps {
   section: PostSection;
   showFull?: boolean;
+  className?: string;
 }
 
 const InlineImage = ({ image }: { image: ParsedInlineImage }) => {
@@ -62,7 +63,11 @@ const InlineImage = ({ image }: { image: ParsedInlineImage }) => {
   );
 };
 
-const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
+const PortfolioSection = ({
+  section,
+  showFull,
+  className,
+}: PortfolioSectionProps) => {
   const [isShowMore, setIsShowMore] = useState(true);
   const [showShowMoreButton, setShowShowMoreButton] = useState(false);
   const sectionItemRef = useRef<HTMLDivElement>(null);
@@ -81,11 +86,11 @@ const PortfolioSection = ({ section, showFull }: PortfolioSectionProps) => {
   }, [showFull]);
 
   return (
-    <div className="space-y-4">
+    <div className={cn("space-y-4", className)}>
       <div
         ref={sectionItemRef}
         className={cn(
-          "section space-y-6 pb-6",
+          "section space-y-2 pb-4 md:pb-6",
           isShowMore ? "max-h-none" : "max-h-[400px] overflow-hidden"
         )}
       >
@@ -122,7 +127,7 @@ const SectionContent = ({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 md:space-y-8">
       {segments.map((segment, index) =>
         segment.type === "image" ? (
           <InlineImage key={index} image={segment.image} />

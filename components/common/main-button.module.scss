@@ -20,9 +20,13 @@
     mask-composite: exclude; /*5*/
   }
 
-  &:hover {
-    &::before {
-      background: linear-gradient(to bottom, #626262, #3a3a3a) border-box;
+  // Only where there is a real hover (a mouse): on touch, :hover sticks to
+  // the last tapped button until something else is tapped.
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      &::before {
+        background: linear-gradient(to bottom, #626262, #3a3a3a) border-box;
+      }
     }
   }
 }

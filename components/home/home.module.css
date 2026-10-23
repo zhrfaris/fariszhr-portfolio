@@ -280,12 +280,6 @@
     box-shadow: none;
   }
 
-  /* The tag pills set their own 12px, a step larger than the 11px description
-     they sit under. Matched here rather than in the card component. */
-  .caseStack [data-case-grid] > * > :first-child > :last-child p {
-    font-size: 11px;
-  }
-
   /* Hover. ShowcaseCard paints its dark hover on an inner wrapper, which sits
      inside this element's 2px border and 3px padding, so filling the card
      itself is what closes the seam around it and the tag row. The border is
@@ -573,17 +567,35 @@
    row. 767px is the same gate the choreography, the deck and the grid's own
    md: breakpoint use, so everything switches together and desktop is untouched. */
 @media (max-width: 767px) {
-  /* 200px square is 63% of a 375px card and overflows the row. The reference
-     has the thumbnail at ~45% of the card width, square, filling the card's
-     height. Kept as a proportion rather than a second fixed number so it holds
-     across mobile widths. `.img` is showcase-card.tsx's own class — that file
-     is protected and untouched, so it is reached here with :global() to stop
-     CSS Modules hashing the name. */
+  /* Stacked: the image across the full card at 3:2 (the Mobile thumbnail's
+     shape, so every card's image is the same height), then the text under it.
+     The row is ShowcaseCard's flex wrapper, the first child of its inner box.
+     `.img` and `.text` are showcase-card.tsx's own classes, reached with
+     :global() to stop CSS Modules hashing the names. */
+  .caseStack [data-case-grid] > * > :first-child > :first-child {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .caseStack [data-case-grid] :global(.img) {
-    width: 45%;
+    width: 100%;
     height: auto;
-    aspect-ratio: 1;
+    aspect-ratio: 3 / 2;
     flex: none;
+  }
+
+  .caseStack [data-case-grid] {
+    gap: 24px;
+  }
+
+  /* Text block: 18px all round, title → description 6px. The tag row is
+     hidden below md (showcase-card.tsx), so the description ends the card. */
+  .caseStack [data-case-grid] :global(.text) {
+    padding: 18px;
+  }
+
+  .caseStack [data-case-grid] :global(.text) h3 {
+    margin-bottom: 6px;
   }
 
   /* One left-aligned column, in DOM order: email, LinkedIn, CV, back to top.
@@ -615,18 +627,6 @@
      first card, where the shared clamp was giving ~32. */
   .casesHead {
     margin-bottom: 23px;
-  }
-
-  /* Same method on the card: the description's 19px ink at 0.957em is 10px,
-     not the 11px it was. The title already measured 14px and is left alone,
-     and the tag row is display:none below md so it never renders here. */
-  .caseStack [data-case-grid] :global(.text) p {
-    font-size: 10px;
-  }
-
-  /* a step over the 10px description rather than the 14px it was */
-  .caseStack [data-case-grid] :global(.text) h3 {
-    font-size: 13px;
   }
 
   /* The case section's own bottom margin (mb-12, 48px) is what sets the

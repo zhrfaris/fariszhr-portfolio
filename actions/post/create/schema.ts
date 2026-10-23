@@ -79,6 +79,7 @@ export const CreatePost = z.object({
   header_image: Image,
   thumbnail_image: Image,
   thumbnail_gif: Image.optional().or(z.null()),
+  thumbnail_mobile: Image.optional().or(z.null()),
 
   isRestricted: z.boolean().optional(),
   password: z.string().optional().nullable(),

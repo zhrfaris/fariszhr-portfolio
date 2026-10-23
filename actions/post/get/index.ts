@@ -42,6 +42,7 @@ export const getPostsShowCase = async (username: string) => {
       excerpt: true,
       thumbnail_image: true,
       thumbnail_gif: true,
+      thumbnail_mobile: true,
       order: true,
       post_sections: { select: { id: true } },
       categories: true,

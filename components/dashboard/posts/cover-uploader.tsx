@@ -37,6 +37,9 @@ const CoverUploader = forwardRef<HTMLDivElement, CoverUploaderProps>(
           onRemove={remove}
           invalid={!!error}
           emptyRatio={16 / 9}
+          // portfolio-styles.ts: the cover band is up to 500px tall and the
+          // design frame 1440 wide (object-cover); at 2x that's 2880×1000.
+          helper="2.88:1, recommended 2880×1000px. Used at the top of the case study page."
           className="w-full"
         />
         {error && <p className="text-sm text-destructive">{error}</p>}

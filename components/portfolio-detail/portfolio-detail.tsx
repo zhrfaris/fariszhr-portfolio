@@ -16,6 +16,7 @@ import {
   COVER_WRAPPER_BASE,
   DETAIL_COLUMN,
   DETAIL_TITLE,
+  FIRST_SECTION,
   CATEGORY_ROW_TEXT,
   TITLE_HEADER_ROW,
   WORKPLACE_LOGO,
@@ -90,11 +91,12 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
           <h2 className={DETAIL_TITLE}>{post.title}</h2>
 
           {/* Portfolio Sections */}
-          {post?.post_sections.map((section) => (
+          {post?.post_sections.map((section, i) => (
             <PortfolioSection
               key={section.id}
               section={section}
               showFull={true}
+              className={i === 0 ? FIRST_SECTION : undefined}
             />
           ))}
         </div>

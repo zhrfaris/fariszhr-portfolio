@@ -28,6 +28,8 @@ import { UploadErrorOverlay, UploadProgressBadge } from "./upload-overlay";
  * - default: width from `className`, height from the ratio, capped at 320px;
  * - `fixedHeight`: height fixed, width from the ratio, capped at `maxWidth`
  *   (past the cap the image letterboxes inside the slot).
+ * `frameRatio` overrides the image's own ratio (the image letterboxes);
+ * `cropRatio` does too and crops the image to fill instead.
  */
 export default function MediaSlot({
   label,
@@ -40,9 +42,12 @@ export default function MediaSlot({
   onRemove,
   invalid,
   emptyRatio,
+  frameRatio,
+  cropRatio,
   fixedHeight,
   maxWidth = Infinity,
   previewSrc,
+  helper,
   className,
 }: {
   /** Shown above the slot; omit when the owner labels it elsewhere (then
@@ -60,6 +65,12 @@ export default function MediaSlot({
   invalid?: boolean;
   /** Width / height while empty, e.g. 4 / 3. */
   emptyRatio: number;
+  /** Lock the slot to this width / height whatever the image's shape; the
+   * image letterboxes inside it (contain). */
+  frameRatio?: number;
+  /** Lock the slot to this width / height and crop the image to fill it
+   * (object-cover), so the preview shows exactly what the site shows. */
+  cropRatio?: number;
   /** Fixed slot height in px; the width then follows the image. */
   fixedHeight?: number;
   /** Width cap in px for `fixedHeight` slots. */
@@ -67,6 +78,8 @@ export default function MediaSlot({
   /** Maps the stored URL to the one to display (e.g. a smaller Cloudinary
    * rendition). */
   previewSrc?: (url: string) => string;
+  /** Hint under the slot (shape, recommended size, where it's used). */
+  helper?: string;
   /** Width of the slot. */
   className?: string;
 }) {
@@ -93,7 +106,11 @@ export default function MediaSlot({
       ? image.img_width / image.img_height
       : null;
   const ratio =
-    (loaded && loaded.src === src ? loaded.ratio : stored) ?? emptyRatio;
+    cropRatio ??
+    frameRatio ??
+    (loaded && loaded.src === src ? loaded.ratio : stored) ??
+    emptyRatio;
+  const fit = cropRatio ? "object-cover" : "object-contain";
 
   // Fixed height: the inner box (inside the 1px border) gets the ratio, so
   // an image fills it exactly until the width cap. Empty slots use the same
@@ -173,7 +190,7 @@ export default function MediaSlot({
               src={upload.previewUrl}
               alt=""
               onLoad={onImgLoad}
-              className="absolute inset-0 size-full object-contain opacity-70"
+              className={cn("absolute inset-0 size-full opacity-70", fit)}
             />
             {upload.isUploading && (
               <UploadProgressBadge
@@ -196,7 +213,7 @@ export default function MediaSlot({
               src={previewSrc ? previewSrc(image.img_url) : image.img_url}
               alt=""
               onLoad={onImgLoad}
-              className="absolute inset-0 size-full object-contain"
+              className={cn("absolute inset-0 size-full", fit)}
             />
             {/* Icon buttons on the image, stacked top-right. The upload
                 overlays replace this whole branch while busy. */}
@@ -218,6 +235,8 @@ export default function MediaSlot({
           </div>
         )}
       </div>
+
+      {helper && <p className="text-xs text-muted-foreground">{helper}</p>}
 
       <input
         ref={inputRef}

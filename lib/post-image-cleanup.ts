@@ -5,12 +5,16 @@ import { parseSectionHtml } from "@/lib/section-content";
 
 type PostImageFields = Pick<
   Post,
-  "header_image" | "thumbnail_image" | "thumbnail_gif" | "post_sections"
+  | "header_image"
+  | "thumbnail_image"
+  | "thumbnail_gif"
+  | "thumbnail_mobile"
+  | "post_sections"
 >;
 
 /**
- * Every Cloudinary public_id a post references: cover, thumbnail, GIF, the
- * legacy per-content `image`, and inline block-editor images
+ * Every Cloudinary public_id a post references: cover, thumbnail, GIF, mobile
+ * thumbnail, the legacy per-content `image`, and inline block-editor images
  * (`data-public-id` in the content HTML). May contain duplicates (a GIF's
  * derived thumbnail shares the GIF's public_id).
  */
@@ -23,6 +27,7 @@ export const postImagePublicIds = (post: PostImageFields): string[] => {
   add(post.header_image?.public_id);
   add(post.thumbnail_image?.public_id);
   add(post.thumbnail_gif?.public_id);
+  add(post.thumbnail_mobile?.public_id);
 
   for (const section of post.post_sections ?? []) {
     for (const content of section.contents ?? []) {
@@ -56,6 +61,7 @@ export const partitionUnusedPublicIds = async (
         header_image: true,
         thumbnail_image: true,
         thumbnail_gif: true,
+        thumbnail_mobile: true,
         post_sections: true,
       },
     }),

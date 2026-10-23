@@ -14,6 +14,7 @@ import { useActiveUploadCount } from "@/components/dashboard/posts/block-editor/
 import { deleteCloudinaryImage } from "@/components/dashboard/posts/block-editor/upload";
 import CardPhotoSlot from "./card-photo-slot";
 import LanyardSettingsSection from "./lanyard-settings-section";
+import LanyardPreview from "./lanyard-preview";
 import {
   CardDivider,
   FieldHint,
@@ -155,10 +156,28 @@ const LandingForm = ({ user }: { user: User }) => {
           onChange={setLanyard}
           bandImage={bandImage}
           onBandImageChange={replace(bandImage, setBandImage)}
+          preview={
+            <SectionCard
+              icon="preview"
+              title="Preview"
+              description="See your changes live before saving. Tap the card to flip it."
+            >
+              <LanyardPreview
+                lanyard={lanyard}
+                // Until a card front is uploaded the site shows the profile photo.
+                front={cardFront ?? user?.photo ?? null}
+                back={cardBack}
+                bandImage={bandImage}
+              />
+            </SectionCard>
+          }
           errors={fieldErrors}
         />
 
-        <p className="px-1 text-[13px] text-muted-foreground">
+        <p
+          className="px-1 text-[13px] text-muted-foreground"
+          data-lanyard-ignore=""
+        >
           Case studies come from{" "}
           <Link href="/dashboard/posts" className="underline">
             All case studies
@@ -176,17 +195,19 @@ const LandingForm = ({ user }: { user: User }) => {
       </PageColumn>
 
       <StickyActionBar>
-        <Button
-          type="reset"
-          variant="ghost"
-          disabled={isLoading}
-          onClick={resetToSaved}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading || uploadsInProgress}>
-          {uploadsInProgress ? "Uploading…" : "Save changes"}
-        </Button>
+        <div className="contents" data-lanyard-ignore="">
+          <Button
+            type="reset"
+            variant="ghost"
+            disabled={isLoading}
+            onClick={resetToSaved}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading || uploadsInProgress}>
+            {uploadsInProgress ? "Uploading…" : "Save changes"}
+          </Button>
+        </div>
       </StickyActionBar>
     </form>
   );

@@ -28,6 +28,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     title,
     categoryIds,
     thumbnail_gif,
+    thumbnail_mobile,
     workplaceId,
     isRestricted,
     password,
@@ -87,6 +88,7 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         header_image,
         thumbnail_image,
         thumbnail_gif,
+        thumbnail_mobile,
         post_sections,
         status: finalStatus,
         // Stamp the first publish; older Live posts get it on their next save.

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import * as Dialog from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { useLenis } from "lenis/react";
-import { BookOpen, Image as ImageIcon } from "lucide-react";
+import { BookOpen, Image as ImageIcon, X } from "lucide-react";
 
 import { PublicGalleryPhoto } from "@/actions/gallery/get/types";
 import MainButton from "@/components/common/main-button";
@@ -269,6 +269,12 @@ const OpenViewer = ({
   );
 
   const swipe = useRef<{ x: number; y: number; id: number } | null>(null);
+  /** The press on the print, once it has picked a direction: "x" is the
+   * prev/next swipe (decided on release, as before), "y" drags the print
+   * down to close. `v` is the last downward speed, px/ms. */
+  const drag = useRef<{ axis: "x" | "y" | null; dy: number; y: number; t: number; v: number } | null>(
+    null
+  );
   /** Whether the current press started on the dark background. Only a press
    * that starts and ends there closes the viewer, so a swipe or drag that
    * begins on the photo and is released over the background never does. */
@@ -537,7 +543,32 @@ const OpenViewer = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentEl]);
 
-  const close = () => {
+  /* ---- swipe down to close (Gallery) ---- */
+
+  /** Past this far down, or flicked, the print closes the viewer. */
+  const DISMISS_PX = 100;
+  const DISMISS_SPEED = 0.5;
+
+  const dragTo = (dy: number) => {
+    const img = printImg();
+    const viewer = contentRef.current;
+    if (!img || !viewer) return;
+    img.style.transition = "none";
+    img.style.transform = `translate3d(0, ${dy}px, 0)`;
+    viewer.style.setProperty("--drag-backdrop", String(1 - Math.min(dy / 500, 0.5)));
+  };
+
+  const snapBack = () => {
+    const img = printImg();
+    const viewer = contentRef.current;
+    viewer?.removeAttribute("data-dragging");
+    viewer?.style.removeProperty("--drag-backdrop");
+    if (!img) return;
+    img.style.transition = "transform 220ms var(--pw-ease-out)";
+    img.style.removeProperty("transform");
+  };
+
+  const close = ({ swiped = false }: { swiped?: boolean } = {}) => {
     if (closing.current) return;
     closing.current = true;
     timers.current.forEach(clearTimeout);
@@ -548,7 +579,21 @@ const OpenViewer = ({
     returnTo.current = indices[0] ?? openAt;
     const thumbs = gatherGrid([...indices]);
 
-    if (inGallery) {
+    if (inGallery && swiped) {
+      // Swiped away: the print carries on down and fades, rather than flying
+      // back to its thumbnail.
+      dropGhosts();
+      const img = printImg();
+      const viewer = contentRef.current;
+      viewer?.removeAttribute("data-dragging");
+      viewer?.style.removeProperty("--drag-backdrop");
+      if (img) {
+        const dy = drag.current?.dy ?? 0;
+        img.style.transition = `transform ${closeMs}ms var(--pw-ease-out), opacity ${closeMs}ms var(--pw-ease-out)`;
+        img.style.transform = `translate3d(0, ${dy + window.innerHeight * 0.25}px, 0)`;
+        img.style.opacity = "0";
+      }
+    } else if (inGallery) {
       dropGhosts();
       const img = printImg();
       const to = thumbs[0];
@@ -627,6 +672,19 @@ const OpenViewer = ({
             </Dialog.Title>
           </VisuallyHidden>
 
+          {/* Always on screen, top right, in the arrows' style. Space is kept
+              for it above the photo on phones (photo-viewer.module.css). */}
+          <MainButton
+            rounded
+            size="icon"
+            type="button"
+            className={`${styles.navButton} ${styles.close}`}
+            onClick={() => close()}
+            aria-label="Close preview"
+          >
+            <X className="size-6" strokeWidth={1.75} aria-hidden />
+          </MainButton>
+
           {/* Phones get Gallery only: no switcher, no book. */}
           {!isPhone && (
             <ModeTabs
@@ -691,18 +749,63 @@ const OpenViewer = ({
                 active={shown === "gallery"}
                 instant={!switched.current}
                 onHidden={() => setPrintMounted(false)}
+                // The room around the print is background: a tap there closes.
+                data-backdrop=""
                 onPointerDown={(e) => {
                   swipe.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
+                  drag.current = { axis: null, dy: 0, y: e.clientY, t: e.timeStamp, v: 0 };
+                }}
+                onPointerMove={(e) => {
+                  const start = swipe.current;
+                  const d = drag.current;
+                  if (!start || !d || start.id !== e.pointerId) return;
+                  if (flying.current || closing.current) return;
+                  const dx = e.clientX - start.x;
+                  const dy = e.clientY - start.y;
+                  // Lock the direction once the press has moved a little:
+                  // mostly sideways is prev/next, mostly down is close.
+                  if (!d.axis) {
+                    if (Math.hypot(dx, dy) < 10) return;
+                    d.axis = dy > 0 && Math.abs(dy) > Math.abs(dx) ? "y" : "x";
+                    // A drag is never a tap on the background.
+                    pressOnBackground.current = false;
+                    if (d.axis === "y") {
+                      contentRef.current?.setAttribute("data-dragging", "");
+                      // Keep the moves coming if the finger leaves the stage;
+                      // throws if the pointer has already gone, which is fine.
+                      try {
+                        e.currentTarget.setPointerCapture(e.pointerId);
+                      } catch {}
+                    }
+                  }
+                  if (d.axis !== "y") return;
+                  const dt = e.timeStamp - d.t;
+                  if (dt > 0) d.v = (e.clientY - d.y) / dt;
+                  d.y = e.clientY;
+                  d.t = e.timeStamp;
+                  d.dy = Math.max(0, dy);
+                  dragTo(d.dy);
                 }}
                 onPointerUp={(e) => {
                   const start = swipe.current;
+                  const d = drag.current;
                   swipe.current = null;
                   if (!start || start.id !== e.pointerId) return;
+                  if (d?.axis === "y") {
+                    if (d.dy > DISMISS_PX || d.v > DISMISS_SPEED) close({ swiped: true });
+                    else snapBack();
+                    return;
+                  }
                   const dx = e.clientX - start.x;
                   const dy = e.clientY - start.y;
                   if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.2) {
                     step(dx < 0 ? 1 : -1);
                   }
+                }}
+                onPointerCancel={() => {
+                  swipe.current = null;
+                  if (drag.current?.axis === "y") snapBack();
+                  drag.current = null;
                 }}
               >
                 <GalleryPrint key={`photo-${photo}`} photo={photos[photo]} />
@@ -855,7 +958,8 @@ const Layer = ({
 /** One photo, contained in the stage, with a thin white print border. */
 const GalleryPrint = ({ photo }: { photo?: PublicGalleryPhoto }) =>
   photo ? (
-    <div className={styles.print}>
+    // Around the photo is background too (only the photo itself isn't).
+    <div className={styles.print} data-backdrop="">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={large(photo.image.img_url)}

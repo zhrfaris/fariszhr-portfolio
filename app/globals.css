@@ -239,10 +239,12 @@ body {
   @apply text-sm;
 }
 
+/* Size and leading come through variables so a scope (the case-study body on
+   mobile, below) can retune them without another layer of !important. */
 #innerHTML:not(.no-style) * {
-  font-size: 15px !important;
+  font-size: var(--rt-size, 15px) !important;
   font-weight: 400 !important;
-  line-height: 185% !important;
+  line-height: var(--rt-leading, 185%) !important;
 }
 
 #innerHTML:not(.no-style) ul li {
@@ -277,9 +279,9 @@ body {
 }
 
 #innerHTML.section-richtext h4 {
-  font-size: 16px !important;
+  font-size: var(--rt-h4-size, 16px) !important;
   font-weight: 600 !important;
-  line-height: 1.4 !important;
+  line-height: var(--rt-h4-leading, 1.4) !important;
   margin: 1rem 0 0.25rem;
 }
 
@@ -287,26 +289,41 @@ body {
   margin-top: 0;
 }
 
-/* The divider a section opens with, right under its title. Measured from the
-   text itself, the room above it is the section's 1.5rem gap plus the title's
-   half-leading (18px at 1.35, SECTION_TITLE), and below it only the first
-   paragraph's half-leading (15px at 185%, SECTION_BODY), so it read as an
-   underline of the paragraph. It moves up by half the difference, and the
-   same amount opens up below it, so it sits midway. */
-.section > h3 + div > :first-child > :first-child > #innerHTML.section-richtext > hr:first-child {
-  margin-top: calc(((15px * 1.85 - 15px) / 2 - (1.5rem + (18px * 1.35 - 18px) / 2)) / 2);
+/* Case-study body, every width: a quieter reading rhythm. 14/28 text with 1px
+   tracking, 16px between blocks, 8px between list items, bold-only lines
+   (sub-labels) and h4s at 14/28 with 8px below. Under the section title the
+   divider sits flush at the top (the title is 8px above it, portfolio-section)
+   with 20px down to the first block. */
+#innerHTML.section-richtext {
+  --rt-size: 14px;
+  --rt-leading: 28px;
+  --rt-h4-size: 14px;
+  --rt-h4-leading: 28px;
+  letter-spacing: 1px;
+}
+
+#innerHTML.section-richtext:not(.no-style) > :is(p, ul, ol, h2, h3, h4, blockquote) {
+  margin-bottom: 16px;
+}
+
+#innerHTML.section-richtext:not(.no-style) > :is(p, ul, ol, h2, h3, h4, blockquote):last-child {
   margin-bottom: 0;
 }
 
-/* The room below is carried by whatever follows (a margin of its own would
-   otherwise collapse into the divider's): that half-difference, plus the
-   paragraph's half-leading less its own, so an h4 (shorter leading) lands
-   its text where a paragraph's would. */
+#innerHTML.section-richtext:not(.no-style) > :is(h4, p:has(> strong:only-child)) {
+  margin-bottom: 8px;
+}
+
+#innerHTML.section-richtext li + li {
+  margin-top: 8px;
+}
+
+.section > h3 + div > :first-child > :first-child > #innerHTML.section-richtext > hr:first-child {
+  margin-top: 0;
+}
+
 .section > h3 + div > :first-child > :first-child > #innerHTML.section-richtext > hr:first-child + * {
-  margin-top: calc(
-    ((1.5rem + (18px * 1.35 - 18px) / 2) - (15px * 1.85 - 15px) / 2) / 2 +
-      (15px * 1.85 - 15px) / 2 - (1lh - 1em) / 2
-  );
+  margin-top: 20px;
 }
 
 #innerHTML.section-richtext strong,

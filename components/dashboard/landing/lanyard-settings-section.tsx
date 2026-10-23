@@ -54,7 +54,8 @@ const NUMBER_FIELDS: { key: NumberKey; label: string; hint: string }[] = [
 
 /**
  * The hanging ID card's settings, shared by / and /photography, as four
- * section cards (Card, Lanyard band, Size & motion, Behavior). Controlled by
+ * section cards (Card, Lanyard band, Size & motion, Behavior), with the
+ * owner's live preview card slotted in before Size & motion. Controlled by
  * the Landing Page form, which saves them with the rest of the page.
  */
 const LanyardSettingsSection = ({
@@ -62,12 +63,15 @@ const LanyardSettingsSection = ({
   onChange,
   bandImage,
   onBandImageChange,
+  preview,
   errors,
 }: {
   value: LanyardSettings;
   onChange: (next: LanyardSettings) => void;
   bandImage: ImageType | null;
   onBandImageChange: (image: ImageType | null) => void;
+  /** The live card preview, shown between Lanyard band and Size & motion. */
+  preview?: React.ReactNode;
   errors?: Record<string, string[] | undefined>;
 }) => {
   const set = <K extends keyof LanyardSettings>(
@@ -183,60 +187,67 @@ const LanyardSettingsSection = ({
         />
       </SectionCard>
 
-      <SectionCard
-        icon="sizeMotion"
-        title="Size & motion"
-        description="How big the card is and how it swings when visitors drag it."
-      >
-        {NUMBER_FIELDS.map(({ key, label, hint }) => {
-          const [min, max, step] = LANYARD_RANGES[key];
-          return (
-            <RangeField
-              key={key}
-              id={`lanyard_${key}`}
-              label={label}
-              hint={hint}
-              min={min}
-              max={max}
-              step={step}
-              value={value[key]}
-              onChange={(n) => set(key, n)}
-              errors={errors}
-            />
-          );
-        })}
-      </SectionCard>
+      {preview}
 
-      <SectionCard
-        icon="behavior"
-        title="Behavior"
-        description="Whether visitors can drag the card, and how it arrives when the page loads."
-      >
-        <FormSwitch
-          id="lanyard_interactive"
-          label="Interactive"
-          hint="Drag and throw the card. Tapping always switches mode."
-          value={value.interactive}
-          onCheckedChange={(checked) => set("interactive", checked)}
-        />
-        <FormSelect
-          layout="row"
-          id="lanyard_entrance"
-          label="Entrance"
-          hint="How the card arrives on page load."
-          values={["drop", "swing", "off"]}
-          labels={{
-            drop: "Drop from top",
-            swing: "Swing from side",
-            off: "Off",
-          }}
-          value={value.entrance}
-          onValueChange={(v) =>
-            set("entrance", v as LanyardSettings["entrance"])
-          }
-          errors={errors}
-        />
-      </SectionCard>
+      {/* data-lanyard-ignore: the preview's canvas runs on below its card
+          (clipped), so a press on these cards never grabs the preview card.
+          display: contents keeps them in the column's flow. */}
+      <div className="contents" data-lanyard-ignore="">
+        <SectionCard
+          icon="sizeMotion"
+          title="Size & motion"
+          description="How big the card is and how it swings when visitors drag it."
+        >
+          {NUMBER_FIELDS.map(({ key, label, hint }) => {
+            const [min, max, step] = LANYARD_RANGES[key];
+            return (
+              <RangeField
+                key={key}
+                id={`lanyard_${key}`}
+                label={label}
+                hint={hint}
+                min={min}
+                max={max}
+                step={step}
+                value={value[key]}
+                onChange={(n) => set(key, n)}
+                errors={errors}
+              />
+            );
+          })}
+        </SectionCard>
+
+        <SectionCard
+          icon="behavior"
+          title="Behavior"
+          description="Whether visitors can drag the card, and how it arrives when the page loads."
+        >
+          <FormSwitch
+            id="lanyard_interactive"
+            label="Interactive"
+            hint="Drag and throw the card. Tapping always switches mode."
+            value={value.interactive}
+            onCheckedChange={(checked) => set("interactive", checked)}
+          />
+          <FormSelect
+            layout="row"
+            id="lanyard_entrance"
+            label="Entrance"
+            hint="How the card arrives on page load."
+            values={["drop", "swing", "off"]}
+            labels={{
+              drop: "Drop from top",
+              swing: "Swing from side",
+              off: "Off",
+            }}
+            value={value.entrance}
+            onValueChange={(v) =>
+              set("entrance", v as LanyardSettings["entrance"])
+            }
+            errors={errors}
+          />
+        </SectionCard>
+      </div>
     </>
   );
 };

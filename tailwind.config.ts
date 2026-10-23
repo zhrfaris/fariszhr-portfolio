@@ -122,5 +122,14 @@ export default {
   plugins: [
     require("tailwindcss-animate"),
     require("@tailwindcss/container-queries"),
+    // `mouse-hover:` is `hover:` for devices that really hover. Plain :hover
+    // sticks on touch screens after a tap (MainButton uses this one).
+    require("tailwindcss/plugin")(
+      ({ addVariant }: { addVariant: (name: string, rule: string) => void }) =>
+        addVariant(
+          "mouse-hover",
+          "@media (hover: hover) and (pointer: fine) { &:hover }"
+        )
+    ),
   ],
 } satisfies Config;
