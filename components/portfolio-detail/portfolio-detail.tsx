@@ -14,6 +14,8 @@ import {
   COVER_IMAGE,
   COVER_INNER,
   COVER_WRAPPER_BASE,
+  COVER_HIDDEN_MOBILE,
+  CONTENT_OFFSET_MOBILE,
   DETAIL_COLUMN,
   DETAIL_TITLE,
   FIRST_SECTION,
@@ -58,7 +60,15 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
           <span>Edit Post</span>
         </Link>
       )}
-      <div className={cn(COVER_WRAPPER_BASE, "flex flex-col justify-end")}>
+      {/* No cover on mobile (CSS, so it also applies in the preview's
+          Mobile iframe). The image is lazy, so a hidden cover never loads. */}
+      <div
+        className={cn(
+          COVER_WRAPPER_BASE,
+          "flex flex-col justify-end",
+          COVER_HIDDEN_MOBILE,
+        )}
+      >
         <div className={COVER_INNER}>
           <Image
             alt=""
@@ -69,7 +79,7 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
         </div>
       </div>
 
-      <div className="px-6 pb-24">
+      <div className={cn("px-6 pb-24", CONTENT_OFFSET_MOBILE)}>
         <div className={DETAIL_COLUMN}>
           {/* Portfolio Title Header */}
           <div className={TITLE_HEADER_ROW}>
