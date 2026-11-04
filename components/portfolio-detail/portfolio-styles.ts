@@ -10,6 +10,14 @@ export const COVER_WRAPPER_BASE =
 
 export const COVER_INNER = "size-full relative max-w-[1800px] mx-auto";
 
+/** The public page drops the cover below md. */
+export const COVER_HIDDEN_MOBILE = "max-md:hidden";
+
+/** With no cover on mobile, the content starts under the fixed navbar
+ * (68px: 16px padding + 36px nav button + 16px); the column's own 24px top
+ * padding is then the gap between navbar and first content. */
+export const CONTENT_OFFSET_MOBILE = "max-md:pt-[68px]";
+
 export const COVER_IMAGE = "size-full object-contain object-bottom md:object-cover";
 
 /** Centered 640px reading column. */

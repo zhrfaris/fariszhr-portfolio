@@ -5,7 +5,13 @@ import { Post } from "@/actions/post/get/types";
 import { updatePost } from "@/actions/post/update";
 import { useAction } from "@/hooks/use-action";
 import { Image as ImageType, Status } from "@prisma/client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -47,6 +53,11 @@ import {
   StickyActionBar,
 } from "@/components/dashboard/page-layout";
 import { WorkplacePickerItem } from "@/actions/workplace/get-with-image";
+import {
+  PostPreviewData,
+  clearPreview,
+  writePreview,
+} from "@/lib/post-preview";
 
 /** Max lengths for the Title / Description fields. Final values, with enough
  * headroom for every existing post. */
@@ -70,6 +81,7 @@ type FieldError = { field: FieldKey; message: string };
 
 const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
   const router = useRouter();
+  const postId = initialData?.id;
 
   const descRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -258,6 +270,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     },
     onSuccess: async () => {
       toast.success("Post updated!");
+      if (postId) clearPreview(postId);
       await cleanupImages();
       resetForm();
       router.push("/dashboard/posts");
@@ -352,10 +365,73 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     executeCreate(payload);
   };
 
+  /* ------------------------------------------------------------ preview */
+  // Preview hands the current (unsaved) state to a new tab via localStorage;
+  // nothing is saved and the post's status is untouched. Once a preview has
+  // been opened, further edits are re-sent (debounced) so the tab stays live.
+  const previewActiveRef = useRef(false);
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const buildPreview = (): PostPreviewData => ({
+    title,
+    excerpt,
+    header_image: cover,
+    categories: categories
+      .map(
+        (id) =>
+          categoryOptions.find((o) => o.id === id) ??
+          initialData?.categories.find((c) => c.id === id)
+      )
+      .filter((c): c is { id: string; name: string } => !!c)
+      .map((c) => ({ id: c.id, name: c.name })),
+    workplace: workplace
+      ? { id: workplace.id, name: workplace.name, image: workplace.image }
+      : null,
+    post_sections: documentHtmlToSections(bodyHtmlRef.current),
+    updatedAt: Date.now(),
+  });
+  // Read through a ref so the debounced write always sends the latest state.
+  const buildPreviewRef = useRef(buildPreview);
+  buildPreviewRef.current = buildPreview;
+
+  const schedulePreviewSync = useCallback(() => {
+    if (!postId || !previewActiveRef.current) return;
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    previewTimerRef.current = setTimeout(() => {
+      writePreview(postId, buildPreviewRef.current());
+    }, 500);
+  }, [postId]);
+
+  useEffect(() => {
+    schedulePreviewSync();
+  }, [title, excerpt, cover, categories, workplace, schedulePreviewSync]);
+
+  // The editor starts from the saved post, so any preview data left over
+  // from an earlier session is stale.
+  useEffect(() => {
+    if (postId) clearPreview(postId);
+    return () => {
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    };
+  }, [postId]);
+
+  const handlePreview = () => {
+    if (!postId || !initialData?.slug) return;
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    previewActiveRef.current = true;
+    writePreview(postId, buildPreview());
+    // Named target: clicking again focuses the same preview tab.
+    window.open(
+      `/dashboard/posts/${initialData.slug}/preview`,
+      `post-preview-${postId}`
+    );
+  };
+
   const handleCancel = () => {
     if (isDirty && !window.confirm("You have unsaved changes. Leave anyway?")) {
       return;
     }
+    if (postId) clearPreview(postId);
     resetForm();
     router.push("/dashboard/posts");
   };
@@ -587,6 +663,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
               if (previewSectionAmount && previewSectionAmount > max)
                 setPreviewSectionAmount(max);
               markDirty();
+              schedulePreviewSync();
             }}
             placeholder="Press '/' for commands"
           />
@@ -594,6 +671,19 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       </PageColumn>
 
       <StickyActionBar>
+        {/* Preview only exists for saved posts (it lives at the post's URL).
+            mr-auto pins it to the far left of the right-aligned bar. */}
+        {postId && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="mr-auto"
+            onClick={handlePreview}
+          >
+            <Eye />
+            Preview
+          </Button>
+        )}
         <Button
           type="button"
           variant="ghost"
