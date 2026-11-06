@@ -9,7 +9,6 @@ type State = {
   excerpt: string;
   isRestricted: boolean | null;
   password: string | null;
-  previewSectionAmount: number | null;
   isDirty: boolean;
 };
 
@@ -20,7 +19,6 @@ type Action = {
   setSaveAsDraft: (bool: boolean) => void;
   setIsRestricted: (data: boolean | null) => void;
   setPassword: (data: string | null) => void;
-  setPreviewSectionAmount: (data: number | null) => void;
   setDirty: (bool: boolean) => void;
 };
 
@@ -31,7 +29,6 @@ export const usePostForm = create<State & Action>((set) => ({
   saveAsDraft: false,
   isRestricted: null,
   password: null,
-  previewSectionAmount: null,
   isDirty: false,
   setSlug: (slug) => set(() => ({ slug })),
   setTitle: (title) => set(() => ({ title })),
@@ -48,7 +45,6 @@ export const usePostForm = create<State & Action>((set) => ({
         return {
           isRestricted: data,
           password: null,
-          previewSectionAmount: null,
         };
       }
 
@@ -57,6 +53,4 @@ export const usePostForm = create<State & Action>((set) => ({
       };
     }),
   setPassword: (data) => set(() => ({ password: data })),
-  setPreviewSectionAmount: (data) =>
-    set(() => ({ previewSectionAmount: data })),
 }));

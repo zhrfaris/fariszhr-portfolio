@@ -83,7 +83,6 @@ export const CreatePost = z.object({
 
   isRestricted: z.boolean().optional(),
   password: z.string().optional().nullable(),
-  previewSectionAmount: z.number().optional().nullable(),
 
   post_sections: z.array(PostSection),
 

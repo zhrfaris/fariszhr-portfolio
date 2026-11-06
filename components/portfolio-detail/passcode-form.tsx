@@ -1,15 +1,23 @@
 "use client";
 
-import { User } from "@/actions/user/get/type";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import React, { useState, useTransition } from "react";
 import MainButton from "../common/main-button";
 import { Loader, MoveRight } from "lucide-react";
-import { verifyPostPasscode } from "@/actions/post/get";
+import { useRouter } from "next/navigation";
+import { unlockPost } from "@/actions/post/unlock";
 
-const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
-  const email = user?.email || "fariszhr.studio@gmail.com";
+const PasscodeForm = ({
+  email: ownerEmail,
+  slug,
+}: {
+  email?: string | null;
+  slug: string;
+}) => {
+  const email = ownerEmail || "fariszhr.studio@gmail.com";
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   const [passcode, setPasscode] = useState("");
   const [isShaking, setIsShaking] = useState(false);
@@ -18,12 +26,17 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
 
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
-      const result = await verifyPostPasscode(slug, formData);
+      const result = await unlockPost(slug, formData);
       if (!result.success) {
+        setError(result.error);
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 400);
+        inputRef.current?.select();
       } else {
-        window.location.reload();
+        setError(null);
+        // Re-render on the server: it now sees the unlock cookie and sends
+        // the Content.
+        router.refresh();
       }
     });
   };
@@ -31,12 +44,13 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
   const handleClear = () => {
     setPasscode("");
     setIsShaking(false);
+    setError(null);
     inputRef.current?.focus();
   };
 
   return (
-    <div className="rounded-3xl bg-white shadow-2xl w-full max-w-[420px]">
-      <div className="p-8 space-y-4">
+    <div className="rounded-3xl bg-white shadow-2xl w-full">
+      <div className="p-6 md:p-8 space-y-4">
         <div className="space-y-2">
           <h2
             className="font-semibold text-xl"
@@ -60,7 +74,7 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
         <form action={handleSubmit} className="flex items-center gap-2">
           <div
             className={cn(
-              "relative flex items-center flex-1 md:min-w-[280px]",
+              "relative flex items-center flex-1 min-w-0",
             )}
           >
             <input
@@ -70,14 +84,20 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
               name="passcode"
               placeholder="Enter password"
               value={passcode}
-              onChange={(e) => setPasscode(e.target.value)}
+              onChange={(e) => {
+                setPasscode(e.target.value);
+                if (error) setError(null);
+              }}
+              aria-invalid={!!error}
+              aria-describedby={error ? "passcode-error" : undefined}
               disabled={isPending}
               className={cn(
                 "h-[44px] w-full rounded-full py-2 pl-4 pr-4 border text-sm outline-none transition-colors focus:border-foreground",
                 passcode.length > 0
                   ? "border-foreground pr-14"
                   : "border-input",
-                isShaking && "animate-wiggle border-red-500 text-red-500 focus:border-red-500",
+                (isShaking || error) && "border-red-500 focus:border-red-500",
+                isShaking && "animate-wiggle text-red-500",
               )}
             />
             {passcode.length > 0 && (
@@ -98,6 +118,15 @@ const PasscodeForm = ({ user, slug }: { user: User; slug: string }) => {
             )}
           </MainButton>
         </form>
+        {error && (
+          <p
+            id="passcode-error"
+            role="alert"
+            className="pl-4 text-xs text-red-500"
+          >
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );
