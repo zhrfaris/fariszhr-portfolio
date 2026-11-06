@@ -27,7 +27,8 @@ import {
 interface PortfolioDetailProps {
   post: NonNullable<Portfolio>;
   showEditButton?: boolean;
-  /** Restricted post, still locked: shown under the title instead of Content. */
+  /** Restricted post, still locked: the password card. `post.post_sections`
+   *  then holds only the server-trimmed preview, shown clipped and faded. */
   lockedSlot?: React.ReactNode;
 }
 
@@ -53,7 +54,9 @@ const PortfolioDetail = ({
   }, []);
 
   return (
-    <div className="min-h-screen relative">
+    // A locked post is short (header + password card): let the page end
+    // after it instead of padding out to a full screen.
+    <div className={cn("relative", !lockedSlot && "min-h-screen")}>
       {showEditButton && (
         <Link
           href={`/dashboard/posts/${post.slug}/edit`}
@@ -106,17 +109,36 @@ const PortfolioDetail = ({
           {/* Portfolio Title */}
           <h2 className={DETAIL_TITLE}>{post.title}</h2>
 
-          {lockedSlot}
-
-          {/* Portfolio Sections */}
-          {!lockedSlot && post?.post_sections.map((section, i) => (
-            <PortfolioSection
-              key={section.id}
-              section={section}
-              showFull={true}
-              className={i === 0 ? FIRST_SECTION : undefined}
-            />
-          ))}
+          {lockedSlot ? (
+            <div className={cn("relative", FIRST_SECTION)}>
+              {/* Preview: capped at 360/400px, cut off, fading to the page
+                  color. A cap (not a fixed height) so a short preview, e.g.
+                  one that stops at the first image, still ends in the fade. */}
+              <div className="relative max-h-[360px] md:max-h-[400px] overflow-hidden">
+                {post.post_sections.map((section) => (
+                  <PortfolioSection
+                    key={section.id}
+                    section={section}
+                    showFull={true}
+                  />
+                ))}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-b from-transparent to-background" />
+              </div>
+              {/* Card sits on the bottom of the fade. */}
+              <div className="relative z-10 -mt-12 flex justify-center">
+                <div className="w-full md:max-w-[440px]">{lockedSlot}</div>
+              </div>
+            </div>
+          ) : (
+            post?.post_sections.map((section, i) => (
+              <PortfolioSection
+                key={section.id}
+                section={section}
+                showFull={true}
+                className={i === 0 ? FIRST_SECTION : undefined}
+              />
+            ))
+          )}
         </div>
       </div>
 

@@ -9,9 +9,9 @@ import { notFound, redirect } from "next/navigation";
 import { Metadata, ResolvingMetadata } from "next";
 import { MAIN_USERNAME } from "@/lib/db";
 import { hasUnlockedPost } from "@/lib/post-lock";
+import { buildLockedPreview } from "@/lib/locked-preview";
 import { getUser } from "@/actions/user/get";
 import PasscodeForm from "@/components/portfolio-detail/passcode-form";
-import LockedContent from "@/components/portfolio-detail/locked-content";
 
 interface PortfolioDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -76,22 +76,19 @@ const PortfolioDetailPage = async ({ params }: PortfolioDetailPageProps) => {
   const { passwordHashed, previewSectionAmount, ...publicPost } = post;
 
   // Restricted post: without a valid signed unlock cookie, the server sends
-  // only the header (cover, categories, title). No Content leaves the server.
+  // the header plus only the first few text blocks of Content (trimmed here,
+  // on the server). The rest never leaves the server until unlocked.
   if (post.isRestricted && !(await hasUnlockedPost(slug, post))) {
     const user = await getUser();
     const lockedPost = {
       ...publicPost,
-      post_sections: [],
+      post_sections: buildLockedPreview(post.post_sections),
     } as unknown as NonNullable<typeof post>;
 
     return (
       <PortfolioDetail
         post={lockedPost}
-        lockedSlot={
-          <LockedContent>
-            <PasscodeForm slug={slug} email={user?.email} />
-          </LockedContent>
-        }
+        lockedSlot={<PasscodeForm slug={slug} email={user?.email} />}
       />
     );
   }

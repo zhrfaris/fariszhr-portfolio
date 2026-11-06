@@ -537,7 +537,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
         <SectionCard
           icon="restrictPost"
           title="Restrict post"
-          description="Keep it public, or lock it with a password. Visitors only see the cover, categories and title until they enter it."
+          description="Keep it public, or lock it with a password. Visitors see the title and a short preview until they enter it."
           action={
             <Switch
               id="isRestricted"

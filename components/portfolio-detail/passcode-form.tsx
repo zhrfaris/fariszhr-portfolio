@@ -49,8 +49,8 @@ const PasscodeForm = ({
   };
 
   return (
-    <div className="rounded-3xl bg-white shadow-2xl w-full max-w-[420px]">
-      <div className="p-8 space-y-4">
+    <div className="rounded-3xl bg-white shadow-2xl w-full">
+      <div className="p-6 md:p-8 space-y-4">
         <div className="space-y-2">
           <h2
             className="font-semibold text-xl"
@@ -74,7 +74,7 @@ const PasscodeForm = ({
         <form action={handleSubmit} className="flex items-center gap-2">
           <div
             className={cn(
-              "relative flex items-center flex-1 md:min-w-[280px]",
+              "relative flex items-center flex-1 min-w-0",
             )}
           >
             <input
