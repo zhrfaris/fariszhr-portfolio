@@ -31,7 +31,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     workplaceId,
     isRestricted,
     password,
-    previewSectionAmount,
   } = data;
 
   // Slug is always derived from the title (the field was removed from the UI).
@@ -77,7 +76,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         workplace: { connect: { id: workplaceId } },
         isRestricted,
         passwordHashed: password ? encrypt(password.trim()) : undefined,
-        previewSectionAmount,
       },
     });
   } catch (error) {

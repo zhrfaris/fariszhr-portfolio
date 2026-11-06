@@ -32,7 +32,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
     workplaceId,
     isRestricted,
     password,
-    previewSectionAmount,
   } = data;
 
   const current = await db.post.findUnique({
@@ -104,7 +103,6 @@ const handler = async (data: InputType): Promise<ReturnType> => {
         isRestricted,
         passwordHashed:
           isRestricted && password ? encrypt(password.trim()) : null,
-        previewSectionAmount: isRestricted ? previewSectionAmount : null,
       },
     });
   } catch (error) {

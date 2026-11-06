@@ -1,14 +1,12 @@
 import { getPostBySlug } from "@/actions/post/get";
-import { cookies } from "next/headers";
+import { hasUnlockedPost } from "@/lib/post-lock";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Public endpoint returning a post's sections. This mirrors the passcode gating
- * enforced by the public portfolio page: for a restricted post, only the preview
- * sections are returned unless the caller holds a valid `unlocked_<slug>` cookie
- * (set by verifyPostPasscode). This prevents the full restricted content from
- * being fetched directly via the API to bypass the passcode. It is NOT gated
- * behind login because public visitors read posts without an account.
+ * Public endpoint returning a post's sections. Mirrors the public page's lock:
+ * a restricted post returns NO content (403) unless the caller holds a valid
+ * signed unlock cookie (set by actions/post/unlock). Not gated behind login
+ * because public visitors read posts without an account.
  */
 export async function GET(
   request: NextRequest,
@@ -25,15 +23,8 @@ export async function GET(
 
     const sections = post.post_sections ?? [];
 
-    if (post.isRestricted) {
-      const cookieStore = await cookies();
-      const isUnlocked =
-        cookieStore.get(`unlocked_${slug}`)?.value === "true";
-
-      if (!isUnlocked) {
-        const preview = sections.slice(0, post.previewSectionAmount || 3);
-        return NextResponse.json(preview, { status: 200 });
-      }
+    if (post.isRestricted && !(await hasUnlockedPost(slug, post))) {
+      return NextResponse.json({ error: "Locked" }, { status: 403 });
     }
 
     return NextResponse.json(sections, { status: 200 });

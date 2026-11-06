@@ -44,7 +44,6 @@ import CoverUploader from "./cover-uploader";
 import WorkplacePicker from "./workplace-picker";
 import {
   CardDivider,
-  ControlRow,
   SectionCard,
 } from "@/components/dashboard/section-card";
 import {
@@ -108,9 +107,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     });
 
   const [showPassword, setShowPassword] = useState(false);
-  // Raw text of the preview-amount input while typing; null shows the stored
-  // value (so a cleared field doesn't fight the controlled number).
-  const [previewInput, setPreviewInput] = useState<string | null>(null);
 
   const [categories, setCategories] = useState<string[]>(
     initialData?.categoryIds ?? []
@@ -145,25 +141,17 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     create: createCategoryOption,
   } = useCategories();
 
-  // Number of Section blocks in the body → the max for "preview section
-  // amount" (never below 1).
-  const [sectionCount, setSectionCount] = useState<number>(
-    initialData?.post_sections?.length ?? 0
-  );
-
   const {
     title,
     excerpt,
     isRestricted,
     password,
-    previewSectionAmount,
     isDirty,
     setTitle,
     setExcerpt,
     setSaveAsDraft,
     setIsRestricted,
     setPassword,
-    setPreviewSectionAmount,
     setDirty,
   } = usePostForm((state) => state);
 
@@ -182,7 +170,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       setIsRestricted(initialData?.isRestricted ?? null);
       setTitle(initialData?.title ?? "");
       setExcerpt(initialData?.excerpt ?? "");
-      setPreviewSectionAmount(initialData?.previewSectionAmount ?? null);
       // Seed the decrypted passcode so saving an untouched restricted post
       // doesn't wipe its password (the field is controlled now).
       setPassword(initialPasscode || null);
@@ -192,13 +179,10 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       setExcerpt("");
       setIsRestricted(null);
       setPassword(null);
-      setPreviewSectionAmount(null);
     }
     setDirty(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
-
-  const maxPreviewSections = Math.max(sectionCount, 1);
 
   // Keep the auto-growing description sized to its content (incl. prefilled).
   useEffect(() => {
@@ -225,13 +209,11 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
     setExcerpt("");
     setIsRestricted(null);
     setPassword(null);
-    setPreviewSectionAmount(null);
     setDirty(false);
     bodyHtmlRef.current = "";
     setThumbnail({ image: null, gif: null, mobile: null });
     setCover(null);
     setWorkplace(null);
-    setSectionCount(0);
     setErrors({});
   };
 
@@ -355,7 +337,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
       workplaceId: workplace?.id,
       isRestricted: !!isRestricted,
       password: isRestricted ? password : null,
-      previewSectionAmount: isRestricted ? previewSectionAmount ?? 1 : null,
     };
 
     if (initialData?.id) {
@@ -556,7 +537,7 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
         <SectionCard
           icon="restrictPost"
           title="Restrict post"
-          description="Keep it public, or lock it with a password and choose how many sections visitors can preview first."
+          description="Keep it public, or lock it with a password. Visitors only see the cover, categories and title until they enter it."
           action={
             <Switch
               id="isRestricted"
@@ -565,7 +546,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
               checked={isRestricted === null ? false : isRestricted}
               onCheckedChange={(bool) => {
                 setIsRestricted(bool);
-                if (bool && !previewSectionAmount) setPreviewSectionAmount(1);
                 if (!bool) clearError("password");
                 markDirty();
               }}
@@ -616,31 +596,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
                 </div>
               </Field>
 
-              <ControlRow
-                id="post-preview-amount"
-                label="Preview section amount"
-              >
-                <Input
-                  id="post-preview-amount"
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={maxPreviewSections}
-                  step={1}
-                  value={previewInput ?? previewSectionAmount ?? 1}
-                  onChange={(e) => {
-                    setPreviewInput(e.target.value);
-                    const n = parseInt(e.target.value, 10);
-                    if (Number.isNaN(n)) return;
-                    setPreviewSectionAmount(
-                      Math.min(Math.max(n, 1), maxPreviewSections)
-                    );
-                    markDirty();
-                  }}
-                  onBlur={() => setPreviewInput(null)}
-                  className="w-16 shrink-0 text-right"
-                />
-              </ControlRow>
             </>
           )}
         </SectionCard>
@@ -656,12 +611,6 @@ const PostEditor = ({ initialData, initialPasscode }: PostEditorProps) => {
             initialHTML={initialBodyHtml}
             onChange={(html) => {
               bodyHtmlRef.current = html;
-              const count = documentHtmlToSections(html).length;
-              setSectionCount(count);
-              // Removing Sections lowers the max preview amount with them.
-              const max = Math.max(count, 1);
-              if (previewSectionAmount && previewSectionAmount > max)
-                setPreviewSectionAmount(max);
               markDirty();
               schedulePreviewSync();
             }}

@@ -27,9 +27,15 @@ import {
 interface PortfolioDetailProps {
   post: NonNullable<Portfolio>;
   showEditButton?: boolean;
+  /** Restricted post, still locked: shown under the title instead of Content. */
+  lockedSlot?: React.ReactNode;
 }
 
-const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
+const PortfolioDetail = ({
+  post,
+  showEditButton,
+  lockedSlot,
+}: PortfolioDetailProps) => {
   const { scrollToTop } = useLenisScroll();
   const [showBackToTop, setShowBackToTop] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
@@ -100,8 +106,10 @@ const PortfolioDetail = ({ post, showEditButton }: PortfolioDetailProps) => {
           {/* Portfolio Title */}
           <h2 className={DETAIL_TITLE}>{post.title}</h2>
 
+          {lockedSlot}
+
           {/* Portfolio Sections */}
-          {post?.post_sections.map((section, i) => (
+          {!lockedSlot && post?.post_sections.map((section, i) => (
             <PortfolioSection
               key={section.id}
               section={section}
